@@ -2,22 +2,28 @@ import React, { useState } from 'react';
 import { 
   Shield, 
   MessageSquare, 
-  Calendar, 
-  Activity, 
   Smartphone, 
   CheckCircle2, 
   AlertCircle,
   Copy,
-  ExternalLink,
+  Cpu,
+  Calendar,
   ChevronRight,
-  Cpu
+  Activity
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { gateway } from './gateway-api';
 
 const App: React.FC = () => {
   const [setupToken] = useState("magic_onboarding_2026");
   const [magicLink] = useState(`https://saas.openclaw.ai/setup?token=${setupToken}`);
   const [isCopied, setIsCopied] = useState(false);
+  
+  // Real-time Gateway State
+  const [qrUrl, setQrUrl] = useState<string | null>(null);
+  const [isLinking, setIsLinking] = useState(false);
+  const [isLinked, setIsLinked] = useState(false);
+  const [isRebooting, setIsRebooting] = useState(false);
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(magicLink);
@@ -25,20 +31,44 @@ const App: React.FC = () => {
     setTimeout(() => setIsCopied(false), 2000);
   };
 
+  const handleStartLinking = async () => {
+    setIsLinking(true);
+    setQrUrl(null);
+    const result = await gateway.startWhatsAppLogin();
+    if (result.ok && result.payload?.qrDataUrl) {
+      setQrUrl(result.payload.qrDataUrl);
+      
+      // Simulation: Start waiting for scan
+      const waitResult = await gateway.waitForWhatsAppLogin();
+      if (waitResult.ok && waitResult.payload?.connected) {
+        setIsLinked(true);
+        setIsLinking(false);
+      }
+    } else {
+      setIsLinking(false);
+    }
+  };
+
+  const handleReboot = async () => {
+    setIsRebooting(true);
+    await gateway.rebootAgent();
+    setTimeout(() => setIsRebooting(false), 3000);
+  };
+
   const statusCards = [
     { 
       title: "Agent Brain", 
-      status: "Online", 
-      icon: <Cpu className="text-sky-400" />, 
+      status: isRebooting ? "Rebooting..." : "Online", 
+      icon: <Cpu className={isRebooting ? "pulse text-amber-400" : "text-sky-400"} />, 
       details: "Docker Instance: ClawBot-V2",
-      type: "active"
+      type: isRebooting ? "pending" : "active"
     },
     { 
       title: "WhatsApp Pair", 
-      status: "Waiting for QR", 
-      icon: <MessageSquare className="text-amber-400" />, 
-      details: "No session detected",
-      type: "pending"
+      status: isLinked ? "Linked" : (isLinking ? "Waiting for QR" : "Disconnected"), 
+      icon: <MessageSquare className={isLinked ? "text-emerald-400" : (isLinking ? "pulse text-amber-400" : "text-slate-400")} />, 
+      details: isLinked ? "Session: Active (v2)" : "No session detected",
+      type: isLinked ? "active" : (isLinking ? "pending" : "inactive")
     },
     { 
       title: "Privacy Vault", 
@@ -68,9 +98,12 @@ const App: React.FC = () => {
           </div>
         </div>
         <div className="glass-panel" style={{padding: '10px 20px', display: 'flex', alignItems: 'center', gap: '12px'}}>
-          <div className="status-dot pulse" style={{backgroundColor: 'var(--accent-success)'}}></div>
-          <span style={{fontSize: '14px', fontWeight: 600}}>System Operational</span>
+          <div className={`status-dot ${isRebooting ? 'pulse' : ''}`} style={{backgroundColor: isRebooting ? 'var(--accent-warning)' : 'var(--accent-success)'}}></div>
+          <span style={{fontSize: '14px', fontWeight: 600}}>{isRebooting ? 'Rebooting...' : 'System Operational'}</span>
         </div>
+        <button onClick={handleReboot} className="button-primary" style={{marginLeft: '20px', background: 'rgba(248, 113, 113, 0.2)', border: '1px solid rgba(248, 113, 113, 0.3)'}}>
+            Emergency Reboot
+        </button>
       </header>
 
       <main>
@@ -144,26 +177,43 @@ const App: React.FC = () => {
         <div style={{marginTop: '24px'}} className="glass-panel card">
           <div className="qr-section">
             <div className="qr-placeholder" style={{display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative'}}>
-              <img 
-                src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=ClawSecretaryManualPairing" 
-                alt="WhatsApp QR" 
-                style={{width: '160px', opacity: 0.3}}
-              />
-              <div style={{position: 'absolute', textAlign: 'center'}}>
-                <AlertCircle size={32} className="text-amber-500" style={{margin: '0 auto 8px'}} />
-                <p style={{fontSize: '10px', color: '#333', fontWeight: 600}}>LINKING...</p>
-              </div>
+              {qrUrl ? (
+                 <img src={qrUrl} alt="WhatsApp QR" style={{width: '160px'}} />
+              ) : (
+                <>
+                  <img 
+                    src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=ClawSecretaryManualPairing" 
+                    alt="WhatsApp QR Placeholder" 
+                    style={{width: '160px', opacity: 0.1}}
+                  />
+                  <div style={{position: 'absolute', textAlign: 'center'}}>
+                    <AlertCircle size={32} className="text-slate-500" style={{margin: '0 auto 8px'}} />
+                    <p style={{fontSize: '10px', color: '#666', fontWeight: 600}}>READY TO PAIR</p>
+                  </div>
+                </>
+              )}
             </div>
             <div style={{flex: 1}}>
               <h2 style={{fontSize: '20px', fontWeight: 700, marginBottom: '8px'}}>WhatsApp Hub pairing</h2>
               <p style={{color: 'var(--text-muted)', marginBottom: '20px'}}>
-                Scan the QR code with your phone (Linked Devices) to authorize the Secretary to send proactive briefings.
+                {isLinked 
+                  ? "✅ Sucessfully linked! Your Secretary can now send proactive notifications." 
+                  : "Scan the QR code with your phone (Linked Devices) to authorize the Secretary to send proactive briefings."}
               </p>
               <div style={{display: 'flex', gap: '16px'}}>
-                <button className="button-primary">Open Native App <ExternalLink size={18} /></button>
-                <div style={{display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-warning)', fontSize: '12px'}}>
-                  <div className="status-dot" style={{backgroundColor: 'var(--accent-warning)'}}></div>
-                  Waiting for connection...
+                {!isLinked && (
+                  <button onClick={handleStartLinking} className="button-primary" disabled={isLinking}>
+                    {isLinking ? "Waiting for Scan..." : "Request Pairing QR"} <Smartphone size={18} />
+                  </button>
+                )}
+                {isLinked && (
+                  <button className="button-primary" style={{background: 'var(--accent-success)'}}>
+                    Session Active <CheckCircle2 size={18} />
+                  </button>
+                )}
+                <div style={{display: 'flex', alignItems: 'center', gap: '8px', color: isLinked ? 'var(--accent-success)' : 'var(--accent-warning)', fontSize: '12px'}}>
+                  <div className="status-dot" style={{backgroundColor: isLinked ? 'var(--accent-success)' : 'var(--accent-warning)'}}></div>
+                  {isLinked ? "Connected" : (isLinking ? "Awaiting scan..." : "Needs connection")}
                 </div>
               </div>
             </div>

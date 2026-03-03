@@ -33,6 +33,7 @@ The brains reside in `extensions/secretary/src/orchestrator.ts`.
 - **WhatsApp Business**: Our primary notification channel. v2 supports interactive buttons for one-click briefings and conflict approvals.
 - **ClawSecretary SaaS Dashboard**: A production-ready **React + Vite** frontend with a glassmorphic design. Centralizes agent status, WhatsApp pairing, and Privacy Node monitoring.
 - **Zero-Touch OAuth (Auto-Auth)**: Using the `AutoAuthOrchestrator`, the SaaS captures tokens (Google/Outlook) and injects them silenty into the agent's `auth-profiles.json` via Magic Links.
+- **SaaS Management Bridge**: Real-time integration via `GatewayClient`. Supports **Live QR Streaming** for WhatsApp and **Remote Commands** (e.g., Emergency Reboot) directly from the dashboard.
 
 ### 4. **Federated Architecture (SaaS + Mobile Edge)**
 
@@ -120,6 +121,7 @@ Un usuario que maneja documentos legales altamente confidenciales.
 - **Phase 12**: **Zero-Touch OAuth (Cloud Sync)**. Creation of the `AutoAuthOrchestrator` for automated, non-interactive credential injection.
 - **Phase 13**: **Federated Privacy Protocol**. Implementation of `secretary_privacy` tools for local mobile execution.
 - **Phase 14**: **SaaS Dashboard Production**. Full React/Vite frontend with glassmorphic UI for full transparency and 1-click pairings.
+- **Phase 15**: **SaaS Management Bridge (Dynamic Link)**. Implementation of real-time QR streaming and remote execution of system commands (Reboot) from the cloud dashboard.
 
 ---
 
