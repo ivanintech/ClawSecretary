@@ -1,7 +1,7 @@
 # Active Working Memory (WAL) 🦞
 
 **Status**: READY
-**Last Task**: ClawSecretary v2 Initial Setup
+**Last Task**: ClawSecretary Phase 15 — WAL Protocol & Interactive Briefings
 **Next Major Event**: None yet.
 
 ---
@@ -11,14 +11,24 @@
 - [x] Workspace Initialized
 - [x] SOUL.md Configured
 - [x] HEARTBEAT.md Configured
-- [ ] Corporate Auth (Outlook)
-- [ ] Premium Interaction (WhatsApp Business)
+- [ ] Corporate Auth (Outlook) — needs MATON_API_KEY
+- [ ] Premium Interaction (WhatsApp Business) — needs MATON_API_KEY
+
+---
 
 ## User Preferences
 
 - Interaction Channel: WhatsApp (via wacli/maton)
 - Privacy Mode: Local-first data storage.
 
+---
+
 ## Recurring Patterns
 
 - None yet.
+
+---
+
+## Active Conflicts
+
+_No active conflicts. This section is auto-populated by the WAL Protocol whenever a calendar conflict is detected._

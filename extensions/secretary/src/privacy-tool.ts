@@ -1,4 +1,4 @@
-import { Type } from "@sinclair/typebox";
+﻿import { Type } from "@sinclair/typebox";
 import type { OpenClawPluginApi } from "../../../src/plugins/types.js";
 
 export function createPrivacyTool(api: OpenClawPluginApi) {
@@ -22,7 +22,7 @@ export function createPrivacyTool(api: OpenClawPluginApi) {
         return {
           content: [{ 
             type: "text", 
-            text: `🔐 **Privacy Vault Status:** ${isMobileConnected ? "CONNECTED" : "DISCONNECTED"}\n` +
+            text: `ðŸ” **Privacy Vault Status:** ${isMobileConnected ? "CONNECTED" : "DISCONNECTED"}\n` +
                   (isMobileConnected 
                     ? "Your phone is acting as a Privacy Node. Sensitive data stays on-device." 
                     : "Connect your phone to enable federated privacy tools.")
@@ -33,7 +33,7 @@ export function createPrivacyTool(api: OpenClawPluginApi) {
 
       if (!isMobileConnected) {
         return {
-          content: [{ type: "text", text: "❌ Error: Mobile Privacy Node not connected. Please open OpenClaw on your phone." }],
+          content: [{ type: "text", text: "âŒ Error: Mobile Privacy Node not connected. Please open OpenClaw on your phone." }],
           details: { error: "NODE_DISCONNECTED" }
         };
       }
@@ -43,8 +43,8 @@ export function createPrivacyTool(api: OpenClawPluginApi) {
         return {
           content: [{ 
             type: "text", 
-            text: `🛡️ **Federated Execution**: Searching for "${query}" on your mobile device...\n` +
-                  "✅ Result: Found 3 matching items. (Metadata only sent to Cloud, original files stay on phone)." 
+            text: `ðŸ›¡ï¸ **Federated Execution**: Searching for "${query}" on your mobile device...\n` +
+                  "âœ… Result: Found 3 matching items. (Metadata only sent to Cloud, original files stay on phone)." 
           }],
           details: { 
             nodeType: "mobile", 
@@ -58,3 +58,4 @@ export function createPrivacyTool(api: OpenClawPluginApi) {
     },
   };
 }
+

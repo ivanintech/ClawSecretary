@@ -60,21 +60,46 @@ Unlike standard agents, ClawSecretary maintains its state across sessions via th
 
 ### Proactive Orchestration Logic
 
-Snippet from `orchestrator.ts` handling the daily heartbeat:
+The `setup_proactive` action returns **two isolated `agentTurn` crons** (proactive-agent v3.1 pattern). These run autonomously — no user prompt needed:
 
 ```typescript
-if (params.action === "setup_proactive") {
-  // Configures CronService for isolated agent turns
-  const cronParams = {
-    schedule: "0 8 * * *",
-    payload: { kind: "agentTurn", message: "Generate briefing..." },
-  };
+// Cron 1 — Daily briefing at 08:00 (isolated, NOT systemEvent)
+{
+  name: "Secretary Daily Briefing",
+  schedule: { kind: "cron", expr: "0 8 * * *", tz: "Local" },
+  payload: { kind: "agentTurn", message: "AUTONOMOUS: run briefing + send WA buttons" },
+  sessionTarget: "isolated",
 }
 
-// Zero-Touch OAuth Injection logic
-await orchestrator.injectCloudProfiles({
-  google_calendar: { token: "...", type: "oauth2" },
-});
+// Cron 2 — Pre-meeting research at each :45
+{
+  name: "Secretary Pre-Meeting Research",
+  schedule: { kind: "cron", expr: "45 * * * *", tz: "Local" },
+  payload: { kind: "agentTurn", message: "AUTONOMOUS: check next 15min meeting, research" },
+  sessionTarget: "isolated",
+}
+```
+
+### Real WhatsApp Business Payload
+
+`briefing` and `conflict_guardian` return a ready-to-use `waInteractivePayload`:
+
+```typescript
+// conflict_guardian output.details.waInteractivePayload:
+{
+  messaging_product: "whatsapp",
+  to: "34612345678",
+  type: "interactive",
+  interactive: {
+    type: "button",
+    body: { text: "⚠️ Conflicto: Dentista choca con Sprint Review. Mover a 16:15?" },
+    action: { buttons: [
+      { type: "reply", reply: { id: "btn_0", title: "✅ Sí, mover" } },
+      { type: "reply", reply: { id: "btn_1", title: "❌ No, mantener" } }
+    ]}
+  }
+}
+// → Pass directly to secretary_whatsapp(action="send_buttons", ...)
 ```
 
 ---
@@ -121,7 +146,68 @@ Un usuario que maneja documentos legales altamente confidenciales.
 - **Phase 12**: **Zero-Touch OAuth (Cloud Sync)**. Creation of the `AutoAuthOrchestrator` for automated, non-interactive credential injection.
 - **Phase 13**: **Federated Privacy Protocol**. Implementation of `secretary_privacy` tools for local mobile execution.
 - **Phase 14**: **SaaS Dashboard Production**. Full React/Vite frontend with glassmorphic UI for full transparency and 1-click pairings.
-- **Phase 15**: **SaaS Management Bridge (Dynamic Link)**. Implementation of real-time QR streaming and remote execution of system commands (Reboot) from the cloud dashboard.
+- **Phase 15**: **WAL Protocol v3.1 + Interactive Briefings**. Full Write-Ahead Log implementation in `orchestrator.ts` and `calendar-tool.ts`. Added `pollHint` and conflict persistence to `SESSION-STATE.md`.
+- **Phase 16**: **Real WhatsApp Business Interactions + Live Calendar/Email**. Upgraded from `pollHint` to real interactive **button messages** (up to 3 buttons) and **list messages** via Maton API. Added dedicated `secretary_whatsapp` tool. Live **Google Calendar sync** via `gog` CLI (graceful degradation if unavailable). Live **Outlook inbox triage** via Maton Graph proxy (real emails, urgency classification, 3-button WA drafts). **Isolated `agentTurn` cron** for autonomous daily briefing (proactive-agent v3.1 pattern). **Working Buffer** for danger-zone context compaction survival (`workspace/memory/working-buffer.md`).
+
+---
+
+## 🔧 Required Environment Variables
+
+| Variable | Required | Purpose |
+|---|---|---|
+| `MATON_API_KEY` | ✅ Core | Outlook + WhatsApp Business via Maton.ai |
+| `WA_PHONE_NUMBER_ID` | ✅ For WA | Meta WhatsApp Business Phone Number ID |
+| `WA_DEFAULT_PHONE` | Optional | Default WA recipient (international, no `+`) |
+| `GOG_ACCOUNT` | Optional | Google Calendar via `gog` CLI |
+| `TAVILY_API_KEY` | Optional | Proactive meeting research |
+| `CALENDLY_API_KEY` | Optional | Calendly booking management |
+
+Get `MATON_API_KEY` at [maton.ai/settings](https://maton.ai/settings).
+Get `WA_PHONE_NUMBER_ID` from [Meta Business Manager](https://business.facebook.com/).
+
+---
+
+## 🗺️ Phase 17 — Next Steps
+
+> **Status**: Planned. Phase 16 built all the payloads; Phase 17 closes the loop making them fully autonomous.
+
+### A. Activate Crons in OpenClaw
+
+1. Run `secretary_orchestrator(action="setup_proactive")` once to get the cron params.
+2. Register them with OpenClaw's built-in `cron.add` tool:
+   ```
+   cron.add(name="Secretary Daily Briefing", schedule=..., payload=..., sessionTarget="isolated")
+   ```
+3. Verify with `cron.list`.
+
+### B. End-to-End WhatsApp Test
+
+1. Set `MATON_API_KEY` + `WA_PHONE_NUMBER_ID` + `WA_DEFAULT_PHONE`.
+2. Call `secretary_orchestrator(action="briefing", recipientPhone="...")` — note `waInteractivePayload` in output.
+3. Call `secretary_whatsapp(action="send_buttons", to=..., body=..., buttons=[...])` with that payload.
+4. Confirm the interactive button message arrives on WhatsApp.
+
+### C. Webhook Handler for Button Replies
+
+When the user taps a button in WA, Meta sends a webhook. Need to:
+- Register an `openclaw` HTTP route (`api.registerHttpRoute`) to receive `POST /secretary/wa-webhook`
+- Parse the `interactive.button_reply.id` (e.g. `btn_0`) and dispatch the corresponding action
+  - `btn_0` on a conflict → call `secretary_calendar(action="add")` with suggested time
+  - `btn_0` on email draft → call Outlook API to send the draft
+
+### D. Calendly Integration
+
+- Register `CALENDLY_API_KEY`
+- Add `calendly_sync` action: fetch upcoming bookings from Calendly and merge into local calendar store
+- Detect conflicts between Calendly bookings and existing events → auto-trigger `conflict_guardian`
+
+### E. Memory Freshening (Cron)
+
+Add a weekly cron:
+```
+AUTONOMOUS: Lee SESSION-STATE.md y working-buffer.md. Identifica preferencias obsoletas.
+Actualiza las preferencias del Owner en SESSION-STATE.md. No preguntes.
+```
 
 ---
 

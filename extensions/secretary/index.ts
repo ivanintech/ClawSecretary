@@ -1,10 +1,15 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { OpenClawPluginApi } from "../../src/plugins/types.js";
 import { createCalendarTool } from "./src/calendar-tool.js";
 import { createOrchestratorTool } from "./src/orchestrator.js";
 import { createPrivacyTool } from "./src/privacy-tool.js";
+import { createWhatsAppTool } from "./src/whatsapp-tool.js";
 
 export default function register(api: OpenClawPluginApi) {
-  api.registerTool(createCalendarTool(api));
-  api.registerTool(createOrchestratorTool(api));
-  api.registerTool(createPrivacyTool(api));
+  // Cast as any: plugin tool factories use simplified execute(runId, params, ctx?) signature
+  // which is normalized by pi-tool-definition-adapter.ts at runtime.
+  api.registerTool(createCalendarTool(api) as any);
+  api.registerTool(createOrchestratorTool(api) as any);
+  api.registerTool(createPrivacyTool(api) as any);
+  api.registerTool(createWhatsAppTool(api) as any);
 }
