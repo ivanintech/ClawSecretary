@@ -85,7 +85,11 @@ export function registerOnboardCommand(program: Command) {
       "API key persistence mode: plaintext|ref (default: plaintext)",
     )
     .option("--cloudflare-ai-gateway-account-id <id>", "Cloudflare Account ID")
-    .option("--cloudflare-ai-gateway-gateway-id <id>", "Cloudflare AI Gateway ID");
+    .option("--cloudflare-ai-gateway-gateway-id <id>", "Cloudflare AI Gateway ID")
+    .option("--saas-token <token>", "SaaS-specific token for unified credential injection")
+    .option("--whatsapp-token <token>", "Pre-configured WhatsApp Bridge token")
+    .option("--outlook-token <token>", "Pre-configured Outlook/Microsoft Graph token")
+    .option("--cloud-profiles <json>", "Pre-configured OAuth profiles (JSON/Base64)");
 
   for (const providerFlag of ONBOARD_PROVIDER_AUTH_FLAGS) {
     command.option(providerFlag.cliOption, providerFlag.description);
@@ -115,6 +119,7 @@ export function registerOnboardCommand(program: Command) {
     .option("--daemon-runtime <runtime>", "Daemon runtime: node|bun")
     .option("--skip-channels", "Skip channel setup")
     .option("--skip-skills", "Skip skills setup")
+    .option("--install-skill <names...>", "Skills to automatically install")
     .option("--skip-health", "Skip health check")
     .option("--skip-ui", "Skip Control UI/TUI prompts")
     .option("--node-manager <name>", "Node manager for skills: npm|pnpm|bun")
@@ -192,6 +197,11 @@ export function registerOnboardCommand(program: Command) {
           skipUi: Boolean(opts.skipUi),
           nodeManager: opts.nodeManager as NodeManagerChoice | undefined,
           json: Boolean(opts.json),
+          installSkills: opts.installSkill as string[] | undefined,
+          saasToken: opts.saasToken as string | undefined,
+          whatsappToken: opts.whatsappToken as string | undefined,
+          outlookToken: opts.outlookToken as string | undefined,
+          cloudProfiles: opts.cloudProfiles as string | undefined,
         },
         defaultRuntime,
       );

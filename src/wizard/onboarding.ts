@@ -477,7 +477,9 @@ export async function runOnboardingWizard(
     await prompter.note("Skipping skills setup.", "Skills");
   } else {
     const { setupSkills } = await import("../commands/onboard-skills.js");
-    nextConfig = await setupSkills(nextConfig, workspaceDir, runtime, prompter);
+    nextConfig = await setupSkills(nextConfig, workspaceDir, runtime, prompter, {
+      installSkills: opts.installSkills,
+    });
   }
 
   // Setup hooks (session memory on /new)

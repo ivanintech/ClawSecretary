@@ -52,6 +52,7 @@ export async function setupSkills(
   workspaceDir: string,
   runtime: RuntimeEnv,
   prompter: WizardPrompter,
+  options?: { installSkills?: string[] },
 ): Promise<OpenClawConfig> {
   const report = buildWorkspaceSkillStatus(workspaceDir, { config: cfg });
   const eligible = report.skills.filter((s) => s.eligible);
@@ -86,21 +87,23 @@ export async function setupSkills(
   );
   let next: OpenClawConfig = cfg;
   if (installable.length > 0) {
-    const toInstall = await prompter.multiselect({
-      message: "Install missing skill dependencies",
-      options: [
-        {
-          value: "__skip__",
-          label: "Skip for now",
-          hint: "Continue without installing dependencies",
-        },
-        ...installable.map((skill) => ({
-          value: skill.name,
-          label: `${skill.emoji ?? "🧩"} ${skill.name}`,
-          hint: formatSkillHint(skill),
-        })),
-      ],
-    });
+    const toInstall = options?.installSkills?.length 
+      ? options.installSkills
+      : await prompter.multiselect({
+          message: "Install missing skill dependencies",
+          options: [
+            {
+              value: "__skip__",
+              label: "Skip for now",
+              hint: "Continue without installing dependencies",
+            },
+            ...installable.map((skill) => ({
+              value: skill.name,
+              label: `${skill.emoji ?? "🧩"} ${skill.name}`,
+              hint: formatSkillHint(skill),
+            })),
+          ],
+        });
 
     const selected = toInstall.filter((name) => name !== "__skip__");
 

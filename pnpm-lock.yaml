@@ -446,6 +446,12 @@ importers:
 
   extensions/open-prose: {}
 
+  extensions/secretary:
+    dependencies:
+      '@mariozechner/pi-agent-core':
+        specifier: '*'
+        version: 0.55.3(ws@8.19.0)(zod@4.3.6)
+
   extensions/signal: {}
 
   extensions/slack: {}

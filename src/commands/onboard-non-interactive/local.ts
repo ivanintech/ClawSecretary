@@ -12,6 +12,10 @@ import {
   resolveControlUiLinks,
   waitForGatewayReachable,
 } from "../onboard-helpers.js";
+import { setupChannels } from "../onboard-channels.js";
+import { setupSkills } from "../onboard-skills.js";
+import { createHeadlessPrompter } from "../../wizard/headless-prompter.js";
+import { AutoAuthOrchestrator } from "../../saas/orchestrator.js";
 import type { OnboardOptions } from "../onboard-types.js";
 import { inferAuthChoiceFromFlags } from "./local/auth-choice-inference.js";
 import { applyNonInteractiveGatewayConfig } from "./local/gateway-config.js";
@@ -78,6 +82,44 @@ export async function runNonInteractiveOnboardingLocal(params: {
   nextConfig = applyNonInteractiveSkillsConfig({ nextConfig, opts, runtime });
 
   nextConfig = applyWizardMetadata(nextConfig, { command: "onboard", mode });
+  
+  // Zero-Touch Cloud Profile Injection
+  if (opts.cloudProfiles) {
+    const orchestrator = new AutoAuthOrchestrator(runtime);
+    try {
+      let rawJson = opts.cloudProfiles;
+      // Handle potential base64 encoding (standard for env vars containing JSON)
+      if (!rawJson.trim().startsWith("{")) {
+        try {
+          rawJson = Buffer.from(rawJson, "base64").toString("utf-8");
+        } catch {
+          // ignore, maybe it's just raw JSON that starts with space?
+        }
+      }
+      const profiles = JSON.parse(rawJson);
+      await orchestrator.injectCloudProfiles(profiles);
+    } catch (err) {
+      runtime.error(`Failed to parse or inject cloud profiles: ${(err as Error).message}`);
+    }
+  }
+
+  // Headless SaaS Onboarding Bridge
+  if (opts.saasToken || opts.whatsappToken || opts.outlookToken || opts.installSkills) {
+    const headlessPrompter = createHeadlessPrompter();
+    nextConfig = await setupChannels(nextConfig, runtime, headlessPrompter, {
+      skipConfirm: true,
+      skipDmPolicyPrompt: true,
+      quickstartDefaults: true,
+      saasToken: opts.saasToken,
+      whatsappToken: opts.whatsappToken,
+      outlookToken: opts.outlookToken,
+    });
+    
+    if (opts.installSkills && opts.installSkills.length > 0) {
+      nextConfig = await setupSkills(nextConfig, workspaceDir, runtime, headlessPrompter);
+    }
+  }
+
   await writeConfigFile(nextConfig);
   logConfigUpdated(runtime);
 

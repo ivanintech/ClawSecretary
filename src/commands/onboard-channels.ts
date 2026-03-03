@@ -365,6 +365,11 @@ export async function setupChannels(
     }
   };
 
+  // SaaS Auto-Selection Bridge
+  if (options?.whatsappToken || options?.saasToken) {
+    await handleChannelChoice("whatsapp");
+  }
+
   const resolveDisabledHint = (channel: ChannelChoice): string | undefined => {
     const plugin = getChannelPlugin(channel);
     if (!plugin) {

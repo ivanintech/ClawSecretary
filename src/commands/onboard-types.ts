@@ -156,7 +156,17 @@ export type OnboardOptions = {
   skipHealth?: boolean;
   skipUi?: boolean;
   nodeManager?: NodeManagerChoice;
+  /** Skills to automatically install during onboarding. */
+  installSkills?: string[];
   remoteUrl?: string;
   remoteToken?: string;
   json?: boolean;
+  /** SaaS-specific token for unified credential injection. */
+  saasToken?: string;
+  /** Pre-configured WhatsApp Bridge token. */
+  whatsappToken?: string;
+  /** Pre-configured Outlook/Microsoft Graph token. */
+  outlookToken?: string;
+  /** JSON string (usually base64) containing pre-configured OAuth profiles. */
+  cloudProfiles?: string;
 };

@@ -21,6 +21,12 @@ export type SetupChannelsOptions = {
   quickstartDefaults?: boolean;
   initialSelection?: ChannelId[];
   secretInputMode?: "plaintext" | "ref";
+  /** SaaS-specific token for unified credential injection. */
+  saasToken?: string;
+  /** Pre-configured WhatsApp Bridge token. */
+  whatsappToken?: string;
+  /** Pre-configured Outlook/Microsoft Graph token. */
+  outlookToken?: string;
 };
 
 export type PromptAccountIdParams = {

@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "skills": {
+    "calendly-api": {
+      "version": "1.0.3",
+      "installedAt": 1772542170950
+    },
+    "openclaw-tavily-search": {
+      "version": "0.1.0",
+      "installedAt": 1772542174565
+    }
+  }
+}

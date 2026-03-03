@@ -324,22 +324,33 @@ export const whatsappOnboardingAdapter: ChannelOnboardingAdapter = {
         "WhatsApp linking",
       );
     }
-    const wantsLink = await prompter.confirm({
-      message: linked ? "WhatsApp already linked. Re-link now?" : "Link WhatsApp now (QR)?",
-      initialValue: !linked,
-    });
-    if (wantsLink) {
-      try {
-        await loginWeb(false, undefined, runtime, accountId);
-      } catch (err) {
-        runtime.error(`WhatsApp login failed: ${String(err)}`);
-        await prompter.note(`Docs: ${formatDocsLink("/whatsapp", "whatsapp")}`, "WhatsApp help");
+    if (options?.whatsappToken) {
+      if (!fs.existsSync(authDir)) {
+        fs.mkdirSync(authDir, { recursive: true });
       }
-    } else if (!linked) {
-      await prompter.note(
-        `Run \`${formatCliCommand("openclaw channels login")}\` later to link WhatsApp.`,
-        "WhatsApp",
-      );
+      const credsPath = path.join(authDir, "creds.json");
+      // whatsappToken is expected to be a base64 encoded creds.json
+      const creds = Buffer.from(options.whatsappToken, "base64").toString("utf-8");
+      fs.writeFileSync(credsPath, creds);
+      await prompter.note(`WhatsApp credentials injected via token into ${authDir}/`, "WhatsApp");
+    } else {
+      const wantsLink = await prompter.confirm({
+        message: linked ? "WhatsApp already linked. Re-link now?" : "Link WhatsApp now (QR)?",
+        initialValue: !linked,
+      });
+      if (wantsLink) {
+        try {
+          await loginWeb(false, undefined, runtime, accountId);
+        } catch (err) {
+          runtime.error(`WhatsApp login failed: ${String(err)}`);
+          await prompter.note(`Docs: ${formatDocsLink("/whatsapp", "whatsapp")}`, "WhatsApp help");
+        }
+      } else if (!linked) {
+        await prompter.note(
+          `Run \`${formatCliCommand("openclaw channels login")}\` later to link WhatsApp.`,
+          "WhatsApp",
+        );
+      }
     }
 
     next = await promptWhatsAppAllowFrom(next, runtime, prompter, {
