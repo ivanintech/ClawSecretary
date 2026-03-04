@@ -146,70 +146,129 @@ Un usuario que maneja documentos legales altamente confidenciales.
 - **Phase 12**: **Zero-Touch OAuth (Cloud Sync)**. Creation of the `AutoAuthOrchestrator` for automated, non-interactive credential injection.
 - **Phase 13**: **Federated Privacy Protocol**. Implementation of `secretary_privacy` tools for local mobile execution.
 - **Phase 14**: **SaaS Dashboard Production**. Full React/Vite frontend with glassmorphic UI for full transparency and 1-click pairings.
-- **Phase 15**: **WAL Protocol v3.1 + Interactive Briefings**. Full Write-Ahead Log implementation in `orchestrator.ts` and `calendar-tool.ts`. Added `pollHint` and conflict persistence to `SESSION-STATE.md`.
-- **Phase 16**: **Real WhatsApp Business Interactions + Live Calendar/Email**. Upgraded from `pollHint` to real interactive **button messages** (up to 3 buttons) and **list messages** via Maton API. Added dedicated `secretary_whatsapp` tool. Live **Google Calendar sync** via `gog` CLI (graceful degradation if unavailable). Live **Outlook inbox triage** via Maton Graph proxy (real emails, urgency classification, 3-button WA drafts). **Isolated `agentTurn` cron** for autonomous daily briefing (proactive-agent v3.1 pattern). **Working Buffer** for danger-zone context compaction survival (`workspace/memory/working-buffer.md`).
+- **Phase 16**: **Upstream Innovation Integration**. Integrated new core features from OpenClaw:
+  - **Hyper-Diagnostic Logic**: Real-time health monitoring via `/healthz` and latency tracking.
+  - **Knowledge Vault**: Native PDF analysis directly in the dashboard using the upstream's new ingestion engine.
+  - **iOS Live Activity Mirroring**: Real-time "Dynamic Island" widget reflecting agent state (Thinking, Tokens, Heartbeat).
+  - **Privacy-First Governance**: Dynamic switching between Ollama (Local) and OpenAI (Cloud) via `config.patch` and live embedding health checks.
+  - **Autonomous Cron Orchestration**: `CronManager` UI with 1-click `cron.run` and `SecurityAudit` badge from `doctor.security.audit`.
+- **Phase 17**: **Proactive Intelligence Layer** (SaaS Command Center):
+  - **Opportunity Search**: Real-time Tavily web search via the `search_opportunities` orchestrator action. Results include AI Executive Summary and are WAL-logged.
+  - **Magic Activation**: One-click button in the SaaS dashboard that calls `setup_proactive` → auto-registers both autonomous crons (`cron.add`) for the Daily Briefing (08:00) and Pre-Meeting Research (every :45 min).
+  - **Proactive Control Panel**: Unified connection status cards for Google, Outlook, Tavily; global Intelligence badge; Calendar Sync trigger.
+- **Phase 22**: **Intelligent Document Vault & Financial Guardian**.
+  - **Document Ingestion**: Seamless PDF extraction using the native `Knowledge Vault` engine and `extractPdfContent`. Summaries persistent in WAL.
+  - **Financial Guardian**: Advanced keyword-based triage for invoices, bills, and payments across Gmail and Outlook.
+- **Phase 23**: **Voice AI & Audio Intelligence**.
+  - **Native STT/TTS**: Complete migration to OpenClaw's native `PluginRuntime` for transcription and speech generation.
+  - **Voice Intent Mapping**: Heuristic-based routing for voice notes: Commands (< 80 chars) vs. Brain Dumps (summaries).
+  - **Omnichannel Voice Replies**: Ability to respond with synthesized audio directly via WhatsApp Business.
 
 ---
 
 ## 🔧 Required Environment Variables
 
-| Variable | Required | Purpose |
-|---|---|---|
-| `MATON_API_KEY` | ✅ Core | Outlook + WhatsApp Business via Maton.ai |
-| `WA_PHONE_NUMBER_ID` | ✅ For WA | Meta WhatsApp Business Phone Number ID |
-| `WA_DEFAULT_PHONE` | Optional | Default WA recipient (international, no `+`) |
-| `GOG_ACCOUNT` | Optional | Google Calendar via `gog` CLI |
-| `TAVILY_API_KEY` | Optional | Proactive meeting research |
-| `CALENDLY_API_KEY` | Optional | Calendly booking management |
+| Variable             | Required  | Purpose                                      |
+| -------------------- | --------- | -------------------------------------------- |
+| `MATON_API_KEY`      | ✅ Core   | Outlook + WhatsApp Business via Maton.ai     |
+| `WA_PHONE_NUMBER_ID` | ✅ For WA | Meta WhatsApp Business Phone Number ID       |
+| `WA_DEFAULT_PHONE`   | Optional  | Default WA recipient (international, no `+`) |
+| `GOG_ACCOUNT`        | Optional  | Google Calendar via `gog` CLI                |
+| `TAVILY_API_KEY`     | Optional  | Proactive meeting research                   |
+| `CALENDLY_API_KEY`   | Optional  | Calendly booking management                  |
 
 Get `MATON_API_KEY` at [maton.ai/settings](https://maton.ai/settings).
 Get `WA_PHONE_NUMBER_ID` from [Meta Business Manager](https://business.facebook.com/).
 
 ---
 
-## 🗺️ Phase 17 — Next Steps
+---
 
-> **Status**: Planned. Phase 16 built all the payloads; Phase 17 closes the loop making them fully autonomous.
+## 🌟 Phase 17 — Proactive Intelligence (Delivered)
 
-### A. Activate Crons in OpenClaw
+> **Status**: ✅ Complete. The SaaS dashboard is now a proactive command center.
 
-1. Run `secretary_orchestrator(action="setup_proactive")` once to get the cron params.
-2. Register them with OpenClaw's built-in `cron.add` tool:
-   ```
-   cron.add(name="Secretary Daily Briefing", schedule=..., payload=..., sessionTarget="isolated")
-   ```
-3. Verify with `cron.list`.
+### A. ✅ Magic Activation (One-Click Cron Setup)
 
-### B. End-to-End WhatsApp Test
+Instead of manual `cron.add` calls, the SaaS dashboard has a **"Magic Activation"** button:
 
-1. Set `MATON_API_KEY` + `WA_PHONE_NUMBER_ID` + `WA_DEFAULT_PHONE`.
-2. Call `secretary_orchestrator(action="briefing", recipientPhone="...")` — note `waInteractivePayload` in output.
-3. Call `secretary_whatsapp(action="send_buttons", to=..., body=..., buttons=[...])` with that payload.
-4. Confirm the interactive button message arrives on WhatsApp.
+1. It calls `secretary_orchestrator(action="setup_proactive")` to get the cron parameters.
+2. It then automatically registers both crons via `GatewayClient.addCron()`.
+3. Crons appear immediately in the **Autonomous Cron Manager**.
 
-### C. Webhook Handler for Button Replies
-
-When the user taps a button in WA, Meta sends a webhook. Need to:
-- Register an `openclaw` HTTP route (`api.registerHttpRoute`) to receive `POST /secretary/wa-webhook`
-- Parse the `interactive.button_reply.id` (e.g. `btn_0`) and dispatch the corresponding action
-  - `btn_0` on a conflict → call `secretary_calendar(action="add")` with suggested time
-  - `btn_0` on email draft → call Outlook API to send the draft
-
-### D. Calendly Integration
-
-- Register `CALENDLY_API_KEY`
-- Add `calendly_sync` action: fetch upcoming bookings from Calendly and merge into local calendar store
-- Detect conflicts between Calendly bookings and existing events → auto-trigger `conflict_guardian`
-
-### E. Memory Freshening (Cron)
-
-Add a weekly cron:
+```typescript
+// GatewayClient — new methods
+gateway.setupProactive(); // → retrieves cron params from orchestrator
+gateway.addCron(params);  // → invokes cron.add on the real Gateway
 ```
-AUTONOMOUS: Lee SESSION-STATE.md y working-buffer.md. Identifica preferencias obsoletas.
-Actualiza las preferencias del Owner en SESSION-STATE.md. No preguntes.
-```
+
+### B. ✅ Opportunity Search (Live Tavily)
+
+The `search_opportunities` orchestrator action:
+- Executes the native `tavily_search.py` skill script.
+- Returns structured results + an AI answer summary.
+- Logs search activity to `SESSION-STATE.md` via WAL.
+- Dashboard shows results with clickable links and an **AI Executive Summary** block.
+
+### C. ✅ Proactive Control Panel
+- Connection status for all integrations (Google, Outlook, Tavily, WhatsApp).
+- Manual calendar sync trigger.
+- Global "Intelligence" badge in the Governance header.
 
 ---
+
+## 🌟 Phase 18 & 19 — Commercial Prep & Autonomous Crons (Delivered)
+
+> **Status**: ✅ Complete. ClawSecretary now features a public commercial landing page and 5 autonomous intelligence crons.
+
+### A. Commercial Landing Page
+- Built a premium, glassmorphic public landing page at `apps/landing`.
+- Highlights the "Digital Twin Executive" value proposition and WAL Protocol.
+
+### B. ✅ 5 Autonomous Core Crons (`setup_proactive`)
+The "Magic Activation" button in the SaaS dashboard now automatically registers **5 isolated `agentTurn` crons**:
+1. **Daily Briefing (08:00)**: Weather-aware agenda briefing via WhatsApp.
+2. **Pre-Meeting Research (every :45)**: Scans for meetings in 15 mins, uses Tavily to research the title, and the `summarize` skill if there's a link.
+3. **Gmail Hourly Triager (0 *:*:*)**: Scans unread emails, classifies them (Critical, Action Required, FYI), and pushes critical ones to WhatsApp.
+4. **RSS Intelligence Digest (Mon 07:30)**: Uses the `blogwatcher` skill to scan industry feeds and sends a 10-article digest to start the week.
+5. **Memory Freshener (Sun 20:00)**: Analyzes the weekly WAL logs (`SESSION-STATE.md`) to update long-term user preferences.
+
+---
+ 
+ ## 🌟 Phase 20 — Deep Integrations & Voice (Delivered)
+ 
+ > **Status**: ✅ Complete. ClawSecretary now supports omnichannel deep-links and voice commands.
+ 
+ ### A. ✅ Voice-to-Task Engine (WhatsApp Audio)
+ - Intercepts voice notes via the new `/secretary/wa-webhook`.
+ - Transcribes locally using `openai-whisper` skill.
+ - Autonomous execution of intents (e.g., "Schedule a meeting").
+ 
+ ### B. ✅ Calendly Intelligence
+ - Syncs new bookings and automatically performs **Tavily Prospect Research**.
+ - Notifies the user via WhatsApp with a background summary of the invitee.
+  ### C. ✅ Notion Second Brain
+  - Exports WAL logs and session decisions to a centralized Notion Database ("ClawSecretary Second Brain").
+
+---
+
+## 🌟 Phase 22 & 23 — Document Intelligence & Voice AI (Delivered)
+
+> **Status**: ✅ Complete. ClawSecretary is now a full-spectrum digital auditor and conversational voice partner.
+
+### A. ✅ Financial & Document Guardian
+- **Triage**: Automatic identification of financial documents in incoming streams.
+- **Vaulting**: Direct ingestion of workspace PDFs with AI-generated summaries stored in the WAL.
+- **Awareness**: The `memory_freshener` now digests financial patterns and ingested summaries for long-term consistency.
+
+### B. ✅ High-Fidelity Voice Interaction
+- **Transcribe & Route**: Audio messages are transcribed via the native runtime and routed to specific intent handlers or summary modules.
+- **Conversational Responses**: Synthesized replies (TTS) confirm task execution, closing the voice-only feedback loop.
+- **Local-First Processing**: Prioritizes local STT/TTS via the OpenClaw core to maintain privacy and reduce latency.
+ 
+ ---
+ 
+ ## 🗺️ Future Roadmap
 
 ## 🛠️ Verification & Health Check
 

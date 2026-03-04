@@ -5,8 +5,10 @@ export type CalendarEvent = {
   id: string;
   title: string;
   startTime: string; // ISO string
-  endTime: string;   // ISO string
+  endTime: string; // ISO string
   description?: string;
+  source?: "local" | "google" | "outlook" | "calendly";
+  researched?: boolean;
 };
 
 export class CalendarStore {
