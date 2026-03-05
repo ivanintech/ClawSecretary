@@ -10,6 +10,8 @@ import { buildOutboundSessionContext } from "../infra/outbound/session-context.j
 import { resolveOutboundTarget } from "../infra/outbound/targets.js";
 import { registerApnsToken } from "../infra/push-apns.js";
 import { enqueueSystemEvent } from "../infra/system-events.js";
+import { getGlobalHookRunner } from "../plugins/hook-runner-global.js";
+import type { PluginHookAgentContext, PluginHookNodeEvent } from "../plugins/hooks.js";
 import { normalizeMainKey, scopedHeartbeatWakeOptions } from "../routing/session-key.js";
 import { defaultRuntime } from "../runtime.js";
 import { parseMessageWithAttachments } from "./chat-attachments.js";
@@ -600,7 +602,30 @@ export const handleNodeEvent = async (ctx: NodeEventContext, nodeId: string, evt
       }
       return;
     }
-    default:
+    default: {
+      // Broadcast unhandled node events to plugins
+      const sessionKey = `node-${nodeId}`; // Fallback context
+      const { canonicalKey, entry } = loadSessionEntry(sessionKey);
+      const sessionId = entry?.sessionId ?? randomUUID();
+
+      const context: PluginHookAgentContext = {
+        sessionKey: canonicalKey,
+        sessionId,
+        trigger: "node",
+      };
+
+      const event: PluginHookNodeEvent = {
+        nodeId,
+        event: evt.event,
+        payload: parsePayloadObject(evt.payloadJSON),
+        payloadJSON: evt.payloadJSON,
+      };
+
+      const runner = getGlobalHookRunner();
+      if (runner) {
+        void runner.runNodeEvent(event, context);
+      }
       return;
+    }
   }
 };

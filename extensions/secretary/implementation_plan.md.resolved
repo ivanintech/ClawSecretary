@@ -1,0 +1,38 @@
+# Implementation Plan: Ghost Write and Auto-Commit (Phase 30)
+
+This plan outlines the implementation of the "Ghost Write" closure and "Auto-Commit" logic for ClawSecretary, enabling the agent to proactively close the loop after meetings.
+
+## Proposed Changes
+
+### [Secretary Extension]
+
+#### [MODIFY] [orchestrator.ts](file:///c:/Users/ivanc/Documents/MyProjects/openclaw/extensions/secretary/src/orchestrator.ts)
+- Implement `event_closure_shadowing` action:
+  - Logic to scan [CalendarStore](file:///c:/Users/ivanc/Documents/MyProjects/openclaw/extensions/secretary/src/store.ts#15-36) for events that ended in the last 15 minutes.
+  - Verification against a `.last-shadowed` marker or WAL entry to avoid duplicates.
+  - Sends a proactive WhatsApp message: *"Evento concluido: [Title]. ¿Quieres dictar acuerdos o redactar el correo de seguimiento? [🎙️ Dictar] [✉️ Draft] [✅ Ignorar]"*.
+- Implement `finalize_closure` action:
+  - Processes audio input via the `openai-whisper` skill for high-accuracy local STT.
+  - Extracts tasks using LLM context and sends them to `things-mac` or `apple-reminders` skills.
+  - Creates a follow-up draft in Gmail/Outlook.
+  - Enriches drafts using the `summarize` skill if the event had associated URLs or documents.
+- Update `setup_proactive` to register a new cron:
+  - **Goal**: "Secretary Event Shadowing"
+  - **Schedule**: `*/15 * * * *` (Every 15 minutes)
+  - **Mode**: `isolated agentTurn` (Autonomous background monitoring)
+  - **Message**: `AUTONOMOUS TASK: Scanea CalendarStore. Si un evento terminó en los últimos 15 min y no ha sido "shadowed", envía prompt WA: "¿Quieres dictar los acuerdos (Ghost Write) o redactar seguimiento? [🎙️ Dictar] [✉️ Draft] [✅ Ignorar]". Usa markadores para evitar duplicidad.`
+
+#### [MODIFY] [index.ts](file:///c:/Users/ivanc/Documents/MyProjects/openclaw/extensions/secretary/index.ts)
+- (No changes needed if actions are within [createOrchestratorTool](file:///c:/Users/ivanc/Documents/MyProjects/openclaw/extensions/secretary/src/orchestrator.ts#329-1564))
+
+## Verification Plan
+
+### Automated Tests
+1. **Mock Event Simulation**: Use `secretary_calendar(action="add")` to create an event ending 5 minutes ago.
+2. **Cron Trigger**: Manually execute the "Event Shadowing" action via the dashboard or a direct `agentTurn`.
+3. **WhatsApp Interception**: Verify the `waInteractivePayload` contains the correct shadowing prompt.
+4. **Task Extraction**: Pass a dummy "Follow up with John and fix the bug" transcript to `finalize_closure` and verify tasks are sent to `things-mac`.
+
+### Manual Verification
+- Deploy and verify the WhatsApp notification appears after a test event concludes.
+- dictar a voice note and check if the draft appears in Gmail.

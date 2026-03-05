@@ -1,7 +1,15 @@
 {
-    "id": "secretary",
-    "name": "Secretary",
-    "description": "Intelligent assistant for managing personal events, calories, and routines.",
-    "version": "1.0.0",
-    "optional": true
+  "id": "secretary",
+  "name": "Secretary",
+  "description": "Intelligent Secretary extension for personal event management and OAuth bridge listener.",
+  "version": "1.0.0",
+  "configSchema": {
+    "type": "object",
+    "properties": {
+      "saasBridgeToken": {
+        "type": "string",
+        "description": "Security token for verifying incoming requests from the SaaS bridge."
+      }
+    }
+  }
 }

@@ -49,6 +49,7 @@ import type {
   PluginHookToolResultPersistResult,
   PluginHookBeforeMessageWriteEvent,
   PluginHookBeforeMessageWriteResult,
+  PluginHookNodeEvent,
 } from "./types.js";
 
 // Re-export types for consumers
@@ -93,6 +94,7 @@ export type {
   PluginHookGatewayContext,
   PluginHookGatewayStartEvent,
   PluginHookGatewayStopEvent,
+  PluginHookNodeEvent,
 };
 
 export type HookRunnerLogger = {
@@ -695,6 +697,17 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
     return runVoidHook("gateway_stop", event, ctx);
   }
 
+  /**
+   * Run node_event hook.
+   * Runs in parallel (fire-and-forget).
+   */
+  async function runNodeEvent(
+    event: PluginHookNodeEvent,
+    ctx: PluginHookAgentContext,
+  ): Promise<void> {
+    return runVoidHook("node_event", event, ctx);
+  }
+
   // =========================================================================
   // Utility
   // =========================================================================
@@ -744,6 +757,8 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
     // Gateway hooks
     runGatewayStart,
     runGatewayStop,
+    // Node hooks
+    runNodeEvent,
     // Utility
     hasHooks,
     getHookCount,

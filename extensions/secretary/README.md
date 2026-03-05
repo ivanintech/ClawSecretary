@@ -42,6 +42,7 @@ Built for the **Privacy-First** economy of 2026.
 - **SaaS Orchestrator**: Manages high-availability cloud gateways.
 - **Mobile Edge Node**: Runs directly on the user's phone. Handles sensitive tool execution (local file access, private messages) via a secure bridge.
 - **Hybrid Intelligence**: The SaaS "Brain" uses SLM (Small Language Models) for triage while delegating sensitive tasks to the phone's local node.
+- **Mobile-Edge OAuth Bridge (Phase 28)**: ✅ Established. "Cloud as a Bridge, Edge as the Brain." Next.js and Nango are used strictly as an ephemeral cloud router to perform OAuth dances (Notion, Google). The resulting `access_tokens` are instantly injected via secure WebSockets back into the user's local phone (`AutoAuthOrchestrator`) via the `/plugins/secretary/oauth-inject` listener, leaving zero storage footprint in the cloud. Long-term memory and vector embeddings live exclusively on the user's local device.
 
 ---
 
@@ -163,6 +164,34 @@ Un usuario que maneja documentos legales altamente confidenciales.
   - **Native STT/TTS**: Complete migration to OpenClaw's native `PluginRuntime` for transcription and speech generation.
   - **Voice Intent Mapping**: Heuristic-based routing for voice notes: Commands (< 80 chars) vs. Brain Dumps (summaries).
   - **Omnichannel Voice Replies**: Ability to respond with synthesized audio directly via WhatsApp Business.
+- **Phase 24**: **Proactive Contextual Awareness**: Autonomous monitoring of session state to provide proactive advice and interventions via WhatsApp.
+- **Phase 25**: **Multimodal Financial Guardian** (Upstream 2026):
+  - Transitioned to native `extractPdfContent` for multimodal document ingestion.
+  - Automated detection of amounts, deadlines, and financial status in invoices and receipts.
+- **Phase 26**: **Autonomous Lifestyle Hooks**:
+  - Implemented `session_start` auto-briefings and `tool_result_persist` conflict guardian.
+  - Silent `message_received` triage for non-intrusive background monitoring.
+  - Voice Pipeline Optimization with real-time intent mapping.
+- **Phase 27**: **Personal OS Hyper-Integration**:
+  - Secure Vault Access via 1Password (op CLI).
+  - Task Orchestration with Things 3 and Apple Reminders.
+  - Digital Second Brain automation with Notion Sync.
+  - Enriched Autonomous Briefings (Weather + News context).
+- **Phase 28**: **SaaS Mobile-Edge Bridge ("Cloud as a Bridge, Edge as the Brain")**:
+  - [x] Configured `embeddinggemma-300m-qat-Q8_0.gguf` for 100% local memory vectors.
+  - [x] Established `Listener Mode` (webhook `/plugins/secretary/oauth-inject`) in local `AutoAuthOrchestrator` to catch payloads.
+  - [x] Secured bridge with `SAAS_BRIDGE_TOKEN` verification.
+  - [x] Integrated SaaS Dashboard with local listener for zero-storage OAuth routing.
+  - [x] Standardized plugin route registration within the OpenClaw Gateway.
+- **Phase 29**: **Secure Tunnel & PWA Enforcement**:
+  - [x] **Asymmetric Tunnel**: RSA-2048 encryption for cross-origin token payloads.
+  - [x] **Zero-Visibility Bridge**: SaaS Bridge handles only encrypted blobs.
+  - [x] **PWA Dashboard**: Standalone mobile experience with `manifest.json` and service worker.
+  - [x] **Edge Decryption**: Local private keys never leave the phone.
+- **Phase 30**: **Hyper-Convenience 2026 (Logistics & Biometry)**:
+  - [x] **Logistics Orchestrator**: Integrated `logistics_triage` for Uber/Delivery suggestions based on calendar events.
+  - [x] **Biometry Hook**: Implementation of the `node_event` hook for real-time stress and fatigue detection. 
+  - [x] **Proactive Resilience**: Automatic triggering of reduction actions when cognitive load is high.
 
 ---
 
@@ -268,9 +297,17 @@ The "Magic Activation" button in the SaaS dashboard now automatically registers 
  
  ---
  
- ## 🗺️ Future Roadmap
+  ## 🗺️ Roadmap & Evolution
 
-## 🛠️ Verification & Health Check
+  - **Phase 28 & 29**: **Mobile-Edge Secure Bridge ("Cloud as a Bridge, Edge as the Brain")**.
+    - [x] Configure `embeddinggemma-300m-qat-Q8_0.gguf` for 100% local memory vectors.
+    - [x] Implement `Listener Mode` (webhook `/plugins/secretary/oauth-inject`) in local `AutoAuthOrchestrator`.
+    - [x] **Secure Tunnel**: RSA-2048 asymmetric encryption for cross-origin token payloads.
+    - [x] **PWA Dashboard**: Standalone mobile experience with standalone manifest and service worker.
+    - [x] **Zero-storage pledge**: Ephemeral cloud routing with instant local injection.
+    - **Architecture rules**: Ephemeral Cloud (Zero-storage), Instant Injection (Real-time RSA delivery), Local Sovereignty (Private keys & memory strictly on-device).
+
+ ## 🛠️ Verification & Health Check
 
 Verify the assistant's setup and workspace integrity at any time:
 

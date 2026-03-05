@@ -286,6 +286,8 @@ export type OpenClawPluginApi = {
    */
   registerCommand: (command: OpenClawPluginCommandDefinition) => void;
   resolvePath: (input: string) => string;
+  /** Extract text and images from a PDF document. */
+  extractPdfContent: typeof import("../media/pdf-extract.js").extractPdfContent;
   /** Register a lifecycle hook handler */
   on: <K extends PluginHookName>(
     hookName: K,
@@ -331,7 +333,8 @@ export type PluginHookName =
   | "subagent_spawned"
   | "subagent_ended"
   | "gateway_start"
-  | "gateway_stop";
+  | "gateway_stop"
+  | "node_event";
 
 // Agent context shared across agent hooks
 export type PluginHookAgentContext = {
@@ -677,6 +680,14 @@ export type PluginHookGatewayStopEvent = {
   reason?: string;
 };
 
+// node_event hook
+export type PluginHookNodeEvent = {
+  nodeId: string;
+  event: string;
+  payload?: unknown;
+  payloadJSON?: string | null;
+};
+
 // Hook handler types mapped by hook name
 export type PluginHookHandlerMap = {
   before_model_resolve: (
@@ -775,6 +786,7 @@ export type PluginHookHandlerMap = {
     event: PluginHookGatewayStopEvent,
     ctx: PluginHookGatewayContext,
   ) => Promise<void> | void;
+  node_event: (event: PluginHookNodeEvent, ctx: PluginHookAgentContext) => Promise<void> | void;
 };
 
 export type PluginHookRegistration<K extends PluginHookName = PluginHookName> = {

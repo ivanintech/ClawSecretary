@@ -7,6 +7,7 @@ export type CalendarEvent = {
   startTime: string; // ISO string
   endTime: string; // ISO string
   description?: string;
+  location?: string;
   source?: "local" | "google" | "outlook" | "calendly";
   researched?: boolean;
 };
