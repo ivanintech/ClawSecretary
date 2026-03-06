@@ -6,7 +6,7 @@ import { AutoAuthOrchestrator } from "../../../src/saas/orchestrator.ts";
 
 let keyPair: { publicKey: string; privateKey: string } | null = null;
 
-function getKeys() {
+export function getKeys() {
   if (!keyPair) {
     const { publicKey, privateKey } = generateKeyPairSync("rsa", {
       modulusLength: 2048,

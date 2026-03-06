@@ -29,9 +29,14 @@ Para que el usuario pueda vincular su Notion o Calendly con 1 click sin salir de
 ### 3. Ejecución Autónoma Directa
 Una vez el token está en el `auth-profiles.json` del teléfono:
 - Cuando el usuario manda un Voice Note por WhatsApp.
-- El teléfono lo transcribe localmente.
-- El LLM (puede ser Cloud o Local) decide crear una tarea.
-- El comando se ejecuta llamando a la API de Notion **directamente desde el teléfono usando el token inyectado**, sin pasar de nuevo por nuestro servidor SaaS.
+- El teléfono lo transcribe localmente usando `openai-whisper`.
+- El LLM (puede ser Cloud o Local) decide crear una tarea o redactar un seguimiento (Ghost Write).
+- El comando se ejecuta llamando a las APIs relevantes **directamente desde el teléfono usando el token inyectado**, sin pasar de nuevo por nuestro servidor SaaS.
+
+### 4. Protocolo de Negociación Inter-Agente (P2P RSA)
+Para agendar citas entre dos usuarios sin exponer sus calendarios a la nube:
+- Utilizamos el concepto de "Cloud as a Bridge, Edge as the Brain" con encriptación asimétrica RSA-2048.
+- **Flujo:** Un nodo genera 3 huecos de tiempo. Encripta el "Offering" con la llave pública del nodo remoto. Se transmite el payload cifrado a través de un endpoint público (`/plugins/secretary/negotiate/offer`). El nodo receptor lo desencripta unicamente en su móvil local, valida contra su `CalendarStore`, y acepta el evento auto-guardándolo si hay match, logrando **Auto-Match Autónomo 100% privado**.
 
 ---
 
@@ -50,3 +55,6 @@ Una vez el token está en el `auth-profiles.json` del teléfono:
 - [x] Scaffold del `apps/saas-dashboard` en Next.js con estética premium.
 - [x] **Secure Tunnel Enforcement (Phase 29)**: Implementación de encriptación asimétrica RSA-2048 para que el puente nunca vea los tokens en claro.
 - [x] **PWA Conversion**: Dashboard Next.js convertido a PWA con manifiesto y service worker para uso móvil optimizado.
+- [x] **Ghost Write & Auto-Commit (Phase 30)**: Integración de `openai-whisper` y `summarize` en un flujo de "Shadowing" que detecta cuando un evento concluye e intercepta para redactar actas.
+- [x] **Inter-Agent Negotiation Protocol (Phase 31)**: Negociación autónoma entre secretarios usando encriptación asimétrica vía RSA sin nube intermedia.
+- [x] **Modo Piloto Automático (Phase 32)**: SOUL.md Parser para ejecutar Autonomía Dinámica (L1 a L4), gestionando conflictos y eventos de manera 100% silenciosa en las categorías de confianza (L3/L4).

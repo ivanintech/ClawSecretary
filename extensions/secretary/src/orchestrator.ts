@@ -326,6 +326,30 @@ function waButtonPayload(to: string, bodyText: string, buttons: string[]): objec
   };
 }
 
+// ─── SOUL v3 Autonomy Level Configuration ─────────────────────────────────────
+function readAutonomyLevel(title: string): "L1" | "L2" | "L3" | "L4" {
+  const t = title.toLowerCase();
+  // Simulated parsing of strictly mapped SOUL categories
+  if (
+    t.includes("internal") ||
+    t.includes("equipo") ||
+    t.includes("medical") ||
+    t.includes("médico") ||
+    t.includes("salud")
+  ) {
+    return "L3";
+  }
+  if (
+    t.includes("finance") ||
+    t.includes("banco") ||
+    t.includes("legal") ||
+    t.includes("financiero")
+  ) {
+    return "L1";
+  }
+  return "L2"; // Default baseline
+}
+
 export function createOrchestratorTool(api: OpenClawPluginApi) {
   const store = new CalendarStore(api.resolvePath("./data"));
   const workspaceDir = api.resolvePath(".");
@@ -366,6 +390,7 @@ export function createOrchestratorTool(api: OpenClawPluginApi) {
           "logistics_triage",
           "event_closure_shadowing",
           "finalize_closure",
+          "negotiate_meeting",
         ],
         description: "Action to perform.",
       }),
@@ -382,6 +407,19 @@ export function createOrchestratorTool(api: OpenClawPluginApi) {
       documentPath: Type.Optional(Type.String({ description: "Path to the PDF document." })),
       emailSubject: Type.Optional(Type.String({ description: "Subject of an email for triage." })),
       emailBody: Type.Optional(Type.String({ description: "Body of an email for triage." })),
+      peerUrl: Type.Optional(
+        Type.String({ description: "URL of the peer's ClawSecretary gateway." }),
+      ),
+      peerPublicKey: Type.Optional(Type.String({ description: "Public RSA key of the peer." })),
+      durationMin: Type.Optional(
+        Type.Number({ description: "Duration of the meeting in minutes." }),
+      ),
+      dateRange: Type.Optional(
+        Type.Object({
+          start: Type.String({ description: "Start of range (ISO)." }),
+          end: Type.String({ description: "End of range (ISO)." }),
+        }),
+      ),
     }),
 
     async execute(_runId: string, params: Record<string, any>, ctx?: OpenClawPluginToolContext) {
@@ -631,6 +669,42 @@ export function createOrchestratorTool(api: OpenClawPluginApi) {
         const fmt = (d: Date) =>
           d.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
 
+        const autonomy = readAutonomyLevel(candidateTitle);
+        const recipient = params.recipientPhone ?? process.env.WA_DEFAULT_PHONE;
+
+        if (autonomy === "L3" || autonomy === "L4") {
+          // Auto-Commit Pilot Mode
+          await updateSessionState(
+            workspaceDir,
+            "Active Conflicts (Auto-Commit)",
+            `Conflict resolved silently for "${candidateTitle}".`,
+          );
+
+          // Emojis for silent text processing
+          const silentText = `⚙️ He detectado un solapamiento con "${candidateTitle}". Lo he movido automáticamente a las ${fmt(suggestedStart)} \n_Acción: Piloto Automático L3_ 🦞`;
+
+          return {
+            content: [{ type: "text", text: silentText }],
+            details: {
+              conflicts,
+              suggestion: {
+                startTime: suggestedStart.toISOString(),
+                endTime: suggestedEnd.toISOString(),
+              },
+              autoCommitted: true,
+              waInteractivePayload:
+                autonomy === "L3" && recipient
+                  ? {
+                      messaging_product: "whatsapp",
+                      to: recipient,
+                      type: "text",
+                      text: { body: silentText },
+                    }
+                  : null,
+            },
+          };
+        }
+
         // WAL: persist BEFORE replying
         await updateSessionState(
           workspaceDir,
@@ -645,7 +719,6 @@ export function createOrchestratorTool(api: OpenClawPluginApi) {
           `_Estado guardado en SESSION-STATE.md (WAL âœ…)_`;
 
         // Build real WA button payload
-        const recipient = params.recipientPhone ?? process.env.WA_DEFAULT_PHONE;
         const waPayload = recipient
           ? waButtonPayload(recipient, bodyText, ["âœ… SÃ­, mover", "âŒ No, mantener"])
           : null;
@@ -896,6 +969,19 @@ export function createOrchestratorTool(api: OpenClawPluginApi) {
           sessionTarget: "isolated",
         };
 
+        // ── Cron 8: Event Closure Shadowing (every 15 min) ──────────────────────
+        const closureShadowingCron = {
+          name: "Secretary Event Shadowing",
+          schedule: { kind: "cron", expr: "*/15 * * * *", tz: "Local" },
+          payload: {
+            kind: "agentTurn",
+            message:
+              'AUTONOMOUS TASK — Scanea CalendarStore. Si un evento terminó en los últimos 15 min y no ha sido "shadowed", envía prompt WA.\n' +
+              "Llama a secretary_orchestrator(action='event_closure_shadowing'). No preguntes.",
+          },
+          sessionTarget: "isolated",
+        };
+
         const allCrons = [
           dailyBriefingCron,
           preResearchCron,
@@ -904,7 +990,8 @@ export function createOrchestratorTool(api: OpenClawPluginApi) {
           memoryFreshenerCron,
           calendlyCron,
           notionCron,
-          // ── Cron 8: Real-time Contextual Monitor (every 30 min) ──────────────────
+          closureShadowingCron,
+          // ── Cron 9: Real-time Contextual Monitor (every 30 min) ──────────────────
           {
             name: "Secretary Contextual Monitor",
             schedule: { kind: "cron", expr: "*/30 * * * *", tz: "Local" },
@@ -926,7 +1013,7 @@ export function createOrchestratorTool(api: OpenClawPluginApi) {
             {
               type: "text",
               text:
-                "⚙️ *Autonomous Secretary — 5 Crons Ready (isolated agentTurn)*\n\n" +
+                "⚙️ *Autonomous Secretary — 9 Crons Ready (isolated agentTurn)*\n\n" +
                 cronSummary +
                 "\n\n" +
                 "_Usa `cron.add` para registrar cada cron en el Gateway._",
@@ -1656,29 +1743,56 @@ export function createOrchestratorTool(api: OpenClawPluginApi) {
 
         const reports: string[] = [];
         for (const event of completedEvents) {
-          const bodyText = `🏁 *Evento concluido*: "${event.title}"\n¿Quieres dictar los acuerdos (Ghost Write) o redactar un seguimiento?`;
+          const autonomy = readAutonomyLevel(event.title);
           const recipient = params.recipientPhone ?? process.env.WA_DEFAULT_PHONE;
 
           let waPayload: any = null;
-          if (typeof recipient === "string") {
-            waPayload = waButtonPayload(recipient, bodyText, [
-              "🎙️ Dictar Acuerdos",
-              "✉️ Draft Seguimiento",
-              "✅ Ignorar",
-            ]);
-            // Enrich payload with marker for finalize_closure
-            waPayload.interactive.action.buttons[0].reply.id = `ghost_dictate_${event.id}`;
-            waPayload.interactive.action.buttons[1].reply.id = `ghost_draft_${event.id}`;
+
+          if (autonomy === "L3" || autonomy === "L4") {
+            // Autonomous Auto-Closure (Silent logic)
+            const draftMsg = `🏁 El evento "${event.title}" ha finalizado y he archivado las notas base automáticamente.\n_Acción: Piloto Automático L3_ 🦞`;
+            reports.push(`Cierre silencioso L3 para: ${event.title}`);
+            if (autonomy === "L3" && recipient) {
+              waPayload = {
+                messaging_product: "whatsapp",
+                to: recipient,
+                type: "text",
+                text: { body: draftMsg },
+              };
+            }
+          } else {
+            // Interactive Proactive Prompt (L2)
+            const bodyText = `🏁 *Evento concluido*: "${event.title}"\n¿Quieres dictar los acuerdos (Ghost Write) o redactar un seguimiento?`;
+
+            if (typeof recipient === "string") {
+              waPayload = waButtonPayload(recipient, bodyText, [
+                "🎙️ Dictar Acuerdos",
+                "✉️ Draft Seguimiento",
+                "✅ Ignorar",
+              ]);
+              // Enrich payload with marker for finalize_closure
+              waPayload.interactive.action.buttons[0].reply.id = `ghost_dictate_${event.id}`;
+              waPayload.interactive.action.buttons[1].reply.id = `ghost_draft_${event.id}`;
+            }
+            reports.push(`Notificado cierre para: ${event.title}`);
           }
 
-          reports.push(`Notificado cierre para: ${event.title}`);
           shadowedIds.push(event.id);
 
-          // In Stage 30, we just return the first one or a summary for the agent to act on
+          // In Phase 30, we return the first one or a summary for the agent to act on
           if (waPayload) {
             return {
-              content: [{ type: "text", text: `Shadowing: Prompt enviado para "${event.title}"` }],
-              details: { event, waInteractivePayload: waPayload },
+              content: [
+                {
+                  type: "text",
+                  text: `Shadowing processed for "${event.title}" (Autonomy: ${autonomy})`,
+                },
+              ],
+              details: {
+                event,
+                waInteractivePayload: waPayload,
+                autoCommitted: autonomy === "L3" || autonomy === "L4",
+              },
             };
           }
         }
@@ -1713,7 +1827,111 @@ export function createOrchestratorTool(api: OpenClawPluginApi) {
         };
       }
 
+      // ─── NEGOTIATE MEETING (Phase 31) ───────────────────────────────────────
+      if (params.action === "negotiate_meeting") {
+        if (
+          !params.peerUrl ||
+          !params.peerPublicKey ||
+          !params.title ||
+          !params.durationMin ||
+          !params.dateRange
+        ) {
+          throw new Error("Missing required parameters for negotiation.");
+        }
+
+        // Generate 3 random slots within the given range that are free in our local calendar
+        // (Simplified for Phase 31: just propose 3 slots starting at the hour within the range)
+        const proposedSlots = [];
+        const rangeStart = new Date(params.dateRange.start);
+        const rangeEnd = new Date(params.dateRange.end);
+
+        let currentSlotStart = new Date(rangeStart);
+        while (currentSlotStart < rangeEnd && proposedSlots.length < 3) {
+          const currentSlotEnd = new Date(currentSlotStart.getTime() + params.durationMin * 60000);
+
+          // Check if slot is free
+          let isFree = true;
+          for (const ev of localEvents) {
+            const evStart = new Date(ev.startTime);
+            const evEnd = new Date(ev.endTime);
+            if (currentSlotStart < evEnd && currentSlotEnd > evStart) {
+              isFree = false;
+              break;
+            }
+          }
+
+          if (isFree && currentSlotStart.getHours() >= 9 && currentSlotStart.getHours() <= 18) {
+            proposedSlots.push({
+              start: currentSlotStart.toISOString(),
+              end: currentSlotEnd.toISOString(),
+            });
+          }
+          currentSlotStart = new Date(currentSlotStart.getTime() + 60 * 60000); // Step 1 hour
+        }
+
+        if (proposedSlots.length === 0) {
+          return {
+            content: [
+              { type: "text", text: "❌ No tengo huecos libres para negociar en ese rango." },
+            ],
+            details: { success: false },
+          };
+        }
+
+        const { getKeys } = require("./oauth-bridge.js");
+        const { publicEncrypt } = require("node:crypto");
+        const { publicKey } = getKeys();
+
+        const offer = {
+          version: "1.0",
+          senderUrl: "http://host.docker.internal:19001", // Example for local dev
+          senderPublicKey: publicKey,
+          title: params.title,
+          durationMin: params.durationMin,
+          proposedSlots,
+        };
+
+        const encryptedOffer = publicEncrypt(
+          { key: params.peerPublicKey },
+          Buffer.from(JSON.stringify(offer), "utf-8"),
+        ).toString("base64");
+
+        // Send offer
+        try {
+          const res = await fetch(`${params.peerUrl}/plugins/secretary/negotiate/offer`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ encryptedOffer }),
+          });
+
+          if (!res.ok) throw new Error("Peer rejected negotiation offer.");
+          const responseBody = (await res.json()) as any;
+
+          await updateSessionState(
+            workspaceDir,
+            "Inter-Agent Negotiation",
+            `Sent offer to ${params.peerUrl} for "${params.title}". Received response.`,
+          );
+
+          return {
+            content: [
+              {
+                type: "text",
+                text: `🤝 Negociación iniciada con éxito. Hemos enviado ${proposedSlots.length} opciones cifradas.`,
+              },
+            ],
+            details: { success: true, peerResponse: responseBody },
+          };
+        } catch (e: any) {
+          return {
+            content: [{ type: "text", text: `❌ Fallo en la negociación P2P: ${e.message}` }],
+            details: { success: false, error: e.message },
+          };
+        }
+      }
+
       // Fallback
+
       return { content: [{ type: "text", text: `⚠️ Unknown action: ${params.action}` }] };
     },
   };
@@ -1765,7 +1983,7 @@ export function registerProactiveHooks(api: OpenClawPluginApi) {
   // 2. Tool Result Persist -> Conflict Guardian
   api.on("tool_result_persist", (event, ctx) => {
     const calendarTools = ["calendar_tool", "gog_sync", "calendly_sync"];
-    if (calendarTools.includes(event.toolName)) {
+    if (event.toolName && calendarTools.includes(event.toolName)) {
       const workspaceDir = api.resolvePath(".") as string;
       console.log(`[Secretary] Proactive conflict check triggered by ${event.toolName}`);
 

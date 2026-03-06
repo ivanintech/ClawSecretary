@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { OpenClawPluginApi } from "../../src/plugins/types.js";
 import { createCalendarTool } from "./src/calendar-tool.js";
+import { createNegotiationOfferHandler } from "./src/negotiation.js";
 import { createOAuthInjectHandler, createPublicKeyHandler } from "./src/oauth-bridge.js";
 import { createOrchestratorTool, registerProactiveHooks } from "./src/orchestrator.js";
 import { createPrivacyTool } from "./src/privacy-tool.js";
@@ -40,6 +41,14 @@ export default function register(api: OpenClawPluginApi) {
     path: "/plugins/secretary/public-key",
     handler: createPublicKeyHandler(api),
     auth: "plugin", // Publically available for the Bridge
+    match: "exact",
+  });
+
+  // Phase 31: Inter-Agent Negotiation Protocol
+  api.registerHttpRoute({
+    path: "/plugins/secretary/negotiate/offer",
+    handler: createNegotiationOfferHandler(api),
+    auth: "plugin", // Must be publicly reachable for P2P auth (payloads are RSA encrypted)
     match: "exact",
   });
 }
