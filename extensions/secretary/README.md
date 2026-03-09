@@ -125,6 +125,7 @@ Tools natively return `waInteractivePayload` structs for direct injection via Wh
 - **Phase 38**: Root Repository Realignment. Force-sync to `ClawSecretary` standalone repository as the single source of truth.
 - **Phase 39**: Upstream Evolution Integration. Integrated native `/briefing` command, enhanced `subagent_ended` hook for WAL, and built-in `api.extractPdfContent()`.
 - **Phase 40**: Ecosystem Expansion (Knowledge Sync). Automates knowledge persistence by routing Voice Notes and Ghost Writes autonomously to Notion or Obsidian.
+- **Phase 41**: Production Autonomy (The 🦞 Tier). Replaced fake timers with native background crons (08:00 AM/22:00 PM) hooked to `gateway_start`. Introduced Zero-Latency Hyper-Context via `before_prompt_build` and Physical Webhooks (`/trigger`) for Apple Shortcuts/IoT integration bypassing LLMs entirely.
 
 ---
 
