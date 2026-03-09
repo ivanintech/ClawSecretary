@@ -62,3 +62,4 @@ Para agendar citas entre dos usuarios sin exponer sus calendarios a la nube:
 - [x] **Smart Environment & Multi-Account Concierge (Phase 36)**: Integración de `himalaya` para gestión de cualquier cuenta IMAP/SMTP, `trigger_focus_mode` para control IoT (Hue + Sonos) y Urgent Alert Tier escalable. 🦞
 - [x] **Orchestrator Refactor & Standalone Sync (Phase 37-38)**: Transición a un diseño basado en clases (`SecretaryOrchestrator`) y alineación del repositorio raíz como "Single Source of Truth".
 - [x] **Upstream Standards Validation (Phase 39)**: Migración hacia APIs nativas del core (`registerCommand`, `extractPdfContent`), y enriquecimiento de metadatos en la memoria activa (`subagent_ended`).
+- [x] **Ecosystem Expansion via Knowledge Sync (Phase 40)**: Sincronización autónoma de Ghost Writes y resúmenes de audio hacia Notion y Obsidian (pkm) directamente desde el Orquestador.
