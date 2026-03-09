@@ -1,7 +1,15 @@
-import { Orchestrator } from './src/orchestrator';
+import { SecretaryOrchestrator } from './src/orchestrator.js';
+import * as path from "node:path";
 
 async function verifyEmailPhase() {
-    const orchestrator = new Orchestrator();
+    // Mock API for testing
+    const mockApi = {
+        resolvePath: (p: string) => path.join(process.cwd(), "extensions/secretary", p),
+        log: (msg: string) => console.log(`[LOG] ${msg}`),
+        error: (msg: string) => console.error(`[ERR] ${msg}`),
+    } as any;
+    
+    const orchestrator = new SecretaryOrchestrator(mockApi);
     
     console.log("🧪 Verificando Phase 8: Email Concierge...");
     

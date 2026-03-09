@@ -299,6 +299,15 @@ const entries: SubCliEntry[] = [
     },
   },
   {
+    name: "secretary",
+    description: "Manage ClawSecretary - Your autonomous AI personal assistant",
+    hasSubcommands: true,
+    register: async (program) => {
+      const mod = await import("../secretary-cli.js");
+      mod.registerSecretaryCli(program);
+    },
+  },
+  {
     name: "completion",
     description: "Generate shell completion script",
     hasSubcommands: false,
