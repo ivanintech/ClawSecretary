@@ -1,5 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import type { OpenClawPluginApi } from "../../../../src/plugins/types.js";
+import { storeVectorMemory } from "../wal-helpers.js";
 
 export async function syncToNotion(title: string, content: string): Promise<boolean> {
   const apiKey = process.env.NOTION_API_KEY;
@@ -75,8 +77,16 @@ export async function syncToObsidian(title: string, content: string): Promise<bo
   }
 }
 
-export async function syncKnowledge(title: string, content: string): Promise<string[]> {
+export async function syncKnowledge(
+  api: OpenClawPluginApi,
+  title: string,
+  content: string,
+): Promise<string[]> {
   const results: string[] = [];
+
+  // Phase 41D: Populate Vector Memory (LanceDB)
+  await storeVectorMemory(api, `${title}: ${content}`, "fact");
+  results.push("VectorDB");
 
   if (process.env.OBSIDIAN_VAULT_PATH) {
     const ok = await syncToObsidian(title, content);

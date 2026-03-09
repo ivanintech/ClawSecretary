@@ -25,6 +25,7 @@ import {
 } from "./helpers/intelligence.js";
 import { triggerHueScene, triggerSonosFocus } from "./helpers/iot.js";
 import { syncKnowledge } from "./helpers/knowledge.js";
+import { generatePairingLink, printMagicLink } from "./helpers/pairing.js";
 import { waButtonPayload } from "./helpers/whatsapp.js";
 import { CalendarStore } from "./store.js";
 import { VaultManager } from "./vault.js";
@@ -41,6 +42,18 @@ export function createOrchestratorTool(api: OpenClawPluginApi) {
     handler: async (ctx) => {
       const result = await orchestrator.execute("native-cmd", { action: "briefing" });
       return { text: result.content[0].text };
+    },
+  });
+
+  // Register native /pair command for Magic Setup (Phase 43)
+  api.registerCommand({
+    name: "pair",
+    description: "Genera un enlace mágico para conectar tu móvil instantáneamente.",
+    acceptsArgs: false,
+    handler: async () => {
+      const link = await generatePairingLink(api);
+      printMagicLink(api, link);
+      return { text: `Enlace de emparejamiento generado en consola:\n${link}` };
     },
   });
 
@@ -100,6 +113,7 @@ export class SecretaryOrchestrator {
         "himalaya_read",
         "trigger_focus_mode",
         "urgent_alert",
+        "magic_pair",
       ],
       description: "Action to perform.",
     }),
@@ -148,6 +162,8 @@ export class SecretaryOrchestrator {
     const apiKey = process.env.MATON_API_KEY;
 
     switch (params.action) {
+      case "magic_pair":
+        return this.handleMagicPair();
       case "get_secure_secret":
         return this.handleGetSecureSecret(params);
       case "sync_tasks":
@@ -259,7 +275,7 @@ export class SecretaryOrchestrator {
   private async handleSyncKnowledge(params: any) {
     const title = params.title || `Entry_${new Date().toISOString().split("T")[0]}`;
     const content = params.content || "";
-    const syncedTo = await syncKnowledge(title, content);
+    const syncedTo = await syncKnowledge(this.api, title, content);
 
     if (syncedTo.length === 0) {
       return {
@@ -413,6 +429,14 @@ export class SecretaryOrchestrator {
     return {
       content: [{ type: "text", text: briefingText }],
       details: { events: dailyEvents, waInteractivePayload: waPayload, weather: weatherStr },
+    };
+  }
+
+  private async handleMagicPair() {
+    const link = await generatePairingLink(this.api);
+    return {
+      content: [{ type: "text", text: `🔗 Magic Setup Link: ${link}` }],
+      details: { link },
     };
   }
 
@@ -692,6 +716,7 @@ export class SecretaryOrchestrator {
 
     // Phase 40: Auto-sync audio notes to Second Brain
     const syncedTo = await syncKnowledge(
+      this.api,
       `Voice Note ${new Date().toLocaleString()}`,
       params.transcript,
     );
@@ -746,6 +771,7 @@ export class SecretaryOrchestrator {
 
     // Phase 40: Auto-sync Ghost Writes to Second Brain
     const syncedTo = await syncKnowledge(
+      this.api,
       `Acta / Cierre Ghost Write ${new Date().toLocaleDateString()}`,
       params.transcript,
     );

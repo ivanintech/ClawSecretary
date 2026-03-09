@@ -40,6 +40,21 @@ Para agendar citas entre dos usuarios sin exponer sus calendarios a la nube:
 
 ---
 
+## 💳 SaaS Management Plane (Billing & Account)
+
+Para que el proyecto sea un SaaS viable pero mantenga la privacidad, dividimos el sistema en dos planos:
+
+### A. Plano de Gestión (Nube - Stripe/Vercel)
+- **Suscripción:** Gestión de pagos, facturas y niveles de servicio (Lanzamiento, Pro, Business).
+- **Control de Ciclo de Vida:** Renovar suscripción, cancelar servicio o pausar el "Bridge".
+- **Privacidad:** El servidor SaaS solo conoce el `UserEmail` y el `StripeID`. No tiene acceso a los logs de actividad del agente ni a los contenidos procesados.
+
+### B. Plano de Datos (Edge - El Móvil)
+- **Sincronización:** El móvil consulta periódicamente al "Bridge" el estado de la suscripción vía un JWT efímero.
+- **Cierre Local:** Si la suscripción expira, el Orquestador local pausa las funciones premium (proactive research, multi-account) de forma interna, pero los datos **nunca** abandonan el terminal.
+
+---
+
 ## 🛠️ Stack Tecnológico Modificado (Mobile-First)
 
 | Componente | Herramienta (Marzo 2026) | Por qué encaja en la privacidad |

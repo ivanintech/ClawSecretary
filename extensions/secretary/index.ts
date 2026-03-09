@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { OpenClawPluginApi } from "../../src/plugins/types.js";
 import { createCalendarTool } from "./src/calendar-tool.js";
+import { generatePairingLink, printMagicLink } from "./src/helpers/pairing.js";
 import { createNegotiationOfferHandler } from "./src/negotiation.js";
 import { createOAuthInjectHandler, createPublicKeyHandler } from "./src/oauth-bridge.js";
 import { createOrchestratorTool, registerProactiveHooks } from "./src/orchestrator.js";
@@ -58,5 +59,14 @@ export default function register(api: OpenClawPluginApi) {
     handler: createNegotiationOfferHandler(api),
     auth: "plugin", // Must be publicly reachable for P2P auth (payloads are RSA encrypted)
     match: "exact",
+  });
+
+  // Phase 43: Magic Setup
+  api.on("gateway_start", async () => {
+    // We wait a bit for tunnels to potentially stabilize if they were started by other plugins
+    setTimeout(async () => {
+      const link = await generatePairingLink(api);
+      printMagicLink(api, link);
+    }, 5000);
   });
 }
