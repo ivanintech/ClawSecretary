@@ -3,7 +3,6 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
 import { Type } from "@sinclair/typebox";
-import { extractPdfContent } from "../../../src/media/pdf-extract.js";
 import type { OpenClawPluginApi, OpenClawPluginToolContext } from "../../../src/plugins/types.js";
 import { joinPresentTextSegments } from "../../../src/shared/text/join-segments.js";
 import { STRINGS } from "./constants.js";
@@ -33,6 +32,17 @@ import { updateSessionState, appendWorkingBuffer, searchDeepMemory } from "./wal
 
 export function createOrchestratorTool(api: OpenClawPluginApi) {
   const orchestrator = new SecretaryOrchestrator(api);
+
+  // Register native /briefing command for instant access (Phase 39)
+  api.registerCommand({
+    name: "briefing",
+    description: "Genera un resumen proactivo de tu agenda y estado actual de forma instantánea.",
+    acceptsArgs: false,
+    handler: async (ctx) => {
+      const result = await orchestrator.execute("native-cmd", { action: "briefing" });
+      return { text: result.content[0].text };
+    },
+  });
 
   return {
     name: "secretary_orchestrator",
@@ -130,7 +140,11 @@ class SecretaryOrchestrator {
     this.crm = new CRMManager();
   }
 
-  async execute(runId: string, params: Record<string, any>, ctx?: OpenClawPluginToolContext) {
+  async execute(
+    runId: string,
+    params: Record<string, any>,
+    ctx?: OpenClawPluginToolContext,
+  ): Promise<any> {
     const apiKey = process.env.MATON_API_KEY;
 
     switch (params.action) {
@@ -628,7 +642,7 @@ class SecretaryOrchestrator {
     if (!params.documentPath) throw new Error("documentPath is required.");
     const docPath = this.api.resolvePath(params.documentPath);
     const buffer = await fs.readFile(docPath);
-    const result = await extractPdfContent({
+    const result = await this.api.extractPdfContent({
       buffer,
       maxPages: 5,
       maxPixels: 4_000_000,
@@ -642,7 +656,7 @@ class SecretaryOrchestrator {
     };
   }
 
-  private async handleVoiceCommandExecutor(runId: string, params: any) {
+  private async handleVoiceCommandExecutor(runId: string, params: any): Promise<any> {
     if (!params.transcript) throw new Error("Transcript missing.");
     const text = params.transcript.toLowerCase();
     let action = "";
@@ -766,8 +780,8 @@ export function registerProactiveHooks(api: OpenClawPluginApi) {
     console.log("[Secretary] Proactive Briefing Triggered.");
   });
 
-  api.on("tool_result_persist", async (event) => {
-    if (["calendar_tool", "gog_sync", "calendly_sync"].includes(event.toolName)) {
+  api.on("tool_result_persist", (event) => {
+    if (event.toolName && ["calendar_tool", "gog_sync", "calendly_sync"].includes(event.toolName)) {
       console.log(`[Secretary] Conflict check triggered by ${event.toolName}`);
     }
   });
@@ -791,5 +805,22 @@ export function registerProactiveHooks(api: OpenClawPluginApi) {
         console.log("[Secretary] High stress hook: triggering recommendation queue.");
       }
     }
+  });
+
+  // Phase 39: Enhanced subagent outcome tracking for WAL
+  api.on("subagent_ended", async (event) => {
+    const outcome = event.outcome || "unknown";
+    const duration = event.endedAt
+      ? `(ended at ${new Date(event.endedAt).toLocaleTimeString()})`
+      : "";
+    console.log(
+      `[Secretary] Subagent ${event.targetSessionKey} [${event.targetKind}] ended with outcome: ${outcome} ${duration}`,
+    );
+
+    await updateSessionState(
+      api.resolvePath((api.config.agents?.defaults?.workspace as string) || "./workspace"),
+      "SUBAGENT_SYNC",
+      `Delegation ${outcome.toUpperCase()}: ${event.targetSessionKey} ${duration}`,
+    );
   });
 }
