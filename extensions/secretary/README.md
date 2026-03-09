@@ -121,6 +121,9 @@ Tools natively return `waInteractivePayload` structs for direct injection via Wh
 - **Phase 34**: Structural Refactor. Integrated `joinPresentTextSegments` for robust briefing generation and cleaned up TypeScript architecture.
 - **Phase 35**: Advanced Core Integration (Biometry Standardization + Subagent Supervision) 🦞
 - **Phase 36**: Smart Environment & Multi-Account Concierge. Added `himalaya` support for generic email, `trigger_focus_mode` for IoT control (Hue + Sonos), and an Urgent Alert Tier (Voice + iMessage). 🦞
+- **Phase 37**: Orchestrator Refactor & Modularity. Transition to `SecretaryOrchestrator` class and decomposed helper modules for maximum maintainability.
+- **Phase 38**: Root Repository Realignment. Force-sync to `ClawSecretary` standalone repository as the single source of truth.
+- **Phase 39**: Upstream Evolution Integration. Integrated native `/briefing` command, enhanced `subagent_ended` hook for WAL, and built-in `api.extractPdfContent()`.
 
 ---
 

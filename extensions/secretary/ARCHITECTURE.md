@@ -60,3 +60,5 @@ Para agendar citas entre dos usuarios sin exponer sus calendarios a la nube:
 - [x] **Modo Piloto Automático (Phase 32)**: SOUL.md Parser para ejecutar Autonomía Dinámica (L1 a L4), gestionando conflictos y eventos de manera 100% silenciosa en las categorías de confianza (L3/L4).
 - [x] **Upstream Core Integration (Phase 33-35)**: Alineación total con el núcleo 2026 de OpenClaw. Refactorización de biometría al estándar `node_event` y supervisión autónoma de subagentes vía `subagent_ended` para el cierre automático de ciclos en el WAL.
 - [x] **Smart Environment & Multi-Account Concierge (Phase 36)**: Integración de `himalaya` para gestión de cualquier cuenta IMAP/SMTP, `trigger_focus_mode` para control IoT (Hue + Sonos) y Urgent Alert Tier escalable. 🦞
+- [x] **Orchestrator Refactor & Standalone Sync (Phase 37-38)**: Transición a un diseño basado en clases (`SecretaryOrchestrator`) y alineación del repositorio raíz como "Single Source of Truth".
+- [x] **Upstream Standards Validation (Phase 39)**: Migración hacia APIs nativas del core (`registerCommand`, `extractPdfContent`), y enriquecimiento de metadatos en la memoria activa (`subagent_ended`).
