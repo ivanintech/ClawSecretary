@@ -6,12 +6,9 @@ import type { OpenClawPluginApi } from "../../../src/plugins/types.js";
 // WhatsApp Web Integration - Zero API Keys Required
 async function sendViaWhatsAppWeb(api: OpenClawPluginApi, recipient: string, message: object): Promise<object> {
   try {
-    // Usar el whatapp del usuario a través del gateway de OpenClaw
-    // Esto requiere que el usuario tenga WhatsApp conectado en OpenClaw
-    
     // Verificar si el usuario tiene WhatsApp configurado en OpenClaw
     const whatsAppConfig = api.config.channels?.whatsapp;
-    
+
     if (!whatsAppConfig || !whatsAppConfig.enabled) {
       throw new Error("WhatsApp no está configurado. Por favor, configura WhatsApp en OpenClaw.");
     }
@@ -23,13 +20,13 @@ async function sendViaWhatsAppWeb(api: OpenClawPluginApi, recipient: string, mes
       message: message,
     });
 
-    return { success: true, message_id: result.id ||crypto.randomUUID() };
+    return { success: true, message_id: result.id || crypto.randomUUID() };
   } catch (error) {
     console.log("[Secretary:WhatsApp] ⚠️ WhatsApp Web no disponible, usando fallback");
-    
+
     // Fallback: Simular envío (guardo mensaje localmente)
     const messageId = crypto.randomUUID();
-    
+
     // Almacenar mensaje para envío cuando WhatsApp esté disponible
     await storePendingMessage(api, {
       id: messageId,
@@ -37,9 +34,9 @@ async function sendViaWhatsAppWeb(api: OpenClawPluginApi, recipient: string, mes
       message,
       timestamp: new Date().toISOString(),
     });
-    
-    return { 
-      success: true, 
+
+    return {
+      success: true,
       message_id: messageId,
       status: "pending_whatsapp_setup",
       message: "Tu respuesta está lista. Por favor, configura WhatsApp en OpenClaw para enviar mensajes automáticamente."
@@ -52,20 +49,20 @@ async function storePendingMessage(api: OpenClawPluginApi, message: any) {
   try {
     const workspaceDir = api.config.agents?.defaults?.workspace;
     if (!workspaceDir) return;
-    
+
     const pendingPath = `${workspaceDir}/secretary-pending-messages.json`;
     let pending: any[] = [];
-    
+
     try {
-      const existing = await fs.readFile(pendingPath, 'utf-8');
+      const existing = await fs.readFile(pendingPath, "utf-8");
       pending = JSON.parse(existing);
     } catch {
       // Archivo no existe yet
     }
-    
+
     pending.push(message);
     await fs.writeFile(pendingPath, JSON.stringify(pending, null, 2));
-    
+
     // Notificar al usuario que necesita configurar WhatsApp
     console.log("[Secretary:WhatsApp] 📱 Mensaje pendiente - Configura WhatsApp");
   } catch (error) {
@@ -119,7 +116,7 @@ export function createWhatsAppTool(api: OpenClawPluginApi) {
     }),
     async execute(runId: string, params: Record<string, any>, _ctx?: any) {
       const { action, to, body, buttons, listHeader, listButtonLabel, listItems } = params;
-      
+
       // Special case: Send setup instructions
       if (action === "send_setup_instructions") {
         return await sendWhatsAppSetupInstructions(api, to, body);
@@ -149,7 +146,7 @@ export function createWhatsAppTool(api: OpenClawPluginApi) {
         };
       } else if (action === "send_list") {
         messagePayload = {
-          type: "interactive", 
+          type: "interactive",
           content: {
             header: listHeader || "Opciones",
             text: body,
@@ -197,22 +194,40 @@ export function createWhatsAppTool(api: OpenClawPluginApi) {
 
       try {
         const result = await sendViaWhatsAppWeb(api, to, messagePayload);
-        
+
         // Si el mensaje quedó pendiente, enviar setup guide
         if ((result as any).status === "pending_whatsapp_setup") {
-          await sendWhatsAppSetupInstructions(api, to, 
+          await sendWhatsAppSetupInstructions(api, to,
             "¡Tu mensaje está listo!\n\nPara enviar WhatsApp automáticamente, necesitas conectar tu cuenta:\n\n1. Abre tu Control Panel: https://127.0.0.1:18789\n2. Ve a → Channels → WhatsApp\n3. Sigue los pasos de conexión One-Click\n\nTu mensaje se enviará automáticamente al terminar ✅"
           );
         }
 
-        return result;
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: `✅ Mensaje enviado a ${to} vía WhatsApp OpenClaw`
+            }
+          ],
+          details: result
+        };
       } catch (error) {
         console.error("[Secretary:WhatsApp] Error sending message:", error);
-        
+
         // Fallback: Enviar instrucciones de configuración
-        return await sendWhatsAppSetupInstructions(api, to, 
+        const setupResult = await sendWhatsAppSetupInstructions(api, to,
           "¡Hola! Soy tu asistente Secretary 📱\n\nPara recibir mis respuestas por WhatsApp:\n\n1. Abre tu panel de control\n2. Ve a Channels → WhatsApp\n3. Conecta tu cuenta con un QR\n\nMientras tanto, te ayudo de otras formas!"
         );
+
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: setupResult.message
+            }
+          ],
+          requires_whatsapp_setup: true
+        };
       }
     },
   };
@@ -250,7 +265,7 @@ _Necesito ayuda? Solo responde este mensaje_
   if (workspaceDir) {
     const statusPath = path.join(workspaceDir, "secretary-welcome-status.md");
     const content = `# Secretary Setup Status\n\n**User:** +${to}\n**First Contact:** ${new Date().toISOString()}\n**Status:** WhatsApp setup pending\n**Sent Setup Instructions:** ✅\n**Next Step:** User should connect WhatsApp via Control Panel`;
-    
+
     try {
       await fs.writeFile(statusPath, content, 'utf-8');
     } catch (error) {
@@ -264,126 +279,5 @@ _Necesito ayuda? Solo responde este mensaje_
     message: setupMessage,
     next_steps: "User should connect WhatsApp via Control Panel at https://127.0.0.1:18789/channels",
     qr_hint: "Magic QR available in Control Panel → Channels → WhatsApp"
-  };
-}
-      if (!phoneNumberId) {
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text:
-                "⚠️ `WA_PHONE_NUMBER_ID` no configurada.\n" +
-                "Añade tu Phone Number ID de Meta en las variables de entorno.",
-            },
-          ],
-        };
-      }
-
-      if (params.action === "send_text") {
-        const result = await matonPost(phoneNumberId, apiKey, {
-          messaging_product: "whatsapp",
-          to: params.to,
-          type: "text",
-          text: { body: params.body },
-        });
-        return {
-          content: [{ type: "text" as const, text: `✅ Mensaje enviado a ${params.to}` }],
-          details: { result },
-        };
-      }
-
-      if (params.action === "send_buttons") {
-        const buttons: string[] = params.buttons ?? [];
-        if (buttons.length === 0 || buttons.length > 3) {
-          throw new Error("send_buttons requires 1–3 button labels.");
-        }
-        const result = await matonPost(phoneNumberId, apiKey, {
-          messaging_product: "whatsapp",
-          to: params.to,
-          type: "interactive",
-          interactive: {
-            type: "button",
-            body: { text: params.body },
-            action: {
-              buttons: buttons.map((label: string, i: number) => ({
-                type: "reply",
-                reply: { id: `btn_${i}`, title: label },
-              })),
-            },
-          },
-        });
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: `✅ Mensaje con botones enviado a ${params.to}\nBotones: ${buttons.join(" | ")}`,
-            },
-          ],
-          details: { result },
-        };
-      }
-
-      if (params.action === "send_list") {
-        const sections = params.listSections ?? [];
-        if (sections.length === 0) {
-          throw new Error("send_list requires at least one section with rows.");
-        }
-        const result = await matonPost(phoneNumberId, apiKey, {
-          messaging_product: "whatsapp",
-          to: params.to,
-          type: "interactive",
-          interactive: {
-            type: "list",
-            header: params.listHeader ? { type: "text", text: params.listHeader } : undefined,
-            body: { text: params.body },
-            action: {
-              button: params.listButtonLabel ?? "Ver opciones",
-              sections,
-            },
-          },
-        });
-        return {
-          content: [{ type: "text" as const, text: `✅ Mensaje con lista enviado a ${params.to}` }],
-          details: { result },
-        };
-      }
-
-      if (params.action === "send_voice") {
-        const result_tts = await runtime.tts.textToSpeech({
-          text: params.body,
-          cfg: api.config,
-        });
-
-        if (!result_tts.success || !result_tts.audioPath) {
-          throw new Error(`TTS failed: ${result_tts.error}`);
-        }
-
-        api.logger.info(`[whatsapp-tool] TTS generated at ${result_tts.audioPath}`);
-
-        // Maton expects a publicly accessible URL for media.
-        // In a local environment, this requires a media proxy.
-        // For now, we send the intent and log the local file path.
-        const result = await matonPost(phoneNumberId, apiKey, {
-          messaging_product: "whatsapp",
-          to: params.to,
-          type: "text",
-          text: {
-            body: `🎙️ [Respuesta de Voz]: ${params.body}\n(Audio generado localmente en: ${result_tts.audioPath})`,
-          },
-        });
-
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: `✅ Respuesta de voz enviada (como texto con referencia local) a ${params.to}`,
-            },
-          ],
-          details: { result, localAudioPath: result_tts.audioPath },
-        };
-      }
-
-      throw new Error(`Unknown action: ${params.action}`);
-    },
   };
 }

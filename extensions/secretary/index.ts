@@ -1,5 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { OpenClawPluginApi } from "../../src/plugins/types.js";
+import {
+  createWhatsAppConnectHandler,
+  createOAuthProviderHandler,
+  createActivationInfoHandler,
+  createActivationStartHandler,
+  createActivationPairHandler,
+  createActivationVerifyHandler,
+  createActivationStatusHandler
+} from "./src/activation-endpoints.js";
+import { createAutoActivator } from "./src/auto-activator.js";
 import { createCalendarTool } from "./src/calendar-tool.js";
 import { generatePairingLink, printMagicLink } from "./src/helpers/pairing.js";
 import { createNegotiationOfferHandler } from "./src/negotiation.js";
@@ -84,12 +94,99 @@ export default function register(api: OpenClawPluginApi) {
     match: "exact",
   });
 
-  // Phase 43: Magic Setup
+  // Phase 44: Zero-Configuration Auto-Activation System (NEW - March 2026)
+  // Info endpoint - Get system status and capabilities
+  api.registerHttpRoute({
+    path: "/plugins/secretary/activate/info",
+    handler: createActivationInfoHandler(api),
+    auth: "plugin",
+    match: "exact",
+  });
+
+  // Start activation - Generate pairing code
+  api.registerHttpRoute({
+    path: "/plugins/secretary/activate/start",
+    handler: createActivationStartHandler(api),
+    auth: "plugin", // Public for new users
+    match: "exact",
+  });
+
+  // Complete pairing - Device registration
+  api.registerHttpRoute({
+    path: "/plugins/secretary/activate/pair",
+    handler: createActivationPairHandler(api),
+    auth: "plugin", // Authenticated via pairing code
+    match: "exact",
+  });
+
+  // Verify pairing code - Check validity without modifying state
+  api.registerHttpRoute({
+    path: "/plugins/secretary/activate/verify",
+    handler: createActivationVerifyHandler(api),
+    auth: "plugin",
+    match: "exact",
+  });
+
+  // Get session status
+  api.registerHttpRoute({
+    path: "/plugins/secretary/activate/status",
+    handler: createActivationStatusHandler(api),
+    auth: "plugin",
+    match: "prefix",
+  });
+
+  // Request WhatsApp connection
+  api.registerHttpRoute({
+    path: "/plugins/secretary/activate/whatsapp-connect",
+    handler: createWhatsAppConnectHandler(api),
+    auth: "plugin",
+    match: "exact",
+  });
+
+  // OAuth provider setup instructions
+  api.registerHttpRoute({
+    path: "/plugins/secretary/activate/oauth",
+    handler: createOAuthProviderHandler(api),
+    auth: "plugin",
+    match: "prefix",
+  });
+
+  // Phase 43: Magic Setup (Updated to use AutoActivator - Zero Configuration)
   api.on("gateway_start", async () => {
-    // We wait a bit for tunnels to potentially stabilize if they were started by other plugins
+    // Wait a bit for gateway to stabilize
     setTimeout(async () => {
-      const link = await generatePairingLink(api);
-      printMagicLink(api, link);
+      try {
+        console.log("[Secretary AutoActivator] 🚀 Starting zero-configuration activation flow...");
+
+        const activator = createAutoActivator(api);
+        const activation = await activator.generateActivationLink();
+
+        console.log(`
+╔═══════════════════════════════════════════════════════════════╗
+║  ✨ CLAWSECRETARY AUTO-ACTIVATION READY ✨                   ║
+╠═══════════════════════════════════════════════════════════════╣
+║                                                               ║
+║  📱 ZERO CONFIGURATION REQUIRED                               ║
+║                                                               ║
+║  🔑 Pairing Code: ${activation.pairCode}              ║
+║  📋 Session ID: ${activation.sessionId}                 ║
+║                                                               ║
+║  🔗 Activation URL:                                          ║
+║  ${activation.qrLink}           ║
+║                                                               ║
+║  or scan QR code displayed in your terminal                   ║
+║                                                               ║
+║  ⏱️  Valid for 10 minutes                                    ║
+║                                                               ║
+╚═══════════════════════════════════════════════════════════════╝
+
+${activation.instructions}
+          `);
+
+      } catch (error) {
+        console.error("[Secretary AutoActivator] ❌ Failed to start activation:", error);
+        console.log("Fallback: Will start activation on manual request to /activate/start");
+      }
     }, 5000);
   });
 }
