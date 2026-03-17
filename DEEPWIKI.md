@@ -1,22 +1,27 @@
-# Core-Concepts
+# Overview
 
-# Core Concepts
+# Overview
 Relevant source files
-- [CHANGELOG.md](https://github.com/openclaw/openclaw/blob/17eaa59a/CHANGELOG.md)
+- [.npmrc](https://github.com/openclaw/openclaw/blob/17eaa59a/.npmrc)
 - [README.md](https://github.com/openclaw/openclaw/blob/17eaa59a/README.md)
+- [apps/android/app/build.gradle.kts](https://github.com/openclaw/openclaw/blob/17eaa59a/apps/android/app/build.gradle.kts)
+- [apps/ios/ShareExtension/Info.plist](https://github.com/openclaw/openclaw/blob/17eaa59a/apps/ios/ShareExtension/Info.plist)
+- [apps/ios/Sources/Info.plist](https://github.com/openclaw/openclaw/blob/17eaa59a/apps/ios/Sources/Info.plist)
+- [apps/ios/Tests/Info.plist](https://github.com/openclaw/openclaw/blob/17eaa59a/apps/ios/Tests/Info.plist)
+- [apps/ios/WatchApp/Info.plist](https://github.com/openclaw/openclaw/blob/17eaa59a/apps/ios/WatchApp/Info.plist)
+- [apps/ios/WatchExtension/Info.plist](https://github.com/openclaw/openclaw/blob/17eaa59a/apps/ios/WatchExtension/Info.plist)
+- [apps/ios/project.yml](https://github.com/openclaw/openclaw/blob/17eaa59a/apps/ios/project.yml)
+- [apps/macos/Sources/OpenClaw/Resources/Info.plist](https://github.com/openclaw/openclaw/blob/17eaa59a/apps/macos/Sources/OpenClaw/Resources/Info.plist)
 - [assets/avatar-placeholder.svg](https://github.com/openclaw/openclaw/blob/17eaa59a/assets/avatar-placeholder.svg)
 - [docs/channels/index.md](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/channels/index.md)
 - [docs/cli/index.md](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/cli/index.md)
-- [docs/cli/memory.md](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/cli/memory.md)
 - [docs/cli/onboard.md](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/cli/onboard.md)
-- [docs/concepts/memory.md](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/concepts/memory.md)
 - [docs/concepts/multi-agent.md](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/concepts/multi-agent.md)
 - [docs/docs.json](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/docs.json)
-- [docs/gateway/configuration-reference.md](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/gateway/configuration-reference.md)
-- [docs/gateway/configuration.md](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/gateway/configuration.md)
 - [docs/gateway/index.md](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/gateway/index.md)
 - [docs/gateway/troubleshooting.md](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/gateway/troubleshooting.md)
 - [docs/index.md](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/index.md)
+- [docs/platforms/mac/release.md](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/platforms/mac/release.md)
 - [docs/reference/wizard.md](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/reference/wizard.md)
 - [docs/start/getting-started.md](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/start/getting-started.md)
 - [docs/start/hubs.md](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/start/hubs.md)
@@ -30,783 +35,610 @@ Relevant source files
 - [docs/web/webchat.md](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/web/webchat.md)
 - [docs/zh-CN/channels/index.md](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/zh-CN/channels/index.md)
 - [extensions/bluebubbles/src/send-helpers.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/extensions/bluebubbles/src/send-helpers.ts)
+- [extensions/diagnostics-otel/package.json](https://github.com/openclaw/openclaw/blob/17eaa59a/extensions/diagnostics-otel/package.json)
+- [extensions/discord/package.json](https://github.com/openclaw/openclaw/blob/17eaa59a/extensions/discord/package.json)
+- [extensions/memory-lancedb/package.json](https://github.com/openclaw/openclaw/blob/17eaa59a/extensions/memory-lancedb/package.json)
+- [extensions/nostr/package.json](https://github.com/openclaw/openclaw/blob/17eaa59a/extensions/nostr/package.json)
+- [package.json](https://github.com/openclaw/openclaw/blob/17eaa59a/package.json)
+- [pnpm-lock.yaml](https://github.com/openclaw/openclaw/blob/17eaa59a/pnpm-lock.yaml)
+- [pnpm-workspace.yaml](https://github.com/openclaw/openclaw/blob/17eaa59a/pnpm-workspace.yaml)
 - [scripts/clawtributors-map.json](https://github.com/openclaw/openclaw/blob/17eaa59a/scripts/clawtributors-map.json)
 - [scripts/update-clawtributors.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/scripts/update-clawtributors.ts)
 - [scripts/update-clawtributors.types.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/scripts/update-clawtributors.types.ts)
-- [src/agents/memory-search.test.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/src/agents/memory-search.test.ts)
-- [src/agents/memory-search.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/src/agents/memory-search.ts)
-- [src/agents/pi-embedded-runner/extensions.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/src/agents/pi-embedded-runner/extensions.ts)
-- [src/agents/pi-extensions/compaction-safeguard-runtime.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/src/agents/pi-extensions/compaction-safeguard-runtime.ts)
-- [src/agents/pi-extensions/compaction-safeguard.test.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/src/agents/pi-extensions/compaction-safeguard.test.ts)
-- [src/agents/pi-extensions/compaction-safeguard.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/src/agents/pi-extensions/compaction-safeguard.ts)
 - [src/agents/subagent-registry-cleanup.test.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/src/agents/subagent-registry-cleanup.test.ts)
-- [src/cli/memory-cli.test.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/src/cli/memory-cli.test.ts)
-- [src/cli/memory-cli.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/src/cli/memory-cli.ts)
-- [src/config/config.compaction-settings.test.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/src/config/config.compaction-settings.test.ts)
-- [src/config/schema.help.quality.test.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/src/config/schema.help.quality.test.ts)
-- [src/config/schema.help.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/src/config/schema.help.ts)
-- [src/config/schema.labels.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/src/config/schema.labels.ts)
-- [src/config/schema.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/src/config/schema.ts)
-- [src/config/types.agent-defaults.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/src/config/types.agent-defaults.ts)
-- [src/config/types.tools.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/src/config/types.tools.ts)
-- [src/config/types.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/src/config/types.ts)
-- [src/config/zod-schema.agent-defaults.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/src/config/zod-schema.agent-defaults.ts)
-- [src/config/zod-schema.agent-runtime.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/src/config/zod-schema.agent-runtime.ts)
-- [src/config/zod-schema.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/src/config/zod-schema.ts)
-- [src/memory/manager.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/src/memory/manager.ts)
+- [ui/package.json](https://github.com/openclaw/openclaw/blob/17eaa59a/ui/package.json)
 
-This page explains the fundamental building blocks of OpenClaw: **Gateway**, **Agents**, **Sessions**, **Channels**, **Workspaces**, **Tools**, **Skills**, **Memory**, and **Configuration**. Understanding these concepts is essential before diving into system architecture or specific subsystems.
+## Purpose and Scope
 
-For detailed architectural diagrams showing how these components interact, see [System Architecture](/openclaw/openclaw/1.3-system-architecture). For initial setup guidance, see [Getting Started](/openclaw/openclaw/1.1-getting-started).
+This document introduces OpenClaw as a self-hosted multi-agent AI gateway system. It explains the high-level architecture, core capabilities, and deployment model. For hands-on setup instructions, see [Getting Started](/openclaw/openclaw/1.1-getting-started). For conceptual deep-dives on agents, sessions, and routing, see [Core Concepts](/openclaw/openclaw/1.2-core-concepts). For detailed architectural diagrams and subsystem interactions, see [System Architecture](/openclaw/openclaw/1.3-system-architecture).
 
----
+## What is OpenClaw?
 
-## Gateway: Central Control Plane
+OpenClaw is a **self-hosted gateway** that connects messaging platforms (WhatsApp, Telegram, Discord, Slack, Signal, iMessage, and others) to AI coding agents. It runs as a single process on your infrastructure, managing sessions, routing, tool execution, and channel connections.
 
-The **Gateway** is the single WebSocket RPC server that coordinates all OpenClaw activity. It runs as a persistent service and exposes a control plane at `ws://127.0.0.1:18789` (default port).
+**Key characteristics:**
 
-**Key responsibilities:**
+- **Self-hosted**: Runs on your hardware with your credentials and data
+- **Multi-channel**: One gateway process serves multiple messaging platforms simultaneously
+- **Multi-agent**: Supports isolated agent workspaces with independent sessions and auth profiles
+- **Agent-native**: Built for coding agents with tool use, context management, and background execution
+- **Extensible**: Plugin SDK for custom channels, tools, and integrations
 
-- Manages channel connections (WhatsApp, Telegram, Discord, etc.)
-- Routes inbound messages to appropriate agent sessions
-- Handles authentication and authorization
-- Serves the Control UI web dashboard
-- Coordinates cron jobs and webhooks
-- Maintains session state and transcripts
+The gateway acts as a **control plane** for all agent interactions. Clients (CLI, web UI, mobile apps, channel plugins) connect via WebSocket RPC on port 18789 (default). The agent runtime is embedded using the Pi Agent system [package.json354-356](https://github.com/openclaw/openclaw/blob/17eaa59a/package.json#L354-L356)
 
-**Gateway lifecycle:**
+**Sources:**[README.md1-27](https://github.com/openclaw/openclaw/blob/17eaa59a/README.md#L1-L27)[package.json1-473](https://github.com/openclaw/openclaw/blob/17eaa59a/package.json#L1-L473)[docs/index.md44-56](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/index.md#L44-L56)
 
-```
-Gateway Start
-
-Load Config
-~/.openclaw/openclaw.json
-
-Initialize Channels
-channels.telegram
-channels.whatsapp
-etc.
-
-Start WebSocket Server
-ws://127.0.0.1:18789
-
-Serve Control UI
-http://127.0.0.1:18789
-
-Gateway Ready
-
-Handle RPC Calls
-agent.invoke
-sessions.list
-config.get
-etc.
-
-Route Inbound Messages
-channel → binding → agent
-
-Watch Config File
-Hot Reload
-```
-
-**Core Gateway files:**
-
-- [src/gateway/gateway.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/src/gateway/gateway.ts) - Main Gateway service class
-- [src/gateway/rpc-server.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/src/gateway/rpc-server.ts) - WebSocket RPC handler
-- [src/gateway/control-ui.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/src/gateway/control-ui.ts) - HTTP UI server
-
-**Gateway RPC methods:**
-
-- `agent.invoke` - Execute agent turn
-- `sessions.list` - Query sessions
-- `config.get` / `config.patch` - Configuration management
-- `gateway.status` - Health and diagnostics
-- `cron.list` / `cron.add` - Job management
-
-**Sources:**[README.md187-202](https://github.com/openclaw/openclaw/blob/17eaa59a/README.md#L187-L202)[docs/gateway/configuration.md69-73](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/gateway/configuration.md#L69-L73)[src/gateway/](https://github.com/openclaw/openclaw/blob/17eaa59a/src/gateway/)
-
----
-
-## Agents: Execution Units
-
-An **Agent** is an isolated execution context with its own workspace, session storage, model configuration, and tool policy. Agents process user messages and execute tools to generate responses.
-
-**Agent runtime model:**
-
-```
-Inbound Message
-
-AgentRouter
-resolve agent via bindings
-
-SessionManager
-load JSONL transcript
-
-runEmbeddedPiAgent
-Pi Agent embedded
-
-Build System Prompt
-SOUL.md
-AGENTS.md
-TOOLS.md
-
-LLM API Call
-Anthropic/OpenAI/etc.
-
-Tool Execution
-exec/read/write
-memory_search
-sessions_send
-
-Stream Response
-to channel
-
-Save to JSONL
-session.jsonl
-```
-
-**Agent configuration schema:**
-FieldPurposeDefault`agents.defaults.workspace`Root directory for agent files`~/.openclaw/workspace``agents.defaults.model.primary`Primary model ID(none, must configure)`agents.defaults.model.fallbacks`Fallback models on error`[]``agents.defaults.tools`Tool allowlist/denylist(all core tools)`agents.defaults.sandbox.mode`Sandboxing: `off`, `non-main`, `all``off``agents.list[]`Per-agent overrides(empty list)
-**Multi-agent routing:**
-
-Agents can be isolated by channel, account, peer, or custom binding rules. The router uses a 6-tier priority system:
-
-1. **Peer-specific** - `match.peer.id` (e.g., WhatsApp `+15551234567`)
-2. **Parent binding** - Inherited from parent agent
-3. **Guild/group** - `match.guild.id` (Discord server, Telegram group)
-4. **Account** - `match.account.id` (multi-account WhatsApp/Telegram)
-5. **Channel** - `match.channel` (e.g., `telegram`)
-6. **Default agent** - Agent with `default: true`
-
-**Agent implementation:**
-
-- [src/agents/agent-scope.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/src/agents/agent-scope.ts) - Agent resolution and workspace paths
-- [src/agents/pi-embedded-runner.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/src/agents/pi-embedded-runner.ts) - Embedded Pi Agent execution
-- [src/agents/agent-router.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/src/agents/agent-router.ts) - Binding-based routing
-
-**Sources:**[docs/gateway/configuration.md111-133](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/gateway/configuration.md#L111-L133)[src/config/types.agent-defaults.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/src/config/types.agent-defaults.ts)[README.md314-331](https://github.com/openclaw/openclaw/blob/17eaa59a/README.md#L314-L331)
-
----
-
-## Sessions: Conversation State
-
-A **Session** represents a single conversation thread with persistent state, stored as a JSONL transcript file.
-
-**Session key structure:**
-
-```
-agent:<agentId>:<channel>:<mode>:<peerId>[:<threadId>]
+## High-Level Architecture
 
 ```
 
-Examples:
-
-- `agent:main:telegram:direct:123456789` - Direct message on Telegram
-- `agent:main:discord:guild:987654321:channel:555` - Discord channel
-- `agent:main:whatsapp:group:123@g.us` - WhatsApp group
-
-**Session lifecycle diagram:**
-
-```
-First message
-
-Agent turn starts
-
-Response sent
-
-Next message
-
-Context window full
-
-Summary created
-
-No activity
-
-Resume
-
-/new or /reset command
-
-Fresh session
-
-sessionRetention exceeded
-
-Created
-
-Active
-
-Waiting
-
-Compacting
-
-Idle
-
-Reset
-
-Archived
 ```
 
-**Session storage:**
+**Sources:**[package.json16-18](https://github.com/openclaw/openclaw/blob/17eaa59a/package.json#L16-L18)[package.json354-356](https://github.com/openclaw/openclaw/blob/17eaa59a/package.json#L354-L356)[README.md186-202](https://github.com/openclaw/openclaw/blob/17eaa59a/README.md#L186-L202)
 
-Sessions are stored as JSONL files under `~/.openclaw/agents/<agentId>/sessions/`:
+## Core Components
 
-- **Main session:**`main.jsonl` - Default direct message session
-- **Channel sessions:**`<channel>-<accountId>-<peerId>.jsonl`
-- **Group sessions:**`group-<channelId>.jsonl`
+### Gateway Server
 
-Each JSONL line is a turn object:
+The gateway is the **central control plane** that runs on a single multiplexed port (default 18789). It handles:
+
+- **WebSocket RPC**: Client connections for CLI, Control UI, and mobile nodes
+- **HTTP APIs**: OpenAI-compatible endpoints, webhook receivers, tool invocations
+- **Session routing**: Maps inbound messages to agent sessions
+- **Authentication**: Token-based or password-based auth [docs/gateway/index.md76](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/gateway/index.md#L76-L76)
+
+**Entry point:**`openclaw.mjs` → `dist/index.js`[package.json16-36](https://github.com/openclaw/openclaw/blob/17eaa59a/package.json#L16-L36)
+
+**Configuration:**`~/.openclaw/openclaw.json` validated with Zod schemas [docs/gateway/index.md63-66](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/gateway/index.md#L63-L66)
+
+**Sources:**[package.json16-36](https://github.com/openclaw/openclaw/blob/17eaa59a/package.json#L16-L36)[docs/gateway/index.md1-10](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/gateway/index.md#L1-L10)
+
+### Agent Runtime
+
+OpenClaw embeds the **Pi Agent** system for agent execution:
+
+- `@mariozechner/pi-agent-core`: Core agent loop and tool calling
+- `@mariozechner/pi-ai`: LLM provider integrations
+- `@mariozechner/pi-coding-agent`: Coding-specific tools
+
+**Agent isolation:** Each agent has:
+
+- Dedicated workspace directory (`~/.openclaw/workspace` or `~/.openclaw/workspace-<agentId>`)
+- Separate session store (`~/.openclaw/agents/<agentId>/sessions/`)
+- Independent auth profiles (`~/.openclaw/agents/<agentId>/agent/auth-profiles.json`)
+
+**Sources:**[package.json354-356](https://github.com/openclaw/openclaw/blob/17eaa59a/package.json#L354-L356)[docs/concepts/multi-agent.md13-37](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/concepts/multi-agent.md#L13-L37)
+
+### Session Management
+
+Sessions are keyed by agent + routing scope:
+
+- **Per-sender**: `agent:main:peer:<phoneNumber>`
+- **Per-channel**: `agent:main:channel:whatsapp`
+- **Per-group**: `agent:main:guild:<groupId>`
+
+Session files are stored as JSONL transcripts in `~/.openclaw/agents/<agentId>/sessions/<sessionKey>.jsonl`.
+
+**Sources:**[docs/concepts/multi-agent.md40-56](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/concepts/multi-agent.md#L40-L56)[README.md147-149](https://github.com/openclaw/openclaw/blob/17eaa59a/README.md#L147-L149)
+
+### Configuration System
+
+Configuration is loaded from `~/.openclaw/openclaw.json` (JSON5 format):
+
+- **Zod validation**: Schema defined in TypeScript with runtime validation
+- **Hot reload**: Most changes apply without restart (port/bind require restart)
+- **Secret management**: Supports SecretRef for environment variables, files, or exec commands
+- **Migration**: `openclaw doctor` auto-repairs legacy formats
+
+**Sources:**[docs/gateway/index.md63-66](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/gateway/index.md#L63-L66)[README.md318-330](https://github.com/openclaw/openclaw/blob/17eaa59a/README.md#L318-L330)
+
+### Tools System
+
+Tools are registered in `src/tools/registry.ts` with multi-layered policy enforcement:
+
+- **Global policies**: `tools.global.allowlist`, `tools.global.denylist`
+- **Agent policies**: Per-agent tool filtering
+- **Sandbox policies**: Restrict tools in non-main sessions
+- **Per-tool policies**: Fine-grained access control
+
+**Built-in tools:**
+
+- `bash`/`exec`: Shell command execution
+- `read`, `write`, `edit`: File operations
+- `browser_*`: Browser automation via Playwright
+- `memory_search`: Vector + FTS hybrid search
+- `sessions_*`: Agent-to-agent communication
+
+**Sources:**[README.md334-338](https://github.com/openclaw/openclaw/blob/17eaa59a/README.md#L334-L338)[docs/tools/skills.md1-9](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/tools/skills.md#L1-L9)
+
+### Skills System
+
+Skills are **modular tool instructions** loaded from:
+
+1. **Workspace skills**: `<workspace>/skills/` (highest precedence)
+2. **Managed skills**: `~/.openclaw/skills/`
+3. **Bundled skills**: Shipped with the package
+
+Each skill is a directory with `SKILL.md` containing YAML frontmatter + instructions. Skills can declare dependencies (binaries, API keys) and gating rules.
+
+**Format:** AgentSkills.io-compatible markdown files
+
+**Sources:**[docs/tools/skills.md10-27](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/tools/skills.md#L10-L27)[README.md312-317](https://github.com/openclaw/openclaw/blob/17eaa59a/README.md#L312-L317)
+
+### Memory System
+
+Long-term memory uses **SQLite + vector embeddings**:
+
+- **Database**: `~/.openclaw/memory/<agentId>.sqlite`
+- **Vector extension**: `sqlite-vec`[package.json179](https://github.com/openclaw/openclaw/blob/17eaa59a/package.json#L179-L179)
+- **Hybrid search**: Vector similarity + full-text search
+- **Indexing**: `memory_index` tool indexes `MEMORY.md` and `memory/*.md`
+
+**Sources:**[package.json179](https://github.com/openclaw/openclaw/blob/17eaa59a/package.json#L179-L179)[docs/cli/index.md295-299](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/cli/index.md#L295-L299)
+
+### Plugin SDK
+
+The plugin system supports extensibility via `openclaw/plugin-sdk`:
+
+**Channel plugins:** Custom messaging platform integrations (see `extensions/` for 25+ examples)
+
+**Tool plugins:** Add custom tools to the registry
+
+**Exports:**[package.json38-214](https://github.com/openclaw/openclaw/blob/17eaa59a/package.json#L38-L214) defines subpaths for each plugin type
+
+**Sources:**[package.json38-214](https://github.com/openclaw/openclaw/blob/17eaa59a/package.json#L38-L214)[README.md285-290](https://github.com/openclaw/openclaw/blob/17eaa59a/README.md#L285-L290)
+
+## Key Capabilities
+CapabilityDescriptionCode Reference**Multi-channel messaging**WhatsApp, Telegram, Discord, Slack, Signal, iMessage, Matrix, and 20+ more[extensions/*/](https://github.com/openclaw/openclaw/blob/17eaa59a/extensions/*/)**Multi-agent routing**Isolated agents with independent workspaces, sessions, and auth[docs/concepts/multi-agent.md1-10](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/concepts/multi-agent.md#L1-L10)**Tool execution**Bash, file ops, browser control, memory search, agent messaging[src/tools/](https://github.com/openclaw/openclaw/blob/17eaa59a/src/tools/)**Context compaction**Automatic session summarization when context window fills[README.md174-176](https://github.com/openclaw/openclaw/blob/17eaa59a/README.md#L174-L176)**Cron scheduling**Background agent tasks with configurable delivery[src/cron/](https://github.com/openclaw/openclaw/blob/17eaa59a/src/cron/)[README.md167-169](https://github.com/openclaw/openclaw/blob/17eaa59a/README.md#L167-L169)**WebSocket RPC**Real-time bidirectional communication for all clients[docs/gateway/index.md71-77](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/gateway/index.md#L71-L77)**OAuth integration**Token refresh for Anthropic, OpenAI, Google providers[docs/cli/index.md459](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/cli/index.md#L459-L459)**Device pairing**Secure node registration with challenge-response auth[docs/gateway/troubleshooting.md93-150](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/gateway/troubleshooting.md#L93-L150)**Hot reload**Config changes apply without restart (hybrid mode default)[docs/gateway/index.md63-66](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/gateway/index.md#L63-L66)**Sandboxing**Per-session Docker isolation for non-main sessions[README.md334-338](https://github.com/openclaw/openclaw/blob/17eaa59a/README.md#L334-L338)
+**Sources:**[README.md126-176](https://github.com/openclaw/openclaw/blob/17eaa59a/README.md#L126-L176)[docs/gateway/index.md69-77](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/gateway/index.md#L69-L77)
+
+## Platform Support
+
+### Operating Systems
+PlatformGateway SupportNode SupportInstallation Method**macOS**✓ Full✓ Fullnpm, installer script, native app**Linux**✓ Full✓ Fullnpm, installer script, Docker**Windows**✓ WSL2 required✓ Via WSL2npm, PowerShell installer
+**Native clients:**
+
+- **macOS app**: Menu bar control, Voice Wake, Canvas, WebChat [apps/macos/](https://github.com/openclaw/openclaw/blob/17eaa59a/apps/macos/)
+- **iOS app**: Node mode, Canvas, camera, voice [apps/ios/](https://github.com/openclaw/openclaw/blob/17eaa59a/apps/ios/)
+- **Android app**: Node mode, Canvas, camera, device actions [apps/android/](https://github.com/openclaw/openclaw/blob/17eaa59a/apps/android/)
+
+**Sources:**[README.md22-31](https://github.com/openclaw/openclaw/blob/17eaa59a/README.md#L22-L31)[package.json432](https://github.com/openclaw/openclaw/blob/17eaa59a/package.json#L432-L432)
+
+### Runtime Requirements
+
+- **Node.js**: ≥22.16.0 (22 LTS or 24 recommended) [package.json431-433](https://github.com/openclaw/openclaw/blob/17eaa59a/package.json#L431-L433)
+- **Package manager**: npm, pnpm (recommended), or bun [package.json434](https://github.com/openclaw/openclaw/blob/17eaa59a/package.json#L434-L434)
+- **Optional**: Docker for sandboxing [README.md335-336](https://github.com/openclaw/openclaw/blob/17eaa59a/README.md#L335-L336)
+- **Optional**: Browser binaries for `browser_*` tools (Playwright)
+
+**Sources:**[package.json431-434](https://github.com/openclaw/openclaw/blob/17eaa59a/package.json#L431-L434)[README.md52-56](https://github.com/openclaw/openclaw/blob/17eaa59a/README.md#L52-L56)
+
+## Installation Overview
+
+### Quick Install (Recommended)
 
 ```
-{"role": "user", "content": "Hello", "timestamp": "2025-01-15T10:30:00Z"}
-{"role": "assistant", "content": "Hi there!", "timestamp": "2025-01-15T10:30:05Z"}
+# Install globally
+npm install -g openclaw@latest
+ 
+# Run onboarding wizard
+openclaw onboard --install-daemon
 ```
 
-**Session configuration:**
-FieldPurposeDefault`session.dmScope`DM isolation level`main``session.reset.mode`Auto-reset trigger`off``session.reset.idleMinutes`Idle time before reset(disabled)`session.threadBindings.enabled`Discord thread routing`false`
-**Session scoping modes:**
+The wizard configures:
 
-- `main` - Single shared session across all DMs
-- `per-peer` - One session per sender (channel-agnostic)
-- `per-channel-peer` - Isolate by both channel and sender
-- `per-account-channel-peer` - Full isolation including account ID
+1. Model authentication (API key or OAuth)
+2. Gateway settings (port, bind, auth)
+3. Channel connections (optional)
+4. System service installation (launchd/systemd)
+5. Skills setup
 
-**Sources:**[docs/concepts/session.md](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/concepts/session.md)[src/config/sessions/](https://github.com/openclaw/openclaw/blob/17eaa59a/src/config/sessions/)[docs/gateway/configuration.md178-204](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/gateway/configuration.md#L178-L204)
+For detailed setup instructions, see [Getting Started](/openclaw/openclaw/1.1-getting-started).
 
----
+**Sources:**[README.md50-81](https://github.com/openclaw/openclaw/blob/17eaa59a/README.md#L50-L81)[docs/start/wizard.md10-33](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/start/wizard.md#L10-L33)
 
-## Channels: Messaging Integrations
+### Alternative Installations
+MethodUse CaseCommand**Docker**Container deploymentSee [Docker docs](https://github.com/openclaw/openclaw/blob/17eaa59a/Docker docs)**Nix**Declarative configSee [Nix docs](https://github.com/openclaw/openclaw/blob/17eaa59a/Nix docs)**Install script**Automated setup`curl -fsSL https://openclaw.ai/install.sh | bash`**From source**Development`git clone && pnpm install && pnpm build`
+**Sources:**[README.md82-111](https://github.com/openclaw/openclaw/blob/17eaa59a/README.md#L82-L111)[docs/start/getting-started.md30-53](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/start/getting-started.md#L30-L53)
 
-**Channels** are plugin-based integrations with messaging platforms. Each channel runs as a subprocess or service within the Gateway.
+## Configuration Overview
 
-**Built-in channels:**
+### Minimal Configuration
 
-```
-Gateway Control Plane
-
-WhatsApp
-Baileys Web
-channels.whatsapp
-
-Telegram
-grammY Bot
-channels.telegram
-
-Discord
-discord.js
-channels.discord
-
-Slack
-Bolt Framework
-channels.slack
-
-Signal
-signal-cli
-channels.signal
-
-iMessage
-imsg/BlueBubbles
-channels.imessage
-
-Agent Router
-```
-
-**Channel access control:**
-
-All channels support DM and group policies:
-PolicyBehavior`pairing` (default)Unknown senders get one-time pairing code`allowlist`Only allow senders in `allowFrom` array`open`Accept all DMs (requires `allowFrom: ["*"]`)`disabled`Ignore all DMs
-**Channel configuration pattern:**
+A minimal `~/.openclaw/openclaw.json` requires only a model:
 
 ```
 {
-  channels: {
-    telegram: {
-      enabled: true,
-      botToken: "123:abc",
-      dmPolicy: "pairing",
-      allowFrom: ["tg:123456789"],
-      groups: {
-        "*": { requireMention: true }
-      }
-    }
-  }
-}
-```
-
-**Channel plugin architecture:**
-
-- [src/channels/registry.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/src/channels/registry.ts) - Channel discovery and lifecycle
-- [src/channels/plugins/](https://github.com/openclaw/openclaw/blob/17eaa59a/src/channels/plugins/) - Per-channel implementations
-- [src/channels/channel-manager.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/src/channels/channel-manager.ts) - Unified channel interface
-
-**Sources:**[README.md152-154](https://github.com/openclaw/openclaw/blob/17eaa59a/README.md#L152-L154)[docs/gateway/configuration-reference.md19-44](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/gateway/configuration-reference.md#L19-L44)[src/channels/](https://github.com/openclaw/openclaw/blob/17eaa59a/src/channels/)
-
----
-
-## Workspaces: Agent File Structure
-
-A **Workspace** is the agent's working directory containing prompt files, memory, skills, and session state.
-
-**Default workspace layout:**
-
-```
-~/.openclaw/workspace/          # agents.defaults.workspace
-├── SOUL.md                     # Agent identity/personality
-├── AGENTS.md                   # Multi-agent coordination rules
-├── TOOLS.md                    # Tool usage guidelines
-├── MEMORY.md                   # Long-term curated memory
-├── memory/                     # Daily memory logs
-│   ├── 2025-01-14.md
-│   └── 2025-01-15.md
-├── skills/                     # Workspace skills
-│   ├── git-backup/
-│   │   └── SKILL.md
-│   └── image-gen/
-│       └── SKILL.md
-└── .openclaw/                  # Workspace metadata
-    └── config.json
-
-```
-
-**Prompt injection flow:**
-
-```
-Agent Turn Start
-
-Load Workspace Files
-
-Read SOUL.md
-identity context
-
-Read AGENTS.md
-multi-agent rules
-
-Read TOOLS.md
-tool guidelines
-
-Scan skills/
-inject SKILL.md
-
-Assemble System Prompt
-
-Inject Memory Context
-memory/today.md
-memory/yesterday.md
-
-Send to LLM
-```
-
-**Workspace resolution per agent:**
-
-```
-// agents.defaults.workspace or agents.list[].workspace
-resolveAgentWorkspaceDir(config, agentId)
-  → ~/.openclaw/workspace  (default)
-  → ~/work/agent-persona   (custom)
-```
-
-**Workspace configuration:**
-FieldPurposeDefault`agents.defaults.workspace`Global workspace path`~/.openclaw/workspace``agents.list[].workspace`Per-agent override(inherits default)`agents.defaults.promptMode`System prompt size`full`
-**Sources:**[docs/concepts/agent-workspace.md](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/concepts/agent-workspace.md)[README.md312-317](https://github.com/openclaw/openclaw/blob/17eaa59a/README.md#L312-L317)[src/agents/agent-scope.ts1-50](https://github.com/openclaw/openclaw/blob/17eaa59a/src/agents/agent-scope.ts#L1-L50)
-
----
-
-## Tools: Agent Capabilities
-
-**Tools** are atomic functions that agents can invoke to interact with the system, filesystem, network, or external services.
-
-**Core tool categories:**
-
-```
-Agent Runtime
-
-Execution Tools
-
-File Tools
-
-Memory Tools
-
-Session Tools
-
-Network Tools
-
-Platform Tools
-
-exec
-run bash commands
-
-process
-background jobs
-
-read
-read files
-
-write
-write files
-
-edit
-patch files
-
-memory_search
-semantic recall
-
-memory_get
-direct read
-
-sessions_list
-discover sessions
-
-sessions_send
-message another session
-
-sessions_spawn
-create subagent
-
-web_search
-Perplexity/Brave/etc.
-
-browser.*
-Chrome CDP control
-
-canvas.*
-macOS/iOS UI
-
-nodes.*
-device actions
-```
-
-**Tool execution policy:**
-
-Tools are filtered through a multi-layered policy system:
-
-1. **Gateway-level:**`gateway.tools.allow` / `gateway.tools.deny`
-2. **Agent-level:**`agents.defaults.tools.allow` / `agents.defaults.tools.deny`
-3. **Provider-level:** Per-model tool availability
-4. **Group-level:**`channels.telegram.groups[].tools`
-5. **Sandbox-level:** Sandbox tool restrictions
-6. **Per-tool:** Individual tool policy overrides
-
-**Tool policy precedence:**
-
-```
-allowed
-
-allowed
-
-available
-
-allowed
-
-allowed
-
-denied
-
-denied
-
-unavailable
-
-denied
-
-denied
-
-Tool Invocation Request
-
-Gateway Policy
-gateway.tools
-
-Agent Policy
-agents.defaults.tools
-
-Provider Capabilities
-model supports tool?
-
-Group/Channel Policy
-channels.*.groups[].tools
-
-Sandbox Policy
-sandbox.tools
-
-Execute Tool
-
-Reject: Gateway policy
-```
-
-**Tool configuration:**
-
-```
-{
-  agents: {
-    defaults: {
-      tools: {
-        allow: ["exec", "read", "write", "memory_search"],
-        deny: ["browser", "nodes"],
-        profile: "coding"  // preset: coding, messaging, research
-      }
-    }
-  }
-}
-```
-
-**Tool implementation:**
-
-- [src/tools/](https://github.com/openclaw/openclaw/blob/17eaa59a/src/tools/) - Core tool implementations
-- [src/tools/registry.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/src/tools/registry.ts) - Tool discovery and registration
-- [src/agents/tool-policy.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/src/agents/tool-policy.ts) - Policy enforcement
-
-**Sources:**[docs/tools/](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/tools/)[src/config/types.tools.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/src/config/types.tools.ts)[README.md163-169](https://github.com/openclaw/openclaw/blob/17eaa59a/README.md#L163-L169)
-
----
-
-## Skills: Modular Tool Bundles
-
-**Skills** are installable packages that provide additional tools, prompts, and configuration. Skills follow a three-tier precedence model.
-
-**Skill precedence hierarchy:**
-
-```
-not found
-
-not found
-
-Agent needs skill
-
-1. Workspace Skills
-~/.openclaw/workspace/skills/
-2. Managed Skills
-~/.openclaw/skills/
-3. Bundled Skills
-node_modules/@openclaw/*/skills/
-
-Load SKILL.md
-
-Apply Agent Filter
-agents.defaults.skills[]
-
-Inject into System Prompt
-```
-
-**Skill directory structure:**
-
-```
-git-backup/                    # skill-id
-├── SKILL.md                   # Prompt injection
-├── scripts/
-│   └── backup.sh              # Helper scripts
-└── .openclaw/
-    └── skill.json             # Metadata
-
-```
-
-**SKILL.md format:**
-
-```
-# Git Backup
- 
-## Description
-Automated git backup with commit message generation.
- 
-## Tools
-- exec (backup.sh)
-- write (commit messages)
- 
-## Usage
-Ask me to "backup the workspace" or "commit changes".
-```
-
-**Skill configuration:**
-
-```
-{
-  skills: {
-    entries: {
-      "git-backup": {
-        enabled: true,
-        apiKey: "optional-api-key",
-        env: { GIT_AUTHOR: "OpenClaw" }
-      }
-    }
+  agent: {
+    model: "anthropic/claude-opus-4-6",
   },
-  agents: {
-    defaults: {
-      skills: ["git-backup", "web-search"]  // allowlist
-    }
-  }
 }
 ```
 
-**Skill management:**
+**Sources:**[README.md320-328](https://github.com/openclaw/openclaw/blob/17eaa59a/README.md#L320-L328)
 
-- [src/skills/manager.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/src/skills/manager.ts) - Skill discovery and loading
-- [src/skills/skill-filter.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/src/skills/skill-filter.ts) - Agent-based filtering
-- CLI: `openclaw skills list`, `openclaw skills info <id>`
+### Key Configuration Sections
+SectionPurposeExample`gateway`Port, bind, auth, Tailscale`gateway: { port: 18789, auth: { mode: "token" } }``agents`Agent list, workspaces, bindings`agents: { list: [{ name: "work", workspace: "..." }] }``channels`Channel credentials and policies`channels: { whatsapp: { allowFrom: ["+1..."] } }``tools`Tool policies and allowlists`tools: { global: { allowlist: ["bash", "read"] } }``skills`Skills configuration and gating`skills: { entries: { mcp: { enabled: true } } }``memory`Vector search config`memory: { provider: "openai" }``cron`Scheduled jobs`cron: { jobs: [{ schedule: "0 9 * * *" }] }`
+For complete configuration reference, see [Configuration](/openclaw/openclaw/2.3.1-configuration-reference).
 
-**Sources:**[docs/tools/skills.md](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/tools/skills.md)[README.md135-136](https://github.com/openclaw/openclaw/blob/17eaa59a/README.md#L135-L136)[docs/tools/skills-config.md](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/tools/skills-config.md)
+**Sources:**[docs/gateway/configuration.md1-10](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/gateway/configuration.md#L1-L10)[README.md320-330](https://github.com/openclaw/openclaw/blob/17eaa59a/README.md#L320-L330)
+
+## Deployment Models
+
+```
+
+```
+
+### Local Deployment
+
+- Gateway runs on developer machine (macOS/Linux)
+- Best for: Development, single-user personal use
+- Access: Loopback only (127.0.0.1) or LAN bind
+
+### Remote Gateway
+
+- Gateway runs on VPS/server
+- Clients connect via Tailscale or SSH tunnel
+- Best for: Always-on availability, team usage
+- See [Remote Access](/openclaw/openclaw/2.5-multi-agent-routing) for setup details
+
+### Hybrid with Nodes
+
+- Gateway on server or macOS
+- Device nodes (iOS/Android/macOS) paired for local actions
+- `node.invoke` routes device-specific commands (camera, screen recording, notifications)
+- Best for: Multi-device workflows, remote gateway with local device capabilities
+
+**Sources:**[README.md230-238](https://github.com/openclaw/openclaw/blob/17eaa59a/README.md#L230-L238)[docs/gateway/remote.md1-10](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/gateway/remote.md#L1-L10)
+
+## Security Defaults
+
+OpenClaw requires **explicit opt-in** for public access:
+
+### DM Policy (Default: Pairing)
+
+- **Pairing mode**: Unknown senders receive a pairing code; messages are dropped until approval
+- **Approval**: `openclaw pairing approve <channel> <code>`
+- **Open mode**: Requires explicit `dmPolicy="open"` and `"*"` in allowlist
+
+**Sources:**[README.md112-124](https://github.com/openclaw/openclaw/blob/17eaa59a/README.md#L112-L124)[docs/channels/pairing.md1-10](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/channels/pairing.md#L1-L10)
+
+### Tool Policies
+
+- **Main session**: Full host access (default)
+- **Non-main sessions**: Sandboxed or restricted based on `agents.defaults.sandbox.mode`
+- **Group safety**: Set `sandbox.mode: "non-main"` to run group/channel sessions in Docker
+
+**Sources:**[README.md334-338](https://github.com/openclaw/openclaw/blob/17eaa59a/README.md#L334-L338)[docs/gateway/sandboxing.md1-10](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/gateway/sandboxing.md#L1-L10)
+
+### Authentication
+
+- **Loopback bind**: Token auth recommended (even on 127.0.0.1)
+- **Non-loopback bind**: Token or password auth **required**
+- **Device pairing**: Challenge-response with Ed25519 signatures
+
+**Sources:**[docs/gateway/index.md76](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/gateway/index.md#L76-L76)[docs/gateway/troubleshooting.md93-150](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/gateway/troubleshooting.md#L93-L150)
+
+## Next Steps
+
+- **Setup**: Follow [Getting Started](/openclaw/openclaw/1.1-getting-started) for installation and onboarding
+- **Concepts**: Read [Core Concepts](/openclaw/openclaw/1.2-core-concepts) for agents, sessions, and routing
+- **Architecture**: See [System Architecture](/openclaw/openclaw/1.3-system-architecture) for detailed subsystem diagrams
+- **Configuration**: Explore [Configuration Reference](/openclaw/openclaw/2.3.1-configuration-reference) for all options
+
+**Sources:**[docs/start/getting-started.md1-136](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/start/getting-started.md#L1-L136)[docs/start/wizard.md1-126](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/start/wizard.md#L1-L126)
 
 ---
 
-## Memory: Persistent Context
+# Development
 
-**Memory** is the agent's long-term knowledge store, implemented as Markdown files with hybrid vector + full-text search.
+# Development Guide
+Relevant source files
+- [.github/actions/setup-node-env/action.yml](https://github.com/openclaw/openclaw/blob/17eaa59a/.github/actions/setup-node-env/action.yml)
+- [.github/actions/setup-pnpm-store-cache/action.yml](https://github.com/openclaw/openclaw/blob/17eaa59a/.github/actions/setup-pnpm-store-cache/action.yml)
+- [.github/workflows/auto-response.yml](https://github.com/openclaw/openclaw/blob/17eaa59a/.github/workflows/auto-response.yml)
+- [.github/workflows/ci.yml](https://github.com/openclaw/openclaw/blob/17eaa59a/.github/workflows/ci.yml)
+- [.github/workflows/codeql.yml](https://github.com/openclaw/openclaw/blob/17eaa59a/.github/workflows/codeql.yml)
+- [.github/workflows/docker-release.yml](https://github.com/openclaw/openclaw/blob/17eaa59a/.github/workflows/docker-release.yml)
+- [.github/workflows/install-smoke.yml](https://github.com/openclaw/openclaw/blob/17eaa59a/.github/workflows/install-smoke.yml)
+- [.github/workflows/labeler.yml](https://github.com/openclaw/openclaw/blob/17eaa59a/.github/workflows/labeler.yml)
+- [.github/workflows/openclaw-npm-release.yml](https://github.com/openclaw/openclaw/blob/17eaa59a/.github/workflows/openclaw-npm-release.yml)
+- [.github/workflows/sandbox-common-smoke.yml](https://github.com/openclaw/openclaw/blob/17eaa59a/.github/workflows/sandbox-common-smoke.yml)
+- [.github/workflows/stale.yml](https://github.com/openclaw/openclaw/blob/17eaa59a/.github/workflows/stale.yml)
+- [.github/workflows/workflow-sanity.yml](https://github.com/openclaw/openclaw/blob/17eaa59a/.github/workflows/workflow-sanity.yml)
+- [AGENTS.md](https://github.com/openclaw/openclaw/blob/17eaa59a/AGENTS.md)
+- [docs/channels/irc.md](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/channels/irc.md)
+- [docs/ci.md](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/ci.md)
+- [docs/help/testing.md](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/help/testing.md)
+- [docs/providers/venice.md](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/providers/venice.md)
+- [docs/reference/RELEASING.md](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/reference/RELEASING.md)
+- [docs/reference/test.md](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/reference/test.md)
+- [docs/tools/creating-skills.md](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/tools/creating-skills.md)
+- [scripts/ci-changed-scope.mjs](https://github.com/openclaw/openclaw/blob/17eaa59a/scripts/ci-changed-scope.mjs)
+- [scripts/docker/install-sh-common/cli-verify.sh](https://github.com/openclaw/openclaw/blob/17eaa59a/scripts/docker/install-sh-common/cli-verify.sh)
+- [scripts/docker/install-sh-common/version-parse.sh](https://github.com/openclaw/openclaw/blob/17eaa59a/scripts/docker/install-sh-common/version-parse.sh)
+- [scripts/docker/install-sh-nonroot/run.sh](https://github.com/openclaw/openclaw/blob/17eaa59a/scripts/docker/install-sh-nonroot/run.sh)
+- [scripts/docker/install-sh-smoke/run.sh](https://github.com/openclaw/openclaw/blob/17eaa59a/scripts/docker/install-sh-smoke/run.sh)
+- [scripts/e2e/parallels-macos-smoke.sh](https://github.com/openclaw/openclaw/blob/17eaa59a/scripts/e2e/parallels-macos-smoke.sh)
+- [scripts/e2e/parallels-windows-smoke.sh](https://github.com/openclaw/openclaw/blob/17eaa59a/scripts/e2e/parallels-windows-smoke.sh)
+- [scripts/sync-labels.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/scripts/sync-labels.ts)
+- [scripts/test-install-sh-docker.sh](https://github.com/openclaw/openclaw/blob/17eaa59a/scripts/test-install-sh-docker.sh)
+- [scripts/test-parallel.mjs](https://github.com/openclaw/openclaw/blob/17eaa59a/scripts/test-parallel.mjs)
+- [src/agents/model-tool-support.test.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/src/agents/model-tool-support.test.ts)
+- [src/agents/model-tool-support.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/src/agents/model-tool-support.ts)
+- [src/agents/venice-models.test.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/src/agents/venice-models.test.ts)
+- [src/agents/venice-models.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/src/agents/venice-models.ts)
+- [src/cli/program/help.test.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/src/cli/program/help.test.ts)
+- [src/gateway/hooks-test-helpers.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/src/gateway/hooks-test-helpers.ts)
+- [src/scripts/ci-changed-scope.test.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/src/scripts/ci-changed-scope.test.ts)
+- [src/shared/config-ui-hints-types.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/src/shared/config-ui-hints-types.ts)
+- [test/setup.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/test/setup.ts)
+- [test/test-env.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/test/test-env.ts)
+- [ui/src/ui/controllers/nodes.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/ui/src/ui/controllers/nodes.ts)
+- [ui/src/ui/controllers/skills.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/ui/src/ui/controllers/skills.ts)
+- [ui/src/ui/views/agents-panels-status-files.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/ui/src/ui/views/agents-panels-status-files.ts)
+- [ui/src/ui/views/agents-panels-tools-skills.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/ui/src/ui/views/agents-panels-tools-skills.ts)
+- [ui/src/ui/views/agents-utils.test.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/ui/src/ui/views/agents-utils.test.ts)
+- [ui/src/ui/views/agents-utils.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/ui/src/ui/views/agents-utils.ts)
+- [ui/src/ui/views/agents.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/ui/src/ui/views/agents.ts)
+- [ui/src/ui/views/channel-config-extras.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/ui/src/ui/views/channel-config-extras.ts)
+- [ui/src/ui/views/chat.test.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/ui/src/ui/views/chat.test.ts)
+- [ui/src/ui/views/login-gate.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/ui/src/ui/views/login-gate.ts)
+- [ui/src/ui/views/skills.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/ui/src/ui/views/skills.ts)
+- [vitest.channels.config.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/vitest.channels.config.ts)
+- [vitest.config.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/vitest.config.ts)
+- [vitest.e2e.config.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/vitest.e2e.config.ts)
+- [vitest.extensions.config.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/vitest.extensions.config.ts)
+- [vitest.gateway.config.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/vitest.gateway.config.ts)
+- [vitest.live.config.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/vitest.live.config.ts)
+- [vitest.scoped-config.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/vitest.scoped-config.ts)
+- [vitest.unit.config.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/vitest.unit.config.ts)
 
-**Memory architecture:**
-
-```
-Agent Runtime
-
-Memory Tools
-
-memory_search
-semantic query
-
-memory_get
-direct file read
-
-write
-update memory files
-
-MemoryIndexManager
-SQLite + Vector Index
-
-chunks_vec table
-vec0 extension
-
-chunks_fts table
-FTS5 full-text
-
-Embedding Provider
-OpenAI/Gemini/local
-
-Filesystem
-
-memory/YYYY-MM-DD.md
-daily logs
-
-MEMORY.md
-curated knowledge
-```
-
-**Memory file structure:**
-FilePurposeLoading`MEMORY.md`Curated long-term knowledgeMain session only`memory/YYYY-MM-DD.md`Daily append-only logsToday + yesterday`memory/*.md`Additional memory filesIndexed but not auto-loaded
-**Memory search flow:**
-
-```
-
-```
-
-**Memory configuration:**
-
-```
-{
-  agents: {
-    defaults: {
-      memorySearch: {
-        backend: "builtin",  // or "qmd"
-        provider: "openai",  // openai, gemini, local, auto
-        model: "text-embedding-3-small",
-        enabled: true,
-        citations: "auto",
-        maxResults: 10
-      }
-    }
-  }
-}
-```
-
-**Memory implementation:**
-
-- [src/memory/manager.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/src/memory/manager.ts) - Core MemoryIndexManager class
-- [src/memory/embeddings.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/src/memory/embeddings.ts) - Embedding provider abstraction
-- [src/memory/hybrid.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/src/memory/hybrid.ts) - RRF (Reciprocal Rank Fusion) merging
-
-**Sources:**[docs/concepts/memory.md](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/concepts/memory.md)[src/memory/manager.ts1-200](https://github.com/openclaw/openclaw/blob/17eaa59a/src/memory/manager.ts#L1-L200)[src/agents/memory-search.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/src/agents/memory-search.ts)
+This page covers the contributor and maintainer workflow for the OpenClaw monorepo: repository structure, toolchain setup, coding conventions, testing, commit and PR conventions, and local development commands. For CI/CD pipeline details see page [8.1](/openclaw/openclaw/8.1-ios-client). For release steps see page [8.2](/openclaw/openclaw/8.2-macos-client).
 
 ---
 
-## Configuration: JSON5 System
+## Repository Structure
 
-**Configuration** is managed through a single JSON5 file at `~/.openclaw/openclaw.json` with Zod schema validation and hot reload support.
+OpenClaw uses **pnpm workspaces** to organize a TypeScript-first monorepo. The table below maps the top-level directories to their roles.
+DirectoryRole`src/`Core Gateway, CLI, agents, channels, infra`src/cli/`CLI command wiring`src/commands/`Individual CLI commands`src/gateway/`GatewayServer, protocol, server methods`src/agents/`Agent runtime, tools, sandbox`src/telegram/`, `src/discord/`, `src/slack/`, etc.Built-in channel integrations`src/infra/`Shared infrastructure utilities`src/media/`Media pipeline`extensions/`Extension/plugin workspace packages`apps/ios/`iOS Clawdis app (Swift)`apps/macos/`macOS Clawdis app (Swift)`apps/android/`Android Clawdis app (Kotlin/Gradle)`apps/shared/`Shared native code (Swift packages)`ui/`Control UI (LitElement SPA)`packages/`Shared TypeScript packages`skills/`Python skill scripts`scripts/`Build, release, and utility scripts`docs/`Mintlify documentation source`dist/`Built output (generated, not committed)`.github/`CI workflows, actions, issue/PR templates
+The repository structure, as described in `AGENTS.md`, keeps plugin-only dependencies in the extension's own `package.json`. Core `package.json` dependencies should only include things the core uses directly.
 
-**Configuration flow:**
+**Monorepo structure diagram:**
+
+```
 
 ```
 
-```
-
-**Configuration validation:**
-
-OpenClaw uses Zod for strict schema validation:
-
-- [src/config/zod-schema.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/src/config/zod-schema.ts) - Root OpenClawSchema
-- [src/config/zod-schema.agents.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/src/config/zod-schema.agents.ts) - Agent configuration
-- [src/config/zod-schema.providers.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/src/config/zod-schema.providers.ts) - Channel configuration
-
-**Validation errors block Gateway startup:**
-
-```
-$ openclaw gateway
-Error: Config validation failed:
-  - agents.defaults.workspace: invalid path
-  - channels.telegram.botToken: required field missing
-  
-Run 'openclaw doctor' to diagnose and repair.
-```
-
-**Hot reload rules:**
-Config SectionHot Reload?Restart Required?`agents.*`✅ Yes❌ No`channels.*`✅ Yes❌ No`tools.*`✅ Yes❌ No`skills.*`✅ Yes❌ No`gateway.port`❌ No✅ Yes`gateway.bind`❌ No✅ Yes`gateway.auth`❌ No✅ Yes`discovery.*`❌ No✅ Yes
-**Configuration reload modes:**
-
-```
-{
-  gateway: {
-    reload: {
-      mode: "hybrid",  // hot | restart | hybrid | off
-      debounceMs: 300
-    }
-  }
-}
-```
-
-**Mode behaviors:**
-
-- `hot` - Apply safe changes only, log warning for restart-required
-- `restart` - Auto-restart on any change
-- `hybrid` (default) - Hot-apply when safe, auto-restart when needed
-- `off` - Disable file watching, manual restart required
-
-**Configuration commands:**
-
-```
-# Get nested value
-openclaw config get agents.defaults.workspace
- 
-# Set value (writes to file)
-openclaw config set agents.defaults.model.primary "anthropic/claude-opus-4-6"
- 
-# Remove value
-openclaw config unset tools.web.search.apiKey
- 
-# Validate without starting
-openclaw doctor
-```
-
-**Configuration RPC methods:**
-
-The Gateway exposes WebSocket RPCs for remote configuration:
-
-- `config.get` - Read current config
-- `config.patch` - Merge partial update
-- `config.apply` - Full config replace
-- `config.validate` - Pre-flight validation
-
-**Sources:**[docs/gateway/configuration.md](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/gateway/configuration.md)[src/config/config.ts](https://github.com/openclaw/openclaw/blob/17eaa59a/src/config/config.ts)[src/config/zod-schema.ts1-100](https://github.com/openclaw/openclaw/blob/17eaa59a/src/config/zod-schema.ts#L1-L100)
+Sources: [AGENTS.md10-22](https://github.com/openclaw/openclaw/blob/17eaa59a/AGENTS.md#L10-L22)
 
 ---
 
-## Concept Relationships
+## Toolchain & Prerequisites
+ToolMinimum VersionNotesNode.js22+Required runtime baselinepnpm10.23.0Primary package manager; use lockfileBun1.3.9+Preferred for TypeScript execution and testsPython3.12Used for skill scripts (`skills/`) and CI tooling
+Both Node and Bun paths must stay functional. `pnpm-lock.yaml` and Bun patching must be kept in sync when touching deps.
 
-**Cross-cutting concerns:**
+Sources: [AGENTS.md57-64](https://github.com/openclaw/openclaw/blob/17eaa59a/AGENTS.md#L57-L64)
+
+---
+
+## Local Development Commands
+
+These are the primary commands used during development. All commands run from the repo root.
+CommandPurpose`pnpm install`Install all dependencies (uses lockfile)`pnpm openclaw ...`Run CLI in dev mode (via Bun)`pnpm dev`Alias for dev CLI run`pnpm build`Type-check and build `dist/``pnpm tsgo`TypeScript checks only`pnpm check`Types + lint + format (Oxlint + Oxfmt)`pnpm format`Check formatting only (oxfmt --check)`pnpm format:fix`Fix formatting in place (oxfmt --write)`pnpm test`Run all tests (Vitest)`pnpm test:coverage`Tests with V8 coverage report`pnpm release:check`Validate npm pack contents`prek install`Install pre-commit hooks (same checks as CI)
+The `pnpm check` command must pass before commits. It runs the same type/lint/format checks as the CI `check` job.
+
+**Key dev scripts:**
+
+- Mac packaging: `scripts/package-mac-app.sh` (defaults to current arch)
+- Commit helper: `scripts/committer "<msg>" <file...>` (scopes staging correctly)
+- Release validation: `node --import tsx scripts/release-check.ts`
+
+Sources: [AGENTS.md55-71](https://github.com/openclaw/openclaw/blob/17eaa59a/AGENTS.md#L55-L71)[docs/reference/RELEASING.md44-56](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/reference/RELEASING.md#L44-L56)
+
+---
+
+## Coding Conventions
+
+### Language & Tooling
+
+- **TypeScript (ESM)** throughout. Strict typing; avoid `any`.
+- Formatting and linting via **Oxlint** and **Oxfmt**. Run `pnpm check` before commits.
+- Never add `@ts-nocheck`. Never disable `no-explicit-any`. Fix root causes.
+
+### Class & Composition Rules
+
+- Do **not** share behavior via prototype mutation (`applyPrototypeMixins`, `Object.defineProperty` on `.prototype`). Use explicit inheritance or helper composition so TypeScript can typecheck.
+- In tests, prefer per-instance stubs over `SomeClass.prototype.method = ...` unless prototype-level patching is explicitly documented.
+
+### File Size & Structure
+
+- Aim to keep files under ~700 LOC (guideline, not a hard limit). Split or refactor when it improves clarity or testability.
+- Extract helpers rather than creating "V2" copies of files.
+- Use existing patterns for CLI options and dependency injection via `createDefaultDeps`.
+
+### Naming Conventions
+
+- **OpenClaw** (capitalized) for product/app/docs headings.
+- `openclaw` (lowercase) for the CLI command, package/binary, paths, and config keys.
+
+### Comments
+
+Add brief comments for tricky or non-obvious logic. Keep comments focused on the *why*, not the *what*.
+
+### UI and Progress Output
+
+- CLI progress: use `src/cli/progress.ts` (`osc-progress` + `@clack/prompts` spinner). Do not hand-roll spinners or bars.
+- Status output: use `src/terminal/table.ts` for tables with ANSI-safe wrapping.
+- Color palette: use `src/terminal/palette.ts` (no hardcoded colors).
+
+### Plugin/Extension Dependencies
+
+- Keep plugin-only deps in the extension `package.json`. Do not add them to root `package.json` unless core uses them.
+- `workspace:*` in `dependencies` breaks `npm install`. Use `devDependencies` or `peerDependencies` instead. The runtime resolves `openclaw/plugin-sdk` via a jiti alias.
+- Plugin runtime deps must be in `dependencies`, not `devDependencies`.
+
+Sources: [AGENTS.md73-84](https://github.com/openclaw/openclaw/blob/17eaa59a/AGENTS.md#L73-L84)[AGENTS.md14-18](https://github.com/openclaw/openclaw/blob/17eaa59a/AGENTS.md#L14-L18)
+
+---
+
+## Testing Guidelines
+
+### Framework
+
+- **Vitest** with V8 coverage thresholds: 70% lines, branches, functions, and statements.
+- Test files are colocated with source: `*.test.ts` next to the source file.
+- End-to-end tests: `*.e2e.test.ts`.
+
+### Running Tests
 
 ```
 
 ```
 
-**Key integration points:**
-FromToViaPurposeChannelsGatewayWebSocket RPCMessage deliveryGatewayAgent RouterBindingsRoute to correct agentAgentWorkspaceFile I/OLoad prompt filesAgentMemory`memory_search`Semantic recallAgentToolsPolicy checkExecute capabilitiesAgentSessionsJSONL writePersist transcriptConfigAll subsystemsHot reloadApply settings
-**Sources:** All sections above, [README.md187-202](https://github.com/openclaw/openclaw/blob/17eaa59a/README.md#L187-L202)[docs/concepts/architecture.md](https://github.com/openclaw/openclaw/blob/17eaa59a/docs/concepts/architecture.md)
+Do not set test workers above 16. The CI sets `OPENCLAW_TEST_WORKERS=2` on Linux runners to prevent V8 OOM.
+
+### Changelog and Test Additions
+
+Pure test additions or fixes generally do **not** need a changelog entry unless they alter user-facing behavior or the operator asks for one.
+
+Sources: [AGENTS.md94-104](https://github.com/openclaw/openclaw/blob/17eaa59a/AGENTS.md#L94-L104)[.github/workflows/ci.yml186-241](https://github.com/openclaw/openclaw/blob/17eaa59a/.github/workflows/ci.yml#L186-L241)
+
+---
+
+## Commit & Pull Request Guidelines
+
+### Committing
+
+Use `scripts/committer "<msg>" <file...>` to create commits. This keeps staging scoped to the intended files and avoids accidental inclusion of unrelated changes.
+
+Do not use manual `git add` / `git commit` outside the helper.
+
+### Commit Message Format
+
+- Concise, action-oriented: `CLI: add verbose flag to send`
+- Group related changes; do not bundle unrelated refactors.
+- Prefix with the subsystem affected: `CLI:`, `Gateway:`, `Telegram:`, `Android:`, etc.
+
+### Pull Requests
+
+The canonical PR template is at `.github/pull_request_template.md`. The full maintainer PR workflow (triage order, quality bar, rebase rules, changelog conventions) is at `.agents/skills/PR_WORKFLOW.md`.
+
+For PR submission, follow the `review-pr` → `prepare-pr` → `merge-pr` pipeline described in that skill.
+
+**PR size labels** are applied automatically based on changed line count (excluding lockfiles and docs):
+Lines changedLabel< 50`size: XS`50–199`size: S`200–499`size: M`500–999`size: L`1000+`size: XL`
+Contributor labels are also applied automatically: `trusted-contributor` (≥4 merged PRs), `experienced-contributor` (≥10 merged PRs), `maintainer` (team member).
+
+Sources: [AGENTS.md106-114](https://github.com/openclaw/openclaw/blob/17eaa59a/AGENTS.md#L106-L114)[.github/workflows/labeler.yml39-127](https://github.com/openclaw/openclaw/blob/17eaa59a/.github/workflows/labeler.yml#L39-L127)
+
+---
+
+## Multi-Agent Safety Rules
+
+When multiple agents work the same repository simultaneously:
+
+- Do **not** create, apply, or drop `git stash` entries unless explicitly requested (this includes `git pull --rebase --autostash`).
+- Do **not** create, remove, or modify `git worktree` checkouts.
+- Do **not** switch branches unless explicitly requested.
+- When told "push", you may `git pull --rebase` to integrate latest changes; never discard other agents' work.
+- When told "commit", scope to your changes only. When told "commit all", commit in grouped chunks.
+- Running multiple agents is fine as long as each has its own session.
+
+Sources: [AGENTS.md187-198](https://github.com/openclaw/openclaw/blob/17eaa59a/AGENTS.md#L187-L198)
+
+---
+
+## Adding Channels or Extensions
+
+When adding a new channel, extension, or app:
+
+1. Add it to `.github/labeler.yml` with a matching glob pattern.
+2. Create the matching GitHub label (match the color of existing channel/extension labels).
+3. Use `scripts/sync-labels.ts` to create missing labels from `labeler.yml`.
+4. Update all UI surfaces and docs that enumerate providers (macOS app, web UI, mobile if applicable, onboarding docs).
+5. Add matching status and configuration forms so provider lists stay in sync.
+
+**Channel label color assignments** (from `scripts/sync-labels.ts`):
+PrefixColor`channel:``1d76db``app:``6f42c1``extensions:``0e8a16``docs:``0075ca``cli:``f9d0c4``gateway:``d4c5f9``size:``fbca04`
+Sources: [AGENTS.md22](https://github.com/openclaw/openclaw/blob/17eaa59a/AGENTS.md#L22-L22)[.github/labeler.yml1-20](https://github.com/openclaw/openclaw/blob/17eaa59a/.github/labeler.yml#L1-L20)[scripts/sync-labels.ts10-18](https://github.com/openclaw/openclaw/blob/17eaa59a/scripts/sync-labels.ts#L10-L18)
+
+---
+
+## Version Locations
+
+When bumping a version, update **all** of the following locations (never update `appcast.xml` unless cutting a new macOS Sparkle release):
+FileField`package.json``version``apps/android/app/build.gradle.kts``versionName`, `versionCode``apps/ios/Sources/Info.plist``CFBundleShortVersionString`, `CFBundleVersion``apps/ios/Tests/Info.plist``CFBundleShortVersionString`, `CFBundleVersion``apps/macos/Sources/OpenClaw/Resources/Info.plist``CFBundleShortVersionString`, `CFBundleVersion``docs/install/updating.md`Pinned npm version
+Sources: [AGENTS.md179-180](https://github.com/openclaw/openclaw/blob/17eaa59a/AGENTS.md#L179-L180)
+
+---
+
+## Release Channels
+ChannelTag Formatnpm dist-tagNotes`stable``vYYYY.M.D``latest`Tagged releases only`beta``vYYYY.M.D-beta.N``beta`May ship without macOS app`dev`(none)—Moving HEAD on `main`
+For beta releases: publish npm with a matching beta version suffix (e.g., `YYYY.M.D-beta.N`), not just `--tag beta` with a plain version number.
+
+Sources: [AGENTS.md87-91](https://github.com/openclaw/openclaw/blob/17eaa59a/AGENTS.md#L87-L91)
+
+---
+
+## Development Workflow Diagram
+
+This diagram maps the standard contributor workflow to the concrete commands and files involved.
+
+```
+
+```
+
+Sources: [AGENTS.md55-115](https://github.com/openclaw/openclaw/blob/17eaa59a/AGENTS.md#L55-L115)[.github/workflows/ci.yml1-30](https://github.com/openclaw/openclaw/blob/17eaa59a/.github/workflows/ci.yml#L1-L30)
+
+---
+
+## Code Entity Map
+
+This diagram maps the major development toolchain touchpoints to the concrete files and scripts that implement them.
+
+```
+
+```
+
+Sources: [AGENTS.md55-84](https://github.com/openclaw/openclaw/blob/17eaa59a/AGENTS.md#L55-L84)[AGENTS.md172-173](https://github.com/openclaw/openclaw/blob/17eaa59a/AGENTS.md#L172-L173)[.github/workflows/ci.yml127-150](https://github.com/openclaw/openclaw/blob/17eaa59a/.github/workflows/ci.yml#L127-L150)
+
+---
+
+## Shorthand Commands
+ShorthandBehavior`sync`If working tree dirty, commit all changes with a Conventional Commit message, then `git pull --rebase`. If rebase conflicts cannot be resolved, stop. Otherwise `git push`.
+### Git Notes
+
+- If `git branch -d/-D <branch>` is policy-blocked, delete the local ref directly:`git update-ref -d refs/heads/<branch>`
+- Bulk PR close/reopen safety: if a close action would affect more than 5 PRs, ask for explicit confirmation with the exact count and target scope before proceeding.
+
+Sources: [AGENTS.md117-123](https://github.com/openclaw/openclaw/blob/17eaa59a/AGENTS.md#L117-L123)
+
+---
+
+## Documentation Guidelines
+
+Docs live in `docs/` and are hosted on Mintlify at `docs.openclaw.ai`.
+
+- Internal doc links: root-relative, no `.md`/`.mdx` extension. Example: `<FileRef file-url="https://github.com/openclaw/openclaw/blob/17eaa59a/Config" undefined  file-path="Config">Hii</FileRef>`
+- Anchors: root-relative path with anchor. Example: `<FileRef file-url="https://github.com/openclaw/openclaw/blob/17eaa59a/Hooks" undefined  file-path="Hooks">Hii</FileRef>`
+- Avoid em dashes (`—`) and apostrophes in headings — they break Mintlify anchor links.
+- README (GitHub): use absolute `https://docs.openclaw.ai/...` URLs so links work on GitHub.
+- Content must be generic: no personal device names, hostnames, or paths. Use placeholders like `user@gateway-host`.
+- `docs/zh-CN/**` is auto-generated. Do not edit unless explicitly asked.
+
+Sources: [AGENTS.md24-43](https://github.com/openclaw/openclaw/blob/17eaa59a/AGENTS.md#L24-L43)
+
+---
+
+## Secret Scanning & Security
+
+- Secrets are scanned on every CI run using `detect-secrets` against `.secrets.baseline`.
+- Private keys are detected by `pre-commit run --all-files detect-private-key`.
+- Changed GitHub workflows are audited with `zizmor`.
+- Production dependencies are audited with `pnpm-audit-prod`.
+- Never commit real phone numbers, videos, or live config values. Use obviously fake placeholders in docs, tests, and examples.
+
+For the full security model and audit tooling, see page [7](/openclaw/openclaw/7-control-ui) and page [7.1](/openclaw/openclaw/7.1-ui-overview).
+
+Sources: [.github/workflows/ci.yml349-401](https://github.com/openclaw/openclaw/blob/17eaa59a/.github/workflows/ci.yml#L349-L401)[AGENTS.md134-140](https://github.com/openclaw/openclaw/blob/17eaa59a/AGENTS.md#L134-L140)
