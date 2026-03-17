@@ -2,32 +2,44 @@ import { execFileAsync } from "./common.js";
 import { resolveApiKeyForProvider } from "../../../../src/agents/model-auth.js";
 import type { OpenClawConfig } from "../../../../src/config/config.js";
 import { loadConfig } from "../../../../src/config/config.js";
+import type { RunWebSearchParams } from "../../../../src/web-search/runtime.js";
+import { runWebSearch } from "../../../../src/web-search/runtime.js";
 
-export async function fetchRssDigest(): Promise<{ title: string; blog: string; url?: string }[]> {
-  // AUTO-OAUTH: Verificar si tenemos API keys para servicios RSS alternativos
+export async function performWebSearch(
+  query: string,
+  options?: { providerId?: string; maxResults?: number },
+): Promise<{ title: string; url: string; snippet?: string }[]> {
   try {
     const cfg = await loadConfig() as OpenClawConfig;
     
-    // Intentar Feedly o servicios RSS OAuth
-    const rssProviders = ["feedly", "google-reader"];
-    for (const provider of rssProviders) {
-      try {
-        const auth = await resolveApiKeyForProvider({
-          provider,
-          cfg,
-        });
-        console.log(`[Secretary:Intelligence] ✅ Auto-detected ${provider} RSS service`);
-        // TODO: Implementar API calls real al servicio RSS
-        // Por ahora seguimos con el mock
-        break;
-      } catch {
-        continue;
-      }
+    const searchParams: RunWebSearchParams = {
+      args: {
+        query,
+        max_results: options?.maxResults ?? 10,
+      },
+      config: cfg,
+    };
+    
+    if (options?.providerId) {
+      searchParams.providerId = options.providerId;
     }
+    
+    const { provider, result } = await runWebSearch(searchParams);
+    console.log(`[Secretary:Intelligence] ✅ Web search completed using provider: ${provider}`);
+    
+    const searchResults = result.results as any[] || [];
+    return searchResults.slice(0, options?.maxResults ?? 10).map((r) => ({
+      title: r.title ?? "Sin título",
+      url: r.url,
+      snippet: r.content,
+    }));
   } catch (error) {
-    console.log("[Secretary:Intelligence] ℹ️  No RSS auth providers found, using CLI mock");
+    console.error(`[Secretary:Intelligence] ❌ Web search failed: ${error}`);
+    return [];
   }
+}
 
+export async function fetchRssDigest(): Promise<{ title: string; blog: string; url?: string }[]> {
   try {
     const { stdout } = await execFileAsync("blogwatcher", ["articles", "--json"]);
     const raw = JSON.parse(stdout) as any[];

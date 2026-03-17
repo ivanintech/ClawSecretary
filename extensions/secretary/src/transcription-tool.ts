@@ -7,7 +7,7 @@ export function createTranscriptionTool(api: OpenClawPluginApi) {
   return {
     name: "secretary_transcribe",
     label: "Secretary Audio Transcription",
-    description: "Transcribe audio files using OpenClaw's built-in speech-to-text (supports multiple providers via config).",
+    description: "Transcribe audio files using OpenClaw's media understanding API (supports multiple providers via config).",
     
     parameters: Type.Object({
       filePath: Type.String({
@@ -16,11 +16,14 @@ export function createTranscriptionTool(api: OpenClawPluginApi) {
       mimeType: Type.Optional(Type.String({
         description: "Optional MIME type of the audio file (auto-detected if not provided).",
       })),
+      model: Type.Optional(Type.String({
+        description: "Optional specific model to use for transcription (e.g., 'anthropic/claude-3-5-sonnet', 'openai/whisper-1'). Providers and models as configured in OpenClaw."
+      })),
     }),
 
     async execute(runId: string, params: Record<string, any>) {
       try {
-        const { filePath, mimeType } = params;
+        const { filePath, mimeType, model } = params;
 
         if (!filePath) {
           return {
@@ -33,12 +36,13 @@ export function createTranscriptionTool(api: OpenClawPluginApi) {
 
         api.logger.info(`[transcription-tool] Starting transcription of: ${filePath}`);
 
-        // Use core's STT functionality
-        const result = await runtime.stt.transcribeAudioFile({
+        // Use core's media understanding transcription functionality (enhanced)
+        const result = await runtime.mediaUnderstanding.transcribeAudioFile({
           filePath,
           cfg: api.config,
           agentDir: api.resolvePath(""),
           mime: mimeType,
+          activeModel: model ? { provider: model.split('/')[0], model: model } : undefined,
         });
 
         if (!result.text) {
@@ -62,12 +66,13 @@ export function createTranscriptionTool(api: OpenClawPluginApi) {
           details: { 
             filePath, 
             transcriptionLength: transcription.length,
-            transcriptionPreview: transcription.substring(0, 100) + (transcription.length > 100 ? "..." : "")
+            transcriptionPreview: transcription.substring(0, 100) + (transcription.length > 100 ? "..." : ""),
+            model, // Include model info if provided
           },
         };
 
       } catch (error: any) {
-api.logger.error(`[transcription-tool] Error transcribing audio: ${error.message}`);
+        api.logger.error(`[transcription-tool] Error transcribing audio: ${error.message}`);
         return {
           content: [{
             type: "text" as const,

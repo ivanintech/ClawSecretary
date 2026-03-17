@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { Type } from "@sinclair/typebox";
 import type { OpenClawPluginApi } from "../../../src/plugins/types.js";
+import { selectVoiceForContext, type VoiceContext } from "../helpers/tts-voice-selector";
 
 // WhatsApp Web Integration - Zero API Keys Required
 async function sendViaWhatsAppWeb(api: OpenClawPluginApi, recipient: string, message: object): Promise<object> {
@@ -89,6 +90,17 @@ export function createWhatsAppTool(api: OpenClawPluginApi) {
       body: Type.String({
         description: "Main message body text. For send_voice, this text is converted to audio. For setup_instructions, include custom help text.",
       }),
+      voiceContext: Type.Optional(
+        Type.Union([
+          Type.Literal("briefing"),
+          Type.Literal("alert"),
+          Type.Literal("conversational"),
+          Type.Literal("presentation"),
+          Type.Literal("default"),
+        ], {
+          description: "Voice style/tonal context for TTS (for send_voice): 'briefing' (calm), 'alert' (urgent), 'conversational' (friendly), 'presentation' (formal), 'default' (standard).",
+        }),
+      ),
       buttons: Type.Optional(
         Type.Array(Type.String(), {
           description: "Button labels (max 3, for send_buttons).",
@@ -115,7 +127,7 @@ export function createWhatsAppTool(api: OpenClawPluginApi) {
       ),
     }),
     async execute(runId: string, params: Record<string, any>, _ctx?: any) {
-      const { action, to, body, buttons, listHeader, listButtonLabel, listItems } = params;
+      const { action, to, body, buttons, listHeader, listButtonLabel, listItems, voiceContext } = params;
 
       // Special case: Send setup instructions
       if (action === "send_setup_instructions") {
@@ -167,22 +179,33 @@ export function createWhatsAppTool(api: OpenClawPluginApi) {
           }
         };
       } else if (action === "send_voice") {
-        // Text-to-Speech first, then send
+        // Text-to-Speech with context-aware voice selection
         try {
-          const audioPath = await runtime.tts?.textToSpeech(body);
+          const context = (voiceContext as VoiceContext) ?? "conversational";
+          console.log(`[WhatsApp:Voice] 🎤 Using voice context: ${context}`);
+
+          const voiceSelection = await selectVoiceForContext(context, api.config);
+          
+          // Generate audio with voice selection
+          const audioPath = await runtime.tts?.textToSpeech(body, {
+            voice: voiceSelection.voiceId || undefined,
+          });
+
           if (audioPath) {
+            const contextEmoji = getContextEmoji(context);
             messagePayload = {
               type: "audio",
               content: {
                 file: audioPath,
-                text: body  // Caption for audio
+                text: `${contextEmoji} ${body}`  // Caption with context emoji
               }
             };
+            console.log(`[WhatsApp:Voice] ✅ Audio generated: ${audioPath}`);
           } else {
             throw new Error("TTS not available");
           }
         } catch (error) {
-          console.log("[TTS] Fallback to text message");
+          console.log("[WhatsApp:Voice] ⚠️ TTS failed, fallback to text message");
           messagePayload = {
             type: "text",
             content: `🎤 ${body}`
@@ -280,4 +303,15 @@ _Necesito ayuda? Solo responde este mensaje_
     next_steps: "User should connect WhatsApp via Control Panel at https://127.0.0.1:18789/channels",
     qr_hint: "Magic QR available in Control Panel → Channels → WhatsApp"
   };
+}
+
+function getContextEmoji(context: VoiceContext): string {
+  const emojiMap: Record<VoiceContext, string> = {
+    briefing: "📊",
+    alert: "🚨",
+    conversational: "💬",
+    presentation: "🎯",
+    default: "🎤",
+  };
+  return emojiMap[context] || "🎤";
 }

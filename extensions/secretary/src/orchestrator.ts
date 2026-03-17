@@ -25,6 +25,7 @@ import {
   fetchNearbyVenues,
   fetchOrderHistory,
   fetchWeather,
+  performWebSearch,
 } from "./helpers/intelligence.js";
 import { triggerHueScene, triggerSonosFocus } from "./helpers/iot.js";
 import { syncKnowledge } from "./helpers/knowledge.js";
@@ -312,7 +313,7 @@ export class SecretaryOrchestrator {
       whatsapp_business:
         apiKey && process.env.WA_PHONE_NUMBER_ID ? "✅ Connected" : "⚠️ MATON_API_KEY missing",
       calendly: process.env.CALENDLY_API_KEY ? "✅ Connected" : "❌ Missing CALENDLY_API_KEY",
-      tavily: process.env.TAVILY_API_KEY ? "✅ Connected" : "❌ Missing TAVILY_API_KEY",
+      web_search: "✅ OpenClaw native (multi-provider support)",
     };
     let message = "📊 *CLAWSECRETARY SETUP STATUS*\n\n";
     for (const [k, v] of Object.entries(status)) {
@@ -522,57 +523,40 @@ export class SecretaryOrchestrator {
   }
 
   private async handleProactiveResearch(params: any) {
-    // AUTO-OAUTH: Intentar obtener API keys automáticamente
-    let tavilyKey = process.env.TAVILY_API_KEY;
-    if (!tavilyKey) {
-      try {
-        const cfg = await loadConfig() as OpenClawConfig;
-        const auth = await resolveApiKeyForProvider({
-          provider: "tavily",
-          cfg,
-        });
-        tavilyKey = auth.apiKey;
-        console.log("[Secretary:Orchestrator] ✅ Auto-detected Tavily API key from auth profiles");
-      } catch {
-        console.log("[Secretary:Orchestrator] ℹ️  Tavily API key not found in auth profiles");
-      }
+    const query = params.title || params.query;
+    if (!query) {
+      return { content: [{ type: "text", text: "⚠️ Research query is required." }] };
     }
     
-    if (!tavilyKey)
-      return { content: [{ type: "text", text: "⚠️ Tavily key missing. Configure in auth profiles or set TAVILY_API_KEY." }] };
-      
-    const results = await fetchRssDigest();
-    await updateSessionState(this.workspaceDir, "Research", `Investigated: ${params.title}`);
+    console.log(`[Secretary:Orchestrator] 📊 Researching: ${query}`);
+    
+    const results = await performWebSearch(query, { maxResults: 10 });
+    
+    if (results.length === 0) {
+      return { content: [{ type: "text", text: `🔍 No search results found for "${query}"` }] };
+    }
+    
+    await updateSessionState(this.workspaceDir, "Research", `Investigated: ${query}`);
     return {
-      content: [{ type: "text", text: `🔍 Investigation on "${params.title}" complete.` }],
-      details: { results },
+      content: [{ type: "text", text: `🔍 Research completed: ${results.length} results for "${query}"` }],
+      details: { results, query },
     };
   }
 
   private async handleSearchOpportunities(params: any) {
-    // AUTO-OAUTH: Intentar obtener Tavily API key automáticamente
-    let tavilyKey = process.env.TAVILY_API_KEY;
-    if (!tavilyKey) {
-      try {
-        const cfg = await loadConfig() as OpenClawConfig;
-        const auth = await resolveApiKeyForProvider({
-          provider: "tavily",
-          cfg,
-        });
-        tavilyKey = auth.apiKey;
-        console.log("[Secretary:Orchestrator] ✅ Auto-detected Tavily API key for search");
-      } catch {
-        console.log("[Secretary:Orchestrator] ℹ️  Tavily API key not found for search");
-      }
-    }
+    const location = params.location || "Madrid";
+    const query = `${params.type || "venue"} opportunities in ${location}`;
     
-    if (!tavilyKey)
-      return { content: [{ type: "text", text: "⚠️ Tavily key missing. Configure in auth profiles or set TAVILY_API_KEY." }] };
-      
-    const results = await fetchNearbyVenues(params.location || "Madrid");
+    console.log(`[Secretary:Orchestrator] 🔍 Searching opportunities: ${query}`);
+    
+    const results = await performWebSearch(query, { maxResults: 5 });
+    
+    const venues = await fetchNearbyVenues(location);
+    
+    await updateSessionState(this.workspaceDir, "Search", `Opportunities in ${location}`);
     return {
-      content: [{ type: "text", text: `💼 Opportunity search found ${results.length} results.` }],
-      details: { results },
+      content: [{ type: "text", text: `💼 Found ${results.length} web results and ${venues.length} local venues in ${location}` }],
+      details: { webResults: results, venues, location },
     };
   }
 

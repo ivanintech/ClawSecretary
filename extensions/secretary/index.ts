@@ -12,6 +12,7 @@ import {
 import { createAutoActivator } from "./src/auto-activator.js";
 import { createCalendarTool } from "./src/calendar-tool.js";
 import { generatePairingLink, printMagicLink } from "./src/helpers/pairing.js";
+import { createImageGenerationTool } from "./src/image-generation-tool.js";
 import { createNegotiationOfferHandler } from "./src/negotiation.js";
 import { createOAuthInjectHandler, createPublicKeyHandler } from "./src/oauth-bridge.js";
 import { createOrchestratorTool, registerProactiveHooks } from "./src/orchestrator.js";
@@ -26,6 +27,7 @@ export default function register(api: OpenClawPluginApi) {
   // Cast as any: plugin tool factories use simplified execute(runId, params, ctx?) signature
   // which is normalized by pi-tool-definition-adapter.ts at runtime.
   api.registerTool(createCalendarTool(api) as any);
+  api.registerTool(createImageGenerationTool(api) as any);
   api.registerTool(createOrchestratorTool(api) as any);
   api.registerTool(createPdfExtractionTool(api) as any);
   api.registerTool(createPrivacyTool(api) as any);
