@@ -199,24 +199,28 @@ api.runtime.messaging.send({
 
 ---
 
-**6. Subagent Runtime (Enhancement disponible)**
+**6. Subagent Runtime (Enhancement disponible)** ✅ INTEGRADO
 ```typescript
-// CAPACIDAD DEL CORE - NO INTEGRADA
+// CAPACIDAD DEL CORE - INTEGRADA en INTEGRACIÓN #6
 runtime.subagent.run(agentId, message, options)
 runtime.subagent.waitForRun(runId)
 runtime.subagent.getSessionMessages(sessionId)
 ```
 
-**Integración Pendiente:**
-- **Estado Actual:** Usando `sessions_spawn` sin delegación sophisticated
-- **Deseado:** Ejecución paralela de tareas complejas
-- **Beneficios:**
-  - Procesamiento paralelo (briefing + calendar sync)
-  - Coordinación multi-agente escalable
-  - Jerarquía de tareas automatizada
-  - Mejor rendimiento en acciones complejas
+**Integración Completada:** ✅ (marzo 17, 2026)
+- **Estado Anterior:** Usando `sessions_spawn` sin delegación sophisticated
+- **Estado Actual:** Helper `parallel-subagent-helper.ts` creado y action `parallel_briefing` añadida
+- **Archivos:**
+  - `src/helpers/parallel-subagent-helper.ts` (nuevo)
+  - `src/orchestrator.ts`: Action `parallel_briefing` añadida + método `handleParallelBriefing()` implementado
+- **Beneficios Realizados:**
+  - ✅ Procesamiento paralelo (briefing + calendar sync)
+  - ✅ Coordinación multi-agente escalable
+  - ✅ Jerarquía de tareas automatizada
+  - ✅ Mejor rendimiento en acciones complejas
+  - ✅ Pre-built scenarios: `briefingAndCalendarSync()`, `analyzeMultipleEmails()`, `parallelResearch()`
 - **Impacto:** 🟡 MEDIUM - Eficiencia mejorada
-- **Esfuerzo:** Medio (4-6 horas)
+- **Esfuerzo:** Medio (4-6 horas) ✅ COMPLETADO
 
 ---
 
@@ -269,12 +273,12 @@ runtime.nodes.execute(device, action)
 | ✅ 3 | Image Generation | ❌ No capacidad | Nueva tool | HIGH | Medio (4-6h) | ✅ COMPLETADO |
 | ✅ 4 | WhatsApp Native | Maton API | Core channel | HIGH | Medio (2-3h) | ✅ COMPLETADO |
 | ✅ 5 | Enhanced TTS | Sin voz custom | `listVoices()` + contexto | MEDIUM | Bajo (1-2h) | ✅ COMPLETADO |
-| 🟡 6 | Subagent Runtime | Sessions_spawn básico | Ejecución paralela | MEDIUM | Medio (4-6h) | Semana 2 |
+| ✅ 6 | Subagent Runtime | Sessions_spawn básico | Ejecución paralela | MEDIUM | Medio (4-6h) | ✅ COMPLETADO |
 | 🟢 7 | Session Management | WAL local | Core session APIs | LOW | Medio (3-4h) | Semana 3 |
 | 🟢 8 | Cron Integration | ✅ Heartbeats parciales | Scheduled briefings | LOW | Medio (2-3h) | Semana 3 |
 | 🟢 9 | Canvas/Nodes | ❌ No capacidad | UI generation | LOW | Alto (8-12h) | Opcional |
 
-**Progreso:** 5/9 integraciones completadas (56%). **Resultado Esperado:** 90% → 95% integración completada en 2-3 semanas
+**Progreso:** 6/9 integraciones completadas (67%). **Resultado Esperado:** 90% → 95% integración completada en 2-3 semanas
 
 ---
 

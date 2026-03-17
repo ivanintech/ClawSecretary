@@ -28,6 +28,10 @@ import {
   performWebSearch,
 } from "./helpers/intelligence.js";
 import { triggerHueScene, triggerSonosFocus } from "./helpers/iot.js";
+import {
+  executeParallelSubagents,
+  ParallelScenarios,
+} from "./helpers/parallel-subagent-helper.js";
 import { syncKnowledge } from "./helpers/knowledge.js";
 import { generatePairingLink, printMagicLink } from "./helpers/pairing.js";
 import { waButtonPayload } from "./helpers/whatsapp.js";
@@ -86,6 +90,7 @@ export class SecretaryOrchestrator {
     action: Type.String({
       enum: [
         "briefing",
+        "parallel_briefing",
         "conflict_guardian",
         "setup_status",
         "setup_proactive",
@@ -182,6 +187,8 @@ export class SecretaryOrchestrator {
         return this.handleSetupProactive();
       case "briefing":
         return this.handleBriefing(runId, params, apiKey);
+      case "parallel_briefing":
+        return this.handleParallelBriefing();
       case "conflict_guardian":
         return this.handleConflictGuardian(params);
       case "gog_sync":
@@ -293,6 +300,57 @@ export class SecretaryOrchestrator {
       content: [{ type: "text", text: `✅ Conocimiento sincronizado a: ${syncedTo.join(", ")}.` }],
       details: { syncedTo },
     };
+  }
+
+  private async handleParallelBriefing() {
+    console.log("[Orchestrator] 📊 Starting parallel briefing (briefing + calendar sync)");
+    
+    try {
+      const results = await executeParallelSubagents(
+        this.api,
+        ParallelScenarios.briefingAndCalendarSync(),
+      );
+
+      const successful = results.filter((r) => r.success);
+      const failed = results.filter((r) => !r.success);
+
+      console.log(
+        `[Orchestrator] ✅ Parallel briefing completed: ${successful.length}/${results.length} succeeded`,
+      );
+
+      let summary = `📊 Briefing Paralelo Completado\n`;
+      summary += `✅ Exitosos: ${successful.length}\n`;
+      if (failed.length > 0) {
+        summary += `❌ Fallidos: ${failed.length}\n`;
+      }
+
+      successful.forEach((result, index) => {
+        const msgCount = result.messages.length;
+        summary += `\n📍 Tarea ${index + 1} (${result.sessionKey}):\n`;
+        summary += `   ${msgCount} mensajes generados\n`;
+      });
+
+      await updateSessionState(this.workspaceDir, "ParallelBriefing", "Completed parallel execution");
+      
+      return {
+        content: [{ type: "text", text: summary }],
+        details: {
+          successful: successful.length,
+          failed: failed.length,
+          results,
+        },
+      };
+    } catch (error) {
+      console.error("[Orchestrator] ❌ Parallel briefing failed:", error);
+      return {
+        content: [
+          {
+            type: "text",
+            text: `❌ Error en briefing paralelo: ${error instanceof Error ? error.message : String(error)}`,
+          },
+        ],
+      };
+    }
   }
 
   private async handleSetupStatus(apiKey: string | undefined) {

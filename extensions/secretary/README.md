@@ -144,17 +144,27 @@ api.runtime.messaging.send({
 
 ---
 
-#### 6. **Subagent Runtime (Enhancement)**
+#### 6. **Subagent Runtime (Enhancement)** ✅ INTEGRADO
 ```typescript
-// CAPACIDAD DEL CORE - NO INTEGRADA
+// CAPACIDAD DEL CORE - INTEGRADA
 runtime.subagent.run(agentId, message, options)
 runtime.subagent.waitForRun(runId)
 ```
 
-**Estado Actual:** ⚠️ Usando `sessions_spawn` pero no delegación subagent
-**Estado Deseado:** ✅ Ejecución paralela de tareas complejas
-**Impacto:** 🟡 Mayor eficiencia, coordinación multi-agente
-**Esfuerzo:** Medio (4-6 horas)
+**Estado:** ✅ COMPLETADO (marzo 17, 2026)
+- **Estado Anterior:** Usando `sessions_spawn` pero no delegación subagent
+- **Estado Actual:** Ejecución paralela de tareas complejas implementada
+- **Archivos:**
+  - `src/helpers/parallel-subagent-helper.ts` (nuevo)
+  - `src/orchestrator.ts`: Action `parallel_briefing` añadida + método `handleParallelBriefing()` implementado
+- **Capacidades Realizadas:**
+  - ✅ Procesamiento paralelo (briefing + calendar sync)
+  - ✅ Coordinación multi-agente escalable
+  - ✅ Pre-built scenarios: `briefingAndCalendarSync()`, `analyzeMultipleEmails()`, `parallelResearch()`
+  - ✅ Action `parallel_briefing` disponible en el orchestrator
+  - ✅ Helper functions: `executeParallelSubagents()`, `executeSingleSubagent()`
+- **Impacto:** 🟡 MEDIUM - Mayor eficiencia, coordinación multi-agente
+- **Esfuerzo:** Medio (4-6 horas) ✅ COMPLETADO
 
 ---
 
@@ -243,11 +253,11 @@ runtime.tts.textToSpeech(text, voice, options)
 | ✅ 3 | Image Generation | ❌ No capacidad | Nueva tool | HIGH | Medio (4-6h) | ✅ COMPLETADO |
 | ✅ 4 | WhatsApp Native | Maton API | Core channel | HIGH | Medio (2-3h) | ✅ COMPLETADO |
 | ✅ 5 | Enhanced TTS | Sin voz custom | `listVoices()` + contexto | MEDIUM | Bajo (1-2h) | ✅ COMPLETADO |
-| 🟡 6 | Subagent Runtime | Sessions_spawn básico | Ejecución paralela | MEDIUM | Medio (4-6h) | Semana 2 |
+| ✅ 6 | Subagent Runtime | Sessions_spawn básico | Ejecución paralela | MEDIUM | Medio (4-6h) | ✅ COMPLETADO |
 | 🟢 7 | Session Management | WAL local | Core session APIs | LOW | Medio (3-4h) | Semana 3 |
 | 🟢 8 | Canvas/Nodes | ❌ No capacidad | Renderizado visual | LOW | Alto (8-12h) | Opcional |
 
-**Progreso:** 5/8 integraciones completadas (63%). **Timeline: Phase 2 (2-3 semanas)** → **95% Integración Completada**
+**Progreso:** 6/8 integraciones completadas (75%). **Timeline: Phase 2 (2-3 semanas)** → **95% Integración Completada**
 
 ---
 
