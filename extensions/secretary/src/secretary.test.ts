@@ -88,6 +88,20 @@ describe("Secretary Extension - Integration Tests", () => {
         "handleNodeSync",
         "handleNodeSetMode",
         "handleNodeClearQueue",
+        "handleMobileDeviceStatus",
+        "handleMobileDeviceInfo",
+        "handleMobileLocation",
+        "handleMobilePhotos",
+        "handleMobileContactsSearch",
+        "handleMobileContactsAdd",
+        "handleMobileNotifications",
+        "handleMobileNotificationAction",
+        "handleMobileSms",
+        "handleMobileMotion",
+        "handleMobilePhotoCapture",
+        "handleMobileVideoRecord",
+        "handleMobileScreenRecord",
+        "handleMobileNotify",
       ];
       
       for (const handler of handlers) {
@@ -190,6 +204,31 @@ describe("Secretary Extension - Integration Tests", () => {
       expect(content).toContain("fs.readFile");
       expect(content).toContain("fs.writeFile");
       expect(content).toContain("fetch(");
+    });
+  });
+  
+  describe("Mobile Integration", () => {
+    it("should have mobile helper file", async () => {
+      const exists = await fs.access(path.join(SECRETARY_ROOT, "helpers/mobile.ts")).then(() => true).catch(() => false);
+      expect(exists).toBe(true);
+    });
+    
+    it("should export all Mobile functions", async () => {
+      const content = await fs.readFile(path.join(SECRETARY_ROOT, "helpers/mobile.ts"), "utf-8");
+      
+      expect(content).toContain("export async function getDeviceStatus");
+      expect(content).toContain("export async function getLocation");
+      expect(content).toContain("export async function searchContacts");
+      expect(content).toContain("export async function listNotifications");
+      expect(content).toContain("export async function sendSms");
+      expect(content).toContain("export async function takePhoto");
+    });
+    
+    it("should use node.invoke for mobile commands", async () => {
+      const content = await fs.readFile(path.join(SECRETARY_ROOT, "helpers/mobile.ts"), "utf-8");
+      
+      expect(content).toContain("invokeMobileCommand");
+      expect(content).toContain("api.runtime.tools");
     });
   });
   

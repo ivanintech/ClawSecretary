@@ -96,6 +96,30 @@ import {
   getOfflineQueue,
   clearOfflineQueue,
 } from "./helpers/node-mode.js";
+import {
+  getDeviceStatus,
+  getDeviceInfo,
+  getLocation,
+  getRecentPhotos,
+  searchContacts,
+  addContact,
+  getCalendarEvents,
+  addCalendarEvent,
+  listNotifications,
+  notificationAction,
+  sendSms,
+  getMotionActivity,
+  getPedometerData,
+  takePhoto,
+  recordVideo,
+  screenRecord,
+  showNotification,
+  presentCanvas,
+  hideCanvas,
+  formatDeviceStatus,
+  formatLocationContext,
+  formatNotificationSummary,
+} from "./helpers/mobile.js";
 import { CalendarStore } from "./store.js";
 import { VaultManager } from "./vault.js";
 import { updateSessionState, appendWorkingBuffer, searchDeepMemory } from "./wal-helpers.js";
@@ -207,6 +231,20 @@ export class SecretaryOrchestrator {
         "node_sync",
         "node_set_mode",
         "node_clear_queue",
+        "mobile_device_status",
+        "mobile_device_info",
+        "mobile_location",
+        "mobile_photos",
+        "mobile_contacts_search",
+        "mobile_contacts_add",
+        "mobile_notifications",
+        "mobile_notification_action",
+        "mobile_sms",
+        "mobile_motion",
+        "mobile_photo_capture",
+        "mobile_video_record",
+        "mobile_screen_record",
+        "mobile_notify",
       ],
       description: "Action to perform.",
     }),
@@ -380,6 +418,34 @@ export class SecretaryOrchestrator {
         return this.handleNodeSetMode(params);
       case "node_clear_queue":
         return this.handleNodeClearQueue(params);
+      case "mobile_device_status":
+        return this.handleMobileDeviceStatus(params);
+      case "mobile_device_info":
+        return this.handleMobileDeviceInfo(params);
+      case "mobile_location":
+        return this.handleMobileLocation(params);
+      case "mobile_photos":
+        return this.handleMobilePhotos(params);
+      case "mobile_contacts_search":
+        return this.handleMobileContactsSearch(params);
+      case "mobile_contacts_add":
+        return this.handleMobileContactsAdd(params);
+      case "mobile_notifications":
+        return this.handleMobileNotifications(params);
+      case "mobile_notification_action":
+        return this.handleMobileNotificationAction(params);
+      case "mobile_sms":
+        return this.handleMobileSms(params);
+      case "mobile_motion":
+        return this.handleMobileMotion(params);
+      case "mobile_photo_capture":
+        return this.handleMobilePhotoCapture(params);
+      case "mobile_video_record":
+        return this.handleMobileVideoRecord(params);
+      case "mobile_screen_record":
+        return this.handleMobileScreenRecord(params);
+      case "mobile_notify":
+        return this.handleMobileNotify(params);
       default:
         return { content: [{ type: "text", text: `⚠️ Unknown action: ${params.action}` }] };
     }
@@ -1524,6 +1590,230 @@ export class SecretaryOrchestrator {
       return { content: [{ type: "text", text: "✅ Offline queue cleared" }] };
     }
     return { content: [{ type: "text", text: "❌ Failed to clear queue" }] };
+  }
+
+  // ========== MOBILE HANDLERS ==========
+
+  private async handleMobileDeviceStatus(_params: any) {
+    const status = await getDeviceStatus(this.api);
+
+    if (!status) {
+      return { content: [{ type: "text", text: "❌ No se pudo obtener el estado del dispositivo. Asegúrate de estar en un móvil pareado." }] };
+    }
+
+    const formatted = await formatDeviceStatus(status);
+    await updateSessionState(this.workspaceDir, "Mobile", "Device status retrieved");
+
+    return { content: [{ type: "text", text: formatted }], details: { status } };
+  }
+
+  private async handleMobileDeviceInfo(_params: any) {
+    const info = await getDeviceInfo(this.api);
+
+    if (!info) {
+      return { content: [{ type: "text", text: "❌ No se pudo obtener info del dispositivo." }] };
+    }
+
+    const text = `📱 **Device Info**\n\n• Model: ${info.model}\n• OS: ${info.os}\n• App Version: ${info.appVersion}`;
+    await updateSessionState(this.workspaceDir, "Mobile", "Device info retrieved");
+
+    return { content: [{ type: "text", text }], details: { info } };
+  }
+
+  private async handleMobileLocation(params: any) {
+    const accuracy = params.accuracy || "balanced";
+    const location = await getLocation(this.api, accuracy);
+
+    if (!location) {
+      return { content: [{ type: "text", text: "❌ No se pudo obtener la ubicación. Verifica los permisos de ubicación." }] };
+    }
+
+    const formatted = await formatLocationContext(location);
+    await updateSessionState(this.workspaceDir, "Mobile", `Location: ${location.latitude}, ${location.longitude}`);
+
+    return { content: [{ type: "text", text: formatted }], details: { location } };
+  }
+
+  private async handleMobilePhotos(params: any) {
+    const limit = params.limit || 10;
+    const photos = await getRecentPhotos(this.api, limit);
+
+    if (photos.length === 0) {
+      return { content: [{ type: "text", text: "📷 No se encontraron fotos recientes." }] };
+    }
+
+    const text = `📷 **Fotos Recientes** (${photos.length})\n\n${photos.map((p, i) => `${i + 1}. ${new Date(p.timestamp).toLocaleString()}`).join("\n")}`;
+    await updateSessionState(this.workspaceDir, "Mobile", `Retrieved ${photos.length} recent photos`);
+
+    return { content: [{ type: "text", text }], details: { photos } };
+  }
+
+  private async handleMobileContactsSearch(params: any) {
+    const query = params.query || params.contact;
+
+    if (!query) {
+      return { content: [{ type: "text", text: "⚠️ Query de búsqueda es requerida." }] };
+    }
+
+    const contacts = await searchContacts(this.api, query);
+
+    if (contacts.length === 0) {
+      return { content: [{ type: "text", text: `👤 No se encontraron contactos para "${query}".` }] };
+    }
+
+    const text = `👤 **Contactos** (${contacts.length})\n\n${contacts.map(c => `• ${c.name}${c.phone ? ` - ${c.phone}` : ""}`).join("\n")}`;
+    await updateSessionState(this.workspaceDir, "Mobile", `Contact search: ${query}`);
+
+    return { content: [{ type: "text", text }], details: { contacts } };
+  }
+
+  private async handleMobileContactsAdd(params: any) {
+    const name = params.name || params.title;
+    const phone = params.phone || params.to;
+    const email = params.email;
+
+    if (!name) {
+      return { content: [{ type: "text", text: "⚠️ Nombre es requerido." }] };
+    }
+
+    const result = await addContact(this.api, { name, phone, email });
+
+    if (result.success) {
+      await updateSessionState(this.workspaceDir, "Mobile", `Contact added: ${name}`);
+      return { content: [{ type: "text", text: `✅ Contacto "${name}" agregado correctamente.` }] };
+    }
+    return { content: [{ type: "text", text: "❌ Error agregando contacto." }] };
+  }
+
+  private async handleMobileNotifications(params: any) {
+    const limit = params.limit || 20;
+    const notifications = await listNotifications(this.api, limit);
+
+    if (notifications.length === 0) {
+      return { content: [{ type: "text", text: "🔔 No hay notificaciones recientes." }] };
+    }
+
+    const formatted = await formatNotificationSummary(notifications);
+    await updateSessionState(this.workspaceDir, "Mobile", `Retrieved ${notifications.length} notifications`);
+
+    return { content: [{ type: "text", text: formatted }], details: { notifications } };
+  }
+
+  private async handleMobileNotificationAction(params: any) {
+    const notificationKey = params.notificationKey || params.id;
+    const action = params.notificationAction || params.action || "open";
+    const replyText = params.replyText || params.message;
+
+    if (!notificationKey) {
+      return { content: [{ type: "text", text: "⚠️ notificationKey es requerido." }] };
+    }
+
+    const result = await notificationAction(this.api, notificationKey, action, replyText);
+
+    if (result.success) {
+      await updateSessionState(this.workspaceDir, "Mobile", `Notification action: ${action}`);
+      return { content: [{ type: "text", text: `✅ Acción "${action}" ejecutada.` }] };
+    }
+    return { content: [{ type: "text", text: "❌ Error ejecutando acción." }] };
+  }
+
+  private async handleMobileSms(params: any) {
+    const phone = params.phone || params.to;
+    const message = params.message || params.text;
+
+    if (!phone || !message) {
+      return { content: [{ type: "text", text: "⚠️ Teléfono y mensaje son requeridos." }] };
+    }
+
+    const result = await sendSms(this.api, phone, message);
+
+    if (result.success) {
+      await updateSessionState(this.workspaceDir, "Mobile", `SMS sent to ${phone}`);
+      return { content: [{ type: "text", text: `✅ SMS enviado a ${phone}.` }] };
+    }
+    return { content: [{ type: "text", text: "❌ Error enviando SMS. Verifica permisos." }] };
+  }
+
+  private async handleMobileMotion(_params: any) {
+    const activity = await getMotionActivity(this.api);
+    const pedometer = await getPedometerData(this.api);
+
+    let text = "🏃 **Activity Monitor**\n\n";
+
+    if (activity) {
+      text += `• Activity: ${activity.activity} (${Math.round(activity.confidence * 100)}% confidence)\n`;
+    }
+
+    if (pedometer) {
+      text += `• Steps today: ${pedometer.steps.toLocaleString()}`;
+      if (pedometer.distance) {
+        text += ` (${(pedometer.distance / 1000).toFixed(1)} km)`;
+      }
+    }
+
+    if (!activity && !pedometer) {
+      return { content: [{ type: "text", text: "❌ No se pudo obtener datos de actividad." }] };
+    }
+
+    await updateSessionState(this.workspaceDir, "Mobile", "Activity data retrieved");
+
+    return { content: [{ type: "text", text }], details: { activity, pedometer } };
+  }
+
+  private async handleMobilePhotoCapture(params: any) {
+    const facing = params.facing || "back";
+    const quality = params.quality || 0.8;
+
+    const result = await takePhoto(this.api, facing, quality);
+
+    if (result.success && result.path) {
+      await updateSessionState(this.workspaceDir, "Mobile", `Photo captured: ${result.path}`);
+      return { content: [{ type: "text", text: `📷 Foto capturada: ${result.path}` }] };
+    }
+    return { content: [{ type: "text", text: "❌ Error capturando foto. Verifica permisos de cámara." }] };
+  }
+
+  private async handleMobileVideoRecord(params: any) {
+    const durationMs = params.durationMs || params.duration || 30000;
+    const facing = params.facing || "back";
+
+    const result = await recordVideo(this.api, durationMs, facing);
+
+    if (result.success && result.path) {
+      await updateSessionState(this.workspaceDir, "Mobile", `Video recorded: ${result.path}`);
+      return { content: [{ type: "text", text: `🎬 Video grabado: ${result.path}` }] };
+    }
+    return { content: [{ type: "text", text: "❌ Error grabando video." }] };
+  }
+
+  private async handleMobileScreenRecord(params: any) {
+    const durationMs = params.durationMs || params.duration || 60000;
+
+    const result = await screenRecord(this.api, durationMs);
+
+    if (result.success && result.path) {
+      await updateSessionState(this.workspaceDir, "Mobile", `Screen recorded: ${result.path}`);
+      return { content: [{ type: "text", text: `🖥️ Pantalla grabada: ${result.path}` }] };
+    }
+    return { content: [{ type: "text", text: "❌ Error grabando pantalla." }] };
+  }
+
+  private async handleMobileNotify(params: any) {
+    const title = params.title || "Secretary";
+    const body = params.body || params.message || params.text;
+    const priority = params.priority || "active";
+
+    if (!body) {
+      return { content: [{ type: "text", text: "⚠️ Body del mensaje es requerido." }] };
+    }
+
+    const result = await showNotification(this.api, title, body, priority);
+
+    if (result.success) {
+      await updateSessionState(this.workspaceDir, "Mobile", `Notification: ${title}`);
+      return { content: [{ type: "text", text: "🔔 Notificación enviada al móvil." }] };
+    }
+    return { content: [{ type: "text", text: "❌ Error enviando notificación." }] };
   }
 }
 
