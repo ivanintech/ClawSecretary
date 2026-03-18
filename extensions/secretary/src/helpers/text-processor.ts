@@ -1,4 +1,5 @@
 import type { OpenClawPluginApi } from "../../../src/plugins/types.js";
+import { chunkByParagraph } from "../../../src/auto-reply/chunk.js";
 
 export type ChunkMode = "length" | "newline";
 
@@ -305,10 +306,64 @@ export async function createWhatsAppChunks(
   return result;
 }
 
+export async function chunkByParagraphForDocuments(
+  api: OpenClawPluginApi,
+  text: string,
+  limit = 4000,
+  opts?: { splitLongParagraphs?: boolean },
+): Promise<ChunkResult> {
+  try {
+    const chunks = chunkByParagraph(text, limit, opts);
+    api.logger.info(
+      `[text-processor] Paragraph chunking: ${chunks.length} chunks from ${text.length} chars`,
+    );
+    return {
+      chunks,
+      originalLength: text.length,
+      chunkCount: chunks.length,
+    };
+  } catch (error) {
+    api.logger.warn(`[text-processor] chunkByParagraph failed: ${error}`);
+    return {
+      chunks: [text],
+      originalLength: text.length,
+      chunkCount: 1,
+    };
+  }
+}
+
+export async function processGhostWriteDocument(
+  api: OpenClawPluginApi,
+  title: string,
+  content: string,
+): Promise<{
+  chunks: string[];
+  totalChunks: number;
+  wordCount: number;
+  hasTables: boolean;
+  hasCodeBlocks: boolean;
+}> {
+  const wordCount = content.split(/\s+/).filter(Boolean).length;
+  const hasTables = /\|.*\|/.test(content);
+  const hasCodeBlocks = /```[\s\S]*?```|`[^`]+`/.test(content);
+
+  const limit = await resolveTextChunkLimit(api, "whatsapp");
+  const chunks = await chunkByParagraphForDocuments(api, content, limit, { splitLongParagraphs: true });
+
+  return {
+    chunks: chunks.chunks,
+    totalChunks: chunks.chunkCount,
+    wordCount,
+    hasTables,
+    hasCodeBlocks,
+  };
+}
+
 export const TextProcessingUtils = {
   chunkForWhatsApp: chunkTextForWhatsApp,
   chunkMarkdownForWhatsApp,
   chunkByNewlines,
+  chunkByParagraph: chunkByParagraphForDocuments,
   convertTablesForChannel,
   hasControlCommand,
   isControlCommandMessage,
@@ -319,4 +374,5 @@ export const TextProcessingUtils = {
   formatBriefingForWhatsApp,
   processCommandText,
   createWhatsAppChunks,
+  processGhostWriteDocument,
 };

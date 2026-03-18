@@ -5,6 +5,8 @@ import { storeVectorMemory } from "../wal-helpers.js";
 import { resolveApiKeyForProvider } from "../../../../src/agents/model-auth.js";
 import type { OpenClawConfig } from "../../../../src/config/config.js";
 import { loadConfig } from "../../../../src/config/config.js";
+import { appendAssistantMessageToSessionTranscript } from "../../../../src/config/sessions/transcript.js";
+import { chunkByParagraphForDocuments } from "./text-processor.js";
 
 export async function syncToNotion(title: string, content: string): Promise<boolean> {
   // AUTO-OAUTH: Intentar obtener API key desde auth profiles automáticamente
@@ -118,4 +120,68 @@ export async function syncKnowledge(
   }
 
   return results;
+}
+
+export interface GhostWriteTranscriptResult {
+  ok: boolean;
+  sessionFile?: string;
+  error?: string;
+}
+
+export async function appendGhostWriteTranscript(
+  api: OpenClawPluginApi,
+  sessionKey: string,
+  title: string,
+  content: string,
+  mediaUrls?: string[],
+): Promise<GhostWriteTranscriptResult> {
+  const idempotencyKey = `ghost-write-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+  const ghostWriteContent = `# ${title}\n\n${content}\n\n---\n*Ghost Write by ClawSecretary 🦞*`;
+
+  try {
+    api.logger.info(`[GhostWrite] Appending transcript to session "${sessionKey}"`);
+
+    const result = await appendAssistantMessageToSessionTranscript({
+      sessionKey,
+      text: ghostWriteContent,
+      mediaUrls,
+      idempotencyKey,
+    });
+
+    if (result.ok) {
+      api.logger.info(`[GhostWrite] Transcript appended successfully to ${result.sessionFile}`);
+      return { ok: true, sessionFile: result.sessionFile };
+    } else {
+      api.logger.warn(`[GhostWrite] Failed to append transcript: ${result.reason}`);
+      return { ok: false, error: result.reason };
+    }
+  } catch (err: any) {
+    api.logger.error(`[GhostWrite] Error appending transcript: ${err.message}`);
+    return { ok: false, error: err.message };
+  }
+}
+
+export async function syncGhostWriteToSecondBrain(
+  api: OpenClawPluginApi,
+  title: string,
+  content: string,
+  sessionKey: string,
+): Promise<{
+  transcript: GhostWriteTranscriptResult;
+  knowledge: string[];
+  chunkInfo: { totalChunks: number; wordCount: number };
+}> {
+  const [transcript, chunkInfo] = await Promise.all([
+    appendGhostWriteTranscript(api, sessionKey, title, content),
+    chunkByParagraphForDocuments(api, content, 4000, { splitLongParagraphs: true }),
+  ]);
+  
+  const knowledge = await syncKnowledge(api, title, content);
+
+  api.logger.info(
+    `[GhostWrite] Document processed: ${chunkInfo.chunkCount} chunks, ${content.split(/\s+/).length} words`,
+  );
+
+  return { transcript, knowledge, chunkInfo };
 }

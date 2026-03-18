@@ -40,7 +40,7 @@ import {
   resolveTextChunkLimit,
   resolveChunkMode,
 } from "./helpers/text-processor.js";
-import { syncKnowledge } from "./helpers/knowledge.js";
+import { syncKnowledge, syncGhostWriteToSecondBrain } from "./helpers/knowledge.js";
 import { generatePairingLink, printMagicLink } from "./helpers/pairing.js";
 import { waButtonPayload } from "./helpers/whatsapp.js";
 import { CalendarStore } from "./store.js";
@@ -871,18 +871,28 @@ export class SecretaryOrchestrator {
 
   private async handleFinalizeClosure(params: any) {
     if (!params.transcript) throw new Error("Closure requires transcript.");
+    
+    const sessionKey = params.sessionKey || "secretary-ghost-write";
+    const title = `Acta / Cierre Ghost Write ${new Date().toLocaleDateString()}`;
+
     await updateSessionState(
       this.workspaceDir,
       "Closure",
       `Finalized: ${params.transcript.substring(0, 50)}...`,
     );
 
-    // Phase 40: Auto-sync Ghost Writes to Second Brain
-    const syncedTo = await syncKnowledge(
+    // Phase 40: Auto-sync Ghost Writes to Second Brain with native transcript append
+    const { transcript, knowledge } = await syncGhostWriteToSecondBrain(
       this.api,
-      `Acta / Cierre Ghost Write ${new Date().toLocaleDateString()}`,
+      sessionKey,
+      title,
       params.transcript,
     );
+
+    const syncedTo = knowledge;
+    if (transcript.ok) {
+      syncedTo.push("SessionTranscript");
+    }
 
     return {
       content: [
@@ -891,7 +901,7 @@ export class SecretaryOrchestrator {
           text: `📝 Cierre procesado (Ghost Write completed)${syncedTo.length > 0 ? ` y guardado en ${syncedTo.join(", ")}` : ""}.`,
         },
       ],
-      details: { syncedTo },
+      details: { syncedTo, transcript },
     };
   }
 
