@@ -5,6 +5,7 @@ export type {
 } from "../channels/plugins/types.js";
 export type { OpenClawConfig } from "../config/config.js";
 export type { DiscordAccountConfig, DiscordActionConfig } from "../config/types.js";
+export type { DiscordConfig } from "../config/types.discord.js";
 export type { DiscordPluralKitConfig } from "../../extensions/discord/api.js";
 export type { InspectedDiscordAccount } from "../../extensions/discord/api.js";
 export type { ResolvedDiscordAccount } from "../../extensions/discord/api.js";
@@ -13,7 +14,7 @@ export type {
   ThreadBindingManager,
   ThreadBindingRecord,
   ThreadBindingTargetKind,
-} from "../../extensions/discord/api.js";
+} from "../../extensions/discord/runtime-api.js";
 export type {
   ChannelConfiguredBindingProvider,
   ChannelConfiguredBindingConversationRef,
@@ -45,18 +46,17 @@ export {
   resolveConfiguredFromCredentialStatuses,
 } from "../channels/account-snapshot-fields.js";
 export {
-  listDiscordDirectoryGroupsFromConfig,
-  listDiscordDirectoryPeersFromConfig,
-} from "../channels/plugins/directory-config.js";
-
-export {
   resolveDefaultGroupPolicy,
   resolveOpenProviderRuntimeGroupPolicy,
 } from "../config/runtime-group-policy.js";
 export {
+  listDiscordDirectoryGroupsFromConfig,
+  listDiscordDirectoryPeersFromConfig,
+} from "../../extensions/discord/src/directory-config.js";
+export {
   resolveDiscordGroupRequireMention,
   resolveDiscordGroupToolPolicy,
-} from "../channels/plugins/group-mentions.js";
+} from "../../extensions/discord/api.js";
 export { DiscordConfigSchema } from "../config/zod-schema.providers-core.js";
 
 export {
@@ -75,24 +75,32 @@ export {
   normalizeDiscordMessagingTarget,
   normalizeDiscordOutboundTarget,
 } from "../../extensions/discord/api.js";
-export { collectDiscordAuditChannelIds } from "../../extensions/discord/api.js";
+export { collectDiscordAuditChannelIds } from "../../extensions/discord/runtime-api.js";
 export { collectDiscordStatusIssues } from "../../extensions/discord/api.js";
 export {
   DISCORD_DEFAULT_INBOUND_WORKER_TIMEOUT_MS,
   DISCORD_DEFAULT_LISTENER_TIMEOUT_MS,
-} from "../../extensions/discord/api.js";
-export { normalizeExplicitDiscordSessionKey } from "../../extensions/discord/api.js";
+} from "../../extensions/discord/runtime-api.js";
+export { normalizeExplicitDiscordSessionKey } from "../../extensions/discord/session-key-api.js";
 export {
   autoBindSpawnedDiscordSubagent,
+  getThreadBindingManager,
   listThreadBindingsBySessionKey,
+  resolveThreadBindingIdleTimeoutMs,
+  resolveThreadBindingInactivityExpiresAt,
+  resolveThreadBindingMaxAgeExpiresAt,
+  resolveThreadBindingMaxAgeMs,
+  setThreadBindingIdleTimeoutBySessionKey,
+  setThreadBindingMaxAgeBySessionKey,
   unbindThreadBindingsBySessionKey,
-} from "../../extensions/discord/api.js";
-export { getGateway } from "../../extensions/discord/api.js";
-export { getPresence } from "../../extensions/discord/api.js";
+} from "../../extensions/discord/runtime-api.js";
+export { getGateway } from "../../extensions/discord/runtime-api.js";
+export { getPresence } from "../../extensions/discord/runtime-api.js";
 export { readDiscordComponentSpec } from "../../extensions/discord/api.js";
 export { resolveDiscordChannelId } from "../../extensions/discord/api.js";
 export {
   addRoleDiscord,
+  auditDiscordChannelPermissions,
   banMemberDiscord,
   createChannelDiscord,
   createScheduledEventDiscord,
@@ -110,23 +118,30 @@ export {
   fetchVoiceStatusDiscord,
   hasAnyGuildPermissionDiscord,
   kickMemberDiscord,
+  listDiscordDirectoryGroupsLive,
+  listDiscordDirectoryPeersLive,
   listGuildChannelsDiscord,
   listGuildEmojisDiscord,
   listPinsDiscord,
   listScheduledEventsDiscord,
   listThreadsDiscord,
+  monitorDiscordProvider,
   moveChannelDiscord,
   pinMessageDiscord,
+  probeDiscord,
   reactMessageDiscord,
   readMessagesDiscord,
   removeChannelPermissionDiscord,
   removeOwnReactionsDiscord,
   removeReactionDiscord,
   removeRoleDiscord,
+  resolveDiscordChannelAllowlist,
+  resolveDiscordUserAllowlist,
   searchMessagesDiscord,
   sendDiscordComponentMessage,
   sendMessageDiscord,
   sendPollDiscord,
+  sendTypingDiscord,
   sendStickerDiscord,
   sendVoiceMessageDiscord,
   setChannelPermissionDiscord,
@@ -134,5 +149,5 @@ export {
   unpinMessageDiscord,
   uploadEmojiDiscord,
   uploadStickerDiscord,
-} from "../../extensions/discord/api.js";
-export { discordMessageActions } from "../../extensions/discord/api.js";
+} from "../../extensions/discord/runtime-api.js";
+export { discordMessageActions } from "../../extensions/discord/runtime-api.js";
