@@ -16,7 +16,7 @@
 | **Skills Nativas Integradas** | 🔄 3/9 | gog, himalaya, blogwatcher |
 | **Skills Faltantes (Tier 1)** | ⚠️ 6/9 | calendly-api, apple-reminders, imsg, 1password, telegram, slack |
 | **Skills Faltantes (Tier 2)** | ⚠️ 7/9 | notion, things-mac, apple-notes, openhue, goplaces, trello |
-| **Features Móviles Nativas** | ⚠️ 4/10 | Voice Wake, Node Mode, Canvas |
+| **Features Móviles Nativas** | ✅ 6/10 | Voice Wake, Node Mode, Canvas |
 
 ### Visión del Producto
 
@@ -62,28 +62,25 @@
 | `gog` | ✅ Parcial | 🔴 CRÍTICA | Bajo | Alto |
 | `calendly-api` | ❌ | 🔴 CRÍTICA | Medio | Alto |
 | `things-mac` | ❌ | 🟡 ALTA | Medio | Alto |
-| `apple-reminders` | ❌ | 🔴 CRÍTICA | Bajo | Alto |
+| `apple-reminders` | ✅ Integrado | 🔴 CRÍTICA | Bajo | Alto |
 | `notion` | ✅ Parcial | 🟡 ALTA | Medio | Alto |
 | `obsidian` | ✅ Parcial | 🟢 MEDIA | Bajo | Medio |
 
 **Gap Analysis:**
 - `calendly-api`: No integrado - Necesario para booking automático
 - `things-mac`: macOS only - Alternativa: `apple-reminders` para cross-platform
-- `apple-reminders`: No integrado - Crítico para sync universal con iOS
 
 #### 💬 Comunicación
 
 | Skill | Integrado | Prioridad | Esfuerzo | Beneficio |
 |-------|-----------|-----------|----------|-----------|
 | `whatsapp-business` | ✅ Completo | 🔴 CRÍTICA | - | - |
-| `imsg` | ❌ | 🔴 CRÍTICA | Bajo | Alto |
-| `slack` | ❌ | 🔴 CRÍTICA | Bajo | Alto |
+| `imsg` | ✅ Integrado | 🔴 CRÍTICA | Bajo | Alto |
+| `slack` | ✅ Integrado | 🔴 CRÍTICA | Bajo | Alto |
 | `telegram` | ✅ Core Channel | 🟡 ALTA | - | - |
 | `discord` | ✅ Core Channel | 🟢 MEDIA | - | - |
 
-**Gap Analysis:**
-- `imsg`: No integrado - iMessage/SMS crítico para Apple users
-- `slack`: No integrado - Workplace communication esencial
+**Estado:** ✅ Slack e iMsg integrados
 
 #### 🏠 IoT y Smart Home
 
@@ -219,7 +216,7 @@ private async handleBriefingWithCanvas() {
 
 **¿Qué es?** "Hey Secretary" como wake word dedicado.
 
-**Estado actual:** ⚠️ OpenClaw tiene Voice Wake pero no personalizado
+**Estado actual:** ✅ Integrado - Configurable via voice-wake helper
 
 **¿Por qué es crítico?**
 ```
@@ -669,9 +666,11 @@ echo "✅ Voice Wake configured"
 
 #### Inmediato (Esta semana)
 
-1. **integrar `slack`** - Communication crítico
-2. **Integrar `imsg`** - Apple users lo esperan
-3. **Voice Wake setup script** - UX móvil
+1. ~~**Integrar `slack`**~~ ✅ - Communication crítico
+2. ~~**Integrar `imsg`**~~ ✅ - Apple users lo esperan
+3. ~~**Voice Wake setup script**~~ ✅ - UX móvil
+4. **integrar `apple-reminders`** ✅ - Task management universal
+5. **Node Mode enhancement** - Offline resilience
 
 #### Corto plazo (2 semanas)
 
@@ -722,7 +721,7 @@ echo "✅ Voice Wake configured"
 │                                                                      │
 │  FEATURES NATIVAS                                                   │
 │  ☐ Canvas UI              (❌ - fases 5-6)                          │
-│  ☐ Voice Wake Custom      (❌ - fase 6)                             │
+│  ☐ Voice Wake Custom      (✅ Integrado - scripts + helper)                          │
 │  ☐ Node Mode Enhancement  (❌ - fase 6)                             │
 │  ☐ Rich Push             (❌ - fase 6)                             │
 │                                                                      │
