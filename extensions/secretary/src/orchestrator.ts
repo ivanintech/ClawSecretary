@@ -88,6 +88,14 @@ import {
   formatVoiceWakeStatus,
   loadVoiceWakeConfig,
 } from "./helpers/voice-wake.js";
+import {
+  getNodeStatus,
+  syncOfflineQueue,
+  setNodeMode,
+  formatNodeStatus,
+  getOfflineQueue,
+  clearOfflineQueue,
+} from "./helpers/node-mode.js";
 import { CalendarStore } from "./store.js";
 import { VaultManager } from "./vault.js";
 import { updateSessionState, appendWorkingBuffer, searchDeepMemory } from "./wal-helpers.js";
@@ -195,6 +203,10 @@ export class SecretaryOrchestrator {
         "voice_wake_enable",
         "voice_wake_disable",
         "voice_wake_set_word",
+        "node_status",
+        "node_sync",
+        "node_set_mode",
+        "node_clear_queue",
       ],
       description: "Action to perform.",
     }),
@@ -360,6 +372,14 @@ export class SecretaryOrchestrator {
         return this.handleVoiceWakeDisable(params);
       case "voice_wake_set_word":
         return this.handleVoiceWakeSetWord(params);
+      case "node_status":
+        return this.handleNodeStatus(params);
+      case "node_sync":
+        return this.handleNodeSync(params);
+      case "node_set_mode":
+        return this.handleNodeSetMode(params);
+      case "node_clear_queue":
+        return this.handleNodeClearQueue(params);
       default:
         return { content: [{ type: "text", text: `⚠️ Unknown action: ${params.action}` }] };
     }
@@ -482,6 +502,7 @@ export class SecretaryOrchestrator {
     const slackConfigured = await checkSlackConfigured(this.api);
     const imsgAvailable = await checkImsgAvailable();
     const remindersAvailable = await checkRemindersAvailable();
+    const nodeStatus = await getNodeStatus(this.api);
 
     const status = {
       local_calendar: "✅ Connected",
@@ -499,6 +520,7 @@ export class SecretaryOrchestrator {
       slack: slackConfigured ? "✅ Connected" : "❌ Slack token not configured",
       imsg: imsgAvailable ? "✅ Available (macOS)" : "⚠️ Requires macOS with Messages.app",
       apple_reminders: remindersAvailable ? "✅ Available (macOS)" : "⚠️ Requires macOS with remindctl",
+      node_mode: `${nodeStatus.isOnline ? "✅ Online" : "❌ Offline"} (${nodeStatus.mode.toUpperCase()})`,
     };
     let message = "📊 *CLAWSECRETARY SETUP STATUS*\n\n";
     for (const [k, v] of Object.entries(status)) {
@@ -1452,11 +1474,75 @@ export class SecretaryOrchestrator {
     }
     return { content: [{ type: "text", text: `❌ Error: ${result.error}` }] };
   }
+
+  // ========== NODE MODE HANDLERS ==========
+
+  private async handleNodeStatus(_params: any) {
+    const status = await getNodeStatus(this.api);
+    const formatted = formatNodeStatus(status);
+
+    return { content: [{ type: "text", text: formatted }], details: { status } };
+  }
+
+  private async handleNodeSync(_params: any) {
+    const result = await syncOfflineQueue(this.api);
+
+    if (result.success) {
+      await updateSessionState(this.workspaceDir, "NodeMode", `Sync complete: ${result.synced} actions`);
+      return {
+        content: [{ type: "text", text: `✅ Sync complete: ${result.synced} synced${result.failed > 0 ? `, ${result.failed} failed` : ""}` }],
+        details: result,
+      };
+    }
+    return {
+      content: [{ type: "text", text: `⚠️ Sync partial: ${result.synced} synced, ${result.failed} failed` }],
+      details: result,
+    };
+  }
+
+  private async handleNodeSetMode(params: any) {
+    const mode = params.mode;
+
+    if (!mode || !["full", "edge", "offline"].includes(mode)) {
+      return { content: [{ type: "text", text: "⚠️ Node mode must be: full, edge, or offline" }] };
+    }
+
+    const result = await setNodeMode(this.api, mode);
+
+    if (result.success) {
+      await updateSessionState(this.workspaceDir, "NodeMode", `Mode set to: ${mode}`);
+      return { content: [{ type: "text", text: `✅ Node mode: ${mode.toUpperCase()}` }] };
+    }
+    return { content: [{ type: "text", text: "❌ Failed to set node mode" }] };
+  }
+
+  private async handleNodeClearQueue(_params: any) {
+    const result = await clearOfflineQueue(this.api);
+
+    if (result.cleared) {
+      await updateSessionState(this.workspaceDir, "NodeMode", "Offline queue cleared");
+      return { content: [{ type: "text", text: "✅ Offline queue cleared" }] };
+    }
+    return { content: [{ type: "text", text: "❌ Failed to clear queue" }] };
+  }
 }
 
 export function registerProactiveHooks(api: OpenClawPluginApi) {
   api.on("gateway_start", async () => {
     console.log("[Secretary] 🕒 Demonio cronométrico iniciado en background...");
+
+    const nodeSyncInterval = 5 * 60 * 1000; // 5 minutes
+    setInterval(async () => {
+      try {
+        const pending = await getOfflineQueue(api);
+        if (pending.length > 0) {
+          console.log(`[Secretary] 🔄 Syncing ${pending.length} offline actions...`);
+          await syncOfflineQueue(api);
+        }
+      } catch (e) {
+        console.error("[Secretary] Node sync error:", e);
+      }
+    }, nodeSyncInterval);
 
     // Intervalo de evaluación: cada 60 segundos
     setInterval(async () => {
