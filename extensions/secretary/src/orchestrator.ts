@@ -54,6 +54,32 @@ import {
 } from "./helpers/memory-lifecycle.js";
 import { generatePairingLink, printMagicLink } from "./helpers/pairing.js";
 import { waButtonPayload } from "./helpers/whatsapp.js";
+import {
+  slackSendMessage,
+  slackReactToMessage,
+  slackMarkAsDone,
+  slackReadMessages,
+  slackPinMessage,
+  checkSlackConfigured,
+} from "./helpers/slack.js";
+import {
+  imsgListChats,
+  imsgGetRecentMessages,
+  imsgSendQuick,
+  imsgFormatChatForSecretary,
+  checkImsgAvailable,
+} from "./helpers/imsg.js";
+import {
+  remindersGetToday,
+  remindersGetWeek,
+  remindersGetOverdue,
+  remindersCreateFromNaturalLanguage,
+  remindersComplete,
+  remindersFormatSummary,
+  remindersSyncFromBriefing,
+  checkRemindersAvailable,
+  remindersListLists,
+} from "./helpers/reminders.js";
 import { CalendarStore } from "./store.js";
 import { VaultManager } from "./vault.js";
 import { updateSessionState, appendWorkingBuffer, searchDeepMemory } from "./wal-helpers.js";
@@ -145,6 +171,18 @@ export class SecretaryOrchestrator {
         "process_text",
         "get_iot_activity",
         "get_memory_stats",
+        "slack_send",
+        "slack_mark_done",
+        "slack_read",
+        "imsg_list",
+        "imsg_history",
+        "imsg_send",
+        "reminders_today",
+        "reminders_week",
+        "reminders_overdue",
+        "reminders_create",
+        "reminders_complete",
+        "reminders_sync",
       ],
       description: "Action to perform.",
     }),
@@ -178,6 +216,13 @@ export class SecretaryOrchestrator {
     message: Type.Optional(Type.String({ description: "Alert message." })),
     text: Type.Optional(Type.String({ description: "Text to process with native chunking/formatting." })),
     mode: Type.Optional(Type.String({ description: "Channel mode for text processing: whatsapp, telegram, discord." })),
+    channel: Type.Optional(Type.String({ description: "Slack channel ID or name." })),
+    messageId: Type.Optional(Type.String({ description: "Slack message timestamp." })),
+    emoji: Type.Optional(Type.String({ description: "Emoji for reaction." })),
+    to: Type.Optional(Type.String({ description: "Recipient (Slack channel, iMsg contact, or phone)." })),
+    contact: Type.Optional(Type.String({ description: "Contact name for iMsg." })),
+    limit: Type.Optional(Type.Number({ description: "Limit for listing items." })),
+    list: Type.Optional(Type.String({ description: "Reminder list name." })),
   });
 
   constructor(private api: OpenClawPluginApi) {
@@ -271,6 +316,30 @@ export class SecretaryOrchestrator {
         return this.handleGetIoTActivity(params);
       case "get_memory_stats":
         return this.handleGetMemoryStats(params);
+      case "slack_send":
+        return this.handleSlackSend(params);
+      case "slack_mark_done":
+        return this.handleSlackMarkDone(params);
+      case "slack_read":
+        return this.handleSlackRead(params);
+      case "imsg_list":
+        return this.handleImsgList(params);
+      case "imsg_history":
+        return this.handleImsgHistory(params);
+      case "imsg_send":
+        return this.handleImsgSend(params);
+      case "reminders_today":
+        return this.handleRemindersToday(params);
+      case "reminders_week":
+        return this.handleRemindersWeek(params);
+      case "reminders_overdue":
+        return this.handleRemindersOverdue(params);
+      case "reminders_create":
+        return this.handleRemindersCreate(params);
+      case "reminders_complete":
+        return this.handleRemindersComplete(params);
+      case "reminders_sync":
+        return this.handleRemindersSync(params);
       default:
         return { content: [{ type: "text", text: `⚠️ Unknown action: ${params.action}` }] };
     }
@@ -389,6 +458,11 @@ export class SecretaryOrchestrator {
       await execFileAsync("gog", ["--version"]);
       gogInstalled = true;
     } catch {}
+
+    const slackConfigured = await checkSlackConfigured(this.api);
+    const imsgAvailable = await checkImsgAvailable();
+    const remindersAvailable = await checkRemindersAvailable();
+
     const status = {
       local_calendar: "✅ Connected",
       google_calendar_gog:
@@ -402,6 +476,9 @@ export class SecretaryOrchestrator {
         apiKey && process.env.WA_PHONE_NUMBER_ID ? "✅ Connected" : "⚠️ MATON_API_KEY missing",
       calendly: process.env.CALENDLY_API_KEY ? "✅ Connected" : "❌ Missing CALENDLY_API_KEY",
       web_search: "✅ OpenClaw native (multi-provider support)",
+      slack: slackConfigured ? "✅ Connected" : "❌ Slack token not configured",
+      imsg: imsgAvailable ? "✅ Available (macOS)" : "⚠️ Requires macOS with Messages.app",
+      apple_reminders: remindersAvailable ? "✅ Available (macOS)" : "⚠️ Requires macOS with remindctl",
     };
     let message = "📊 *CLAWSECRETARY SETUP STATUS*\n\n";
     for (const [k, v] of Object.entries(status)) {
@@ -1058,6 +1135,257 @@ export class SecretaryOrchestrator {
         ],
       };
     }
+  }
+
+  // ========== SLACK HANDLERS ==========
+
+  private async handleSlackSend(params: any) {
+    const channel = params.channel || params.to;
+    const message = params.message || params.text || params.title;
+
+    if (!channel || !message) {
+      return { content: [{ type: "text", text: "⚠️ Slack: channel and message are required." }] };
+    }
+
+    const result = await slackSendMessage(this.api, channel, message);
+
+    if (result.success) {
+      await updateSessionState(this.workspaceDir, "Slack", `Sent to ${channel}: ${message.substring(0, 50)}...`);
+      return { content: [{ type: "text", text: `✅ Message sent to Slack ${channel}` }] };
+    }
+    return { content: [{ type: "text", text: `❌ Slack error: ${result.error}` }] };
+  }
+
+  private async handleSlackMarkDone(params: any) {
+    const channel = params.channel;
+    const messageId = params.messageId;
+
+    if (!channel || !messageId) {
+      return { content: [{ type: "text", text: "⚠️ Slack: channel and messageId are required." }] };
+    }
+
+    const result = await slackMarkAsDone(this.api, channel, messageId);
+
+    if (result.success) {
+      await updateSessionState(this.workspaceDir, "Slack", `Marked done in ${channel}`);
+      return { content: [{ type: "text", text: `✅ Task marked as done in Slack ${channel}` }] };
+    }
+    return { content: [{ type: "text", text: `❌ Slack error: ${result.error}` }] };
+  }
+
+  private async handleSlackRead(params: any) {
+    const channel = params.channel;
+    const limit = params.limit || 20;
+
+    if (!channel) {
+      return { content: [{ type: "text", text: "⚠️ Slack: channel is required." }] };
+    }
+
+    const result = await slackReadMessages(this.api, channel, limit);
+
+    if (result.success && result.messages) {
+      const formatted = result.messages
+        .slice(-10)
+        .map((m) => `[${m.user}] ${m.text.substring(0, 100)}`)
+        .join("\n");
+      return {
+        content: [{ type: "text", text: `💬 **Slack #${channel}**\n\n${formatted}` }],
+        details: { messages: result.messages },
+      };
+    }
+    return { content: [{ type: "text", text: `❌ Slack error: ${result.error}` }] };
+  }
+
+  // ========== iMSG HANDLERS ==========
+
+  private async handleImsgList(params: any) {
+    const available = await checkImsgAvailable();
+    if (!available) {
+      return { content: [{ type: "text", text: "❌ iMsg no disponible. Requiere macOS con Messages.app." }] };
+    }
+
+    const limit = params.limit || 10;
+    const chats = await imsgListChats(limit);
+
+    if (chats.length === 0) {
+      return { content: [{ type: "text", text: "📭 No hay chats recientes." }] };
+    }
+
+    const formatted = chats
+      .map((c) => `💬 ${c.displayName} (${c.service})`)
+      .join("\n");
+
+    return {
+      content: [{ type: "text", text: `📱 **Chats Recientes**\n\n${formatted}` }],
+      details: { chats },
+    };
+  }
+
+  private async handleImsgHistory(params: any) {
+    const available = await checkImsgAvailable();
+    if (!available) {
+      return { content: [{ type: "text", text: "❌ iMsg no disponible. Requiere macOS con Messages.app." }] };
+    }
+
+    const contact = params.contact || params.to;
+    const limit = params.limit || 20;
+
+    if (!contact) {
+      return { content: [{ type: "text", text: "⚠️ iMsg: contact name is required." }] };
+    }
+
+    const { chat, messages } = await imsgGetRecentMessages(contact, limit);
+
+    if (!chat) {
+      return { content: [{ type: "text", text: `❌ Chat "${contact}" no encontrado.` }] };
+    }
+
+    const formatted = await imsgFormatChatForSecretary(chat, messages);
+    return { content: [{ type: "text", text: formatted }], details: { chat, messages } };
+  }
+
+  private async handleImsgSend(params: any) {
+    const available = await checkImsgAvailable();
+    if (!available) {
+      return { content: [{ type: "text", text: "❌ iMsg no disponible. Requiere macOS con Messages.app." }] };
+    }
+
+    const to = params.to || params.contact;
+    const message = params.message || params.text;
+
+    if (!to || !message) {
+      return { content: [{ type: "text", text: "⚠️ iMsg: recipient and message are required." }] };
+    }
+
+    const result = await imsgSendQuick(to, message);
+
+    if (result.success) {
+      await updateSessionState(this.workspaceDir, "iMsg", `Sent to ${to}: ${message.substring(0, 50)}...`);
+      return { content: [{ type: "text", text: `✅ iMsg enviado a ${to}` }] };
+    }
+    return { content: [{ type: "text", text: `❌ iMsg error: ${result.error}` }] };
+  }
+
+  // ========== REMINDERS HANDLERS ==========
+
+  private async handleRemindersToday(params: any) {
+    const available = await checkRemindersAvailable();
+    if (!available) {
+      return { content: [{ type: "text", text: "❌ Reminders no disponible. Requiere macOS con Remindctl." }] };
+    }
+
+    const reminders = await remindersGetToday();
+    const formatted = await remindersFormatSummary(reminders);
+
+    return { content: [{ type: "text", text: formatted }], details: { reminders } };
+  }
+
+  private async handleRemindersWeek(params: any) {
+    const available = await checkRemindersAvailable();
+    if (!available) {
+      return { content: [{ type: "text", text: "❌ Reminders no disponible." }] };
+    }
+
+    const reminders = await remindersGetWeek();
+    const formatted = await remindersFormatSummary(reminders);
+
+    return { content: [{ type: "text", text: formatted }], details: { reminders } };
+  }
+
+  private async handleRemindersOverdue(params: any) {
+    const available = await checkRemindersAvailable();
+    if (!available) {
+      return { content: [{ type: "text", text: "❌ Reminders no disponible." }] };
+    }
+
+    const reminders = await remindersGetOverdue();
+
+    if (reminders.length === 0) {
+      return { content: [{ type: "text", text: "✅ No hay recordatorios vencidos." }] };
+    }
+
+    const formatted = reminders
+      .map((r) => `⚠️ ${r.title} (${r.list})`)
+      .join("\n");
+
+    return {
+      content: [{ type: "text", text: `🚨 **Vencidos**\n\n${formatted}` }],
+      details: { reminders },
+    };
+  }
+
+  private async handleRemindersCreate(params: any) {
+    const available = await checkRemindersAvailable();
+    if (!available) {
+      return { content: [{ type: "text", text: "❌ Reminders no disponible." }] };
+    }
+
+    const title = params.title || params.message || params.text;
+    const dueDate = params.date;
+
+    if (!title) {
+      return { content: [{ type: "text", text: "⚠️ Reminders: title is required." }] };
+    }
+
+    const result = await remindersCreateFromNaturalLanguage(title);
+
+    if (result.success) {
+      await updateSessionState(this.workspaceDir, "Reminders", `Created: ${title}`);
+      return { content: [{ type: "text", text: `✅ Recordatorio creado: "${title}"` }] };
+    }
+    return { content: [{ type: "text", text: `❌ Reminders error: ${result.error}` }] };
+  }
+
+  private async handleRemindersComplete(params: any) {
+    const available = await checkRemindersAvailable();
+    if (!available) {
+      return { content: [{ type: "text", text: "❌ Reminders no disponible." }] };
+    }
+
+    const id = params.id;
+
+    if (!id) {
+      return { content: [{ type: "text", text: "⚠️ Reminders: id is required." }] };
+    }
+
+    const result = await remindersComplete(id);
+
+    if (result.success) {
+      await updateSessionState(this.workspaceDir, "Reminders", `Completed: ${id}`);
+      return { content: [{ type: "text", text: `✅ Recordatorio completado.` }] };
+    }
+    return { content: [{ type: "text", text: `❌ Reminders error: ${result.error}` }] };
+  }
+
+  private async handleRemindersSync(params: any) {
+    const available = await checkRemindersAvailable();
+    if (!available) {
+      return { content: [{ type: "text", text: "❌ Reminders no disponible." }] };
+    }
+
+    const actionItems = params.actionItems || [];
+
+    if (!Array.isArray(actionItems) || actionItems.length === 0) {
+      return { content: [{ type: "text", text: "⚠️ Reminders sync: actionItems array is required." }] };
+    }
+
+    const result = await remindersSyncFromBriefing(actionItems);
+
+    await updateSessionState(
+      this.workspaceDir,
+      "Reminders",
+      `Synced ${result.created} items from briefing`,
+    );
+
+    return {
+      content: [
+        {
+          type: "text",
+          text: `✅ Sincronizados ${result.created} recordatorios${result.failed > 0 ? `, ${result.failed} fallidos` : ""}`,
+        },
+      ],
+      details: result,
+    };
   }
 }
 
