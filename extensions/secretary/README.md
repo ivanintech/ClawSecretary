@@ -657,91 +657,783 @@ The Secretary auto-detects:
 
 ---
 
-## Use Cases
+## Use Cases - Experiencia de Usuario Final
 
-### 1. Morning Briefing
-
-```
-08:00 → Cron triggers
-       ↓
-Gmail triage (20 unread)
-RSS digest (top 5)
-Weather check (Madrid)
-Calendar merge (local + gog + calendly)
-       ↓
-Briefing generated with insights
-       ↓
-WhatsApp sent with buttons:
-  [Confirm] [Get Tip] [Nearby Places]
-```
-
-### 2. Meeting Closure Ghost Write
+### 👤 Día Típico con ClawSecretary
 
 ```
-Meeting ends
-       ↓
-Agent captures summary
-       ↓
-/finalize_closure action triggered
-       ↓
-Ghost Write pipeline:
-  1. chunkByParagraph() - Document segmentation
-  2. appendAssistantMessageToSessionTranscript() - Audit trail
-  3. syncKnowledge() - VectorDB + Notion + Obsidian
-       ↓
-SESSION-STATE.md updated
+┌──────────────────────────────────────────────────────────────────┐
+│                     JOURNEY DEL USUARIO                          │
+├──────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  📥 ACTIVATION (1 vez)                                          │
+│  └── QR scan → Magic Setup → Listo                             │
+│                                                                  │
+│  📅 DAILY (automático)                                         │
+│  └── Briefing 8am → Review → Acciones                          │
+│                                                                  │
+│  💬 ON-DEMAND (cualquier momento)                               │
+│  ├── "Hey Secretary, briefing"                                  │
+│  ├── "Añade reunión..."                                         │
+│  ├── "Procesa esto"                                             │
+│  ├── "Activa modo focus"                                        │
+│  └── "Cierra reunión"                                          │
+│                                                                  │
+│  📱 WHATSAPP (notificaciones)                                   │
+│  ├── Urgent emails                                             │
+│  ├── Meeting reminders                                          │
+│  └── Action buttons                                             │
+│                                                                  │
+│  🎤 VOICE (manos libres)                                        │
+│  └── Notas de voz → texto → acción                             │
+│                                                                  │
+└──────────────────────────────────────────────────────────────────┘
 ```
 
-### 3. P2P Schedule Negotiation
+---
 
-```
-Peer sends encrypted offer
-  { slots: ["09:00-10:00", "14:00-15:00"] }
-       ↓
-Decrypt with RSA private key
-Check against calendar store
-       ↓
-[If free] Auto-commit event
-[If busy] Send rejection with reason
-       ↓
-Reply encrypted to peer
-```
+### 🎯 Caso 1: Morning Briefing Automático
 
-### 4. Focus Mode Activation
-
+#### El Esfuerzo SIN Secretary:
 ```
-User: "Start focus mode"
-       ↓
-/trigger_focus_mode action
-       ↓
-Parallel execution:
-  • triggerHueScene("Oficina", "Concentración")
-  • triggerSonosFocus("Escritorio")
-       ↓
-Activity recorded to runtime.channel.activity
-       ↓
-SESSION-STATE.md: "Triggered focus: Oficina/Concentración"
+❌ Despertar
+❌ Abrir app de calendario
+❌ Revisar Google Calendar
+❌ Revisar Outlook
+❌ Revisar emails (20-50+)
+❌ Buscar noticias relevantes
+❌ Check weather manualmente
+❌ Crear resumen mental
+❌ Tomar decisiones sobre el día
+
+⏱️ Total: ~15-20 minutos de trabajo mental antes de empezar
 ```
 
-### 5. Memory-Enhanced Context
+#### El Esfuerzo CON Secretary:
+```
+👤: "Hey Secretary, ¿cómo está mi día?"
+
+📱 Secretary responde:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📅 AGENDA HOY (18/03/2026)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• 09:00 → Reunión equipo
+• 11:30 → Revisión Q1  
+• 14:00 → Almuerzo
+• 16:00 → Call con cliente
+• 19:00 → Gym
+
+🌡️ Tiempo Madrid: ☀️ 22°C
+🥵 Día intenso - ¡Descansos!
+
+🤖 AI ADVISOR:
+• Recordatorio: Cumpleaños de María
+• Último pedido: "La Tagliatella" 🍝
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[✅ Confirmar] [💡 Consejo] [📍 Lugares]
+
+⏱️ Total: 5 segundos de voz
+⏱️ Ahorro: ~15 minutos por día = 90 horas/año
+```
+
+---
+
+### 🎯 Caso 2: Gestión de Reuniones
+
+#### SIN Secretary:
+```
+📧 Email de Carlos: "¿Podemos reunirnos mañana?"
+👤: Buscar en calendario...
+👤: "Hmm, 10:00 tengo algo... 14:00 está libre"
+👤: Responder email
+📧 Carlos responde: "14:00 bien"
+👤: Crear evento en Google Calendar
+👤: Recordar añadir videollamada
+👤: Enviar invite a Carlos
+📧 Confirmación来回
+
+⏱️ Total: ~10-15 minutos de email来回
+```
+
+#### CON Secretary:
+```
+👤: "Hey Secretary, propón a Carlos meeting mañana 1h"
+
+📱 Secretary:
+🔐 Enviando propuesta cifrada a Carlos...
+
+📱 Secretary (Carlos responde):
+✅ Carlos aceptó: 14:00 - 15:00
+📅 Evento añadido automáticamente
+
+🤝 Reunión coordinada sin emails
+
+⏱️ Total: 5 segundos de voz
+⏱️ Ahorro: ~15 minutos por reunión
+💰 Si tienes 5 reuniones/día = 1.25 horas/ día = 6+ horas/semana
+```
+
+#### ¿Por qué P2P es especial?
 
 ```
-Before agent start
-       ↓
-Hook: before_agent_start
-Recall relevant memories (query: user's recent topics)
-       ↓
-Prepend context:
-  === RELEVANT MEMORIES ===
-  ### Preferences
-  - Prefiere reuniones de max 45 min
-  ### Decisions
-  - [2026-03-15] Decided to postpone vacation
-  ### Facts
-  - Current project: Q1 launch
-  ===================
-       ↓
-Agent starts with enhanced context
+┌─────────────────────────────────────────────────────────────┐
+│                    NEGOCIACIÓN P2P                          │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  🔐 ENCRIPTADO RSA-2048                                     │
+│  ├── Tu propuesta no la ve nadie más                        │
+│  ├── Ni siquiera OpenClaw tiene acceso                      │
+│  └── Solo tú y el otro Secretary pueden descifrar           │
+│                                                              │
+│  ⚡ AUTOMÁTICO                                              │
+│  ├── Sin emails来回                                         │
+│  ├── Sin "confirmas?"来回                                   │
+│  └── El evento se crea solo si hay slot libre               │
+│                                                              │
+│  🤝 INTEGRACIÓN PROFUNDA                                     │
+│  ├── Lee TU calendario directamente                         │
+│  ├── Sugiere slots que funcionan para ambos                  │
+│  └── Registra en SESSION-STATE.md para audit trail          │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+### 🎯 Caso 3: Detección de Conflictos
+
+#### SIN Secretary:
+```
+👤: "Ok Google, añade reunión con cliente a las 10:00"
+📱: "Reunión añadida"
+...
+👤: (20 min antes) "Mierda, tengo otra reunión a las 10:00"
+📱: (silencio)
+👤: Cancelar/reprogramar manualmente
+👤: Notificar a cliente
+👤: Buscar nuevo slot libre...
+
+⏱️ Total: ~30 minutos de gestión de caos
+```
+
+#### CON Secretary:
+```
+👤: "Hey Secretary, añade reunión con cliente a las 10:00"
+
+📱 Secretary:
+⚠️ CONFLICTO DETECTADO
+
+❌ "Reunión equipo" ya ocupa 09:30 - 10:30
+
+💡 Sugerencia: Mover a 10:30
+
+[✅ Sí, mover] [❌ No, mantener] [📅 Ver calendario]
+
+👤: "Sí"
+
+📱 Secretary:
+✅ Movido a 10:30
+📧 Notificación enviada a cliente
+📅 SESSION-STATE.md actualizado
+
+⏱️ Total: 10 segundos + 1 click
+```
+
+---
+
+### 🎯 Caso 4: Modo Focus (IoT Automation)
+
+#### SIN Secretary:
+```
+👤: (llegando a la oficina)
+👤: "Alexa, pon luz de concentración"
+👤: (ajustar manualmente el brillo)
+👤: (buscar Spotify en el teléfono)
+👤: "Alexa, pon playlist de focus"
+👤: (configurar volumen)
+👤: (silenciar notificaciones manualmente)
+👤: "Ok, ahora sí puedo trabajar"
+
+⏱️ Total: ~5 minutos de setup antes de poder concentrarse
+```
+
+#### CON Secretary:
+```
+👤: "Hey Secretary, activa modo concentración"
+
+📱 Secretary:
+✅ Luces ajustadas (Philips Hue)
+   → Oficina: "Concentración" (luz cálida 50%)
+✅ Música Sonos iniciada
+   → Escritorio: Playlist "Deep Focus" 🎵
+✅ Notifications silenciadas
+✅ SESSION-STATE.md actualizado
+
+🧘 Modo focus activo
+
+⏱️ Total: 3 segundos de voz
+📊 Activity tracking: "Focus mode usado 3 veces hoy"
+```
+
+#### ¿Por qué es útil?
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    SMART HOME INTEGRATION                  │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  🎯 CONTEXT-AWARE                                          │
+│  ├── Sabe que estás en "Oficina"                          │
+│  ├── Conoce tus presets de luz                            │
+│  └── Recuerda tu playlist de focus                         │
+│                                                              │
+│  📊 LEARNS OVER TIME                                       │
+│  ├── "Based on your patterns, focus mode used 3x/day"     │
+│  ├── "Average focus session: 2.5 hours"                   │
+│  └── "Your best focus time is 10am-12pm"                  │
+│                                                              │
+│  🔄 SEAMLESS TRANSITIONS                                  │
+│  ├── "Focus → Meeting" = luces suben + música baja        │
+│  ├── "Meeting → Break" = luz natural + alerta            │
+│  └── "End of day" = modo relax + prepare for tomorrow     │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+### 🎯 Caso 5: Ghost Write - Actas Automáticas
+
+#### SIN Secretary:
+```
+👤: (terminando reunión)
+👤: "Ok, ¿quién tomó notas?"
+👤: "Nadie... ¿Alguien recuerda lo que decidimos?"
+👤: Silencio incómodo
+👤: "Ok, voy a escribir un email con el resumen..."
+👤: Escribe email de 20 minutos
+👤: "Por favor revisar y aprobar"
+👤: Email来回 con correcciones
+👤: "Ok, voy a añadir esto a Notion..."
+👤: Copiar/pegar manual
+👤: "Y al documento del proyecto..."
+👤: Más copiar/pegar
+
+⏱️ Total: ~45-60 minutos post-reunión
+📉 Resultado: Acta incompleta, mal distribuida
+```
+
+#### CON Secretary:
+```
+👤: "Hey Secretary, cierra la reunión"
+
+📱 Secretary:
+📝 Procesando cierre...
+
+✅ Acta guardada en:
+   • Transcript (OpenClaw session) ✓
+   • Notion (base de datos) ✓
+   • Obsidian (vault personal) ✓
+   • Vector Memory (búsqueda futura) ✓
+
+📋 Resumen generado:
+"Reunión Q1 completada"
+- Decisiones: 3
+- Action items: 5
+- Próximo meeting: 25/03/2026
+
+⏱️ Total: 3 segundos de voz
+⏱️ Ahorro: ~45 minutos post-reunión
+📊 Ghost writes today: 4
+```
+
+#### Pipeline Técnico (pero invisible para el usuario):
+```
+┌─────────────────────────────────────────────────────────────┐
+│                 GHOST WRITE PIPELINE                        │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  1. chunkByParagraph()                                      │
+│     └── Divide documento por párrafos (preserva contexto)   │
+│                                                              │
+│  2. appendAssistantMessageToSessionTranscript()             │
+│     └── Audit trail en sesión de OpenClaw                   │
+│                                                              │
+│  3. syncKnowledge()                                         │
+│     ├── → VectorDB (LanceDB) - búsqueda semántica           │
+│     ├── → Notion - base de datos centralizada               │
+│     └── → Obsidian - vault personal                         │
+│                                                              │
+│  4. WAL Protocol                                            │
+│     └── SESSION-STATE.md actualizado                        │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+### 🎯 Caso 6: Manejo de Emails (Triage Inteligente)
+
+#### SIN Secretary:
+```
+📧 47 emails nuevos desde ayer
+👤: Revisando cada uno...
+👤: "Newsletter... borrar"
+👤: "Promo... borrar"
+👤: "Reunión reenviada... ya la vi"
+👤: "Este parece importante... ¿era de quién?"
+👤: (30 minutos después)
+👤: "Creo que me perdí algo..."
+
+⏱️ Total: ~30-45 minutos de triage manual
+📉 Problema: Sesgo de confirmación, emails importantes se escapan
+```
+
+#### CON Secretary:
+```
+📱 Secretary (8:00 AM automático):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📧 EMAIL TRIAGE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚨 Críticos: 2
+   • Juan: "URGENTE - Presupuesto Q2"
+   • Cliente: "Firma requerida ASAP"
+⚪ FYI: 45
+
+💡 AI ADVISOR:
+• "Presupuesto tiene deadline mañana"
+• "Cliente espera respuesta hace 3 días"
+
+[📖 Ver] [✅ OK]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⏱️ Total: 2 minutos de review vs 45 de lectura completa
+📊 Emails priorizados: 47 → 2 actionables
+```
+
+---
+
+### 🎯 Caso 7: Procesamiento de Documentos
+
+#### SIN Secretary:
+```
+👤: (recibe factura PDF)
+👤: "Tengo que guardar esto para accounting..."
+👤: Descargar PDF
+👤: Buscar carpeta correcta en Drive
+👤: Renombrar archivo: "Factura_Proveedor_2026-03-18.pdf"
+👤: Extraer datos manualmente
+👤: Copiar a spreadsheet
+👤: "Y ahora a Notion..."
+👤: Crear página
+👤: Copiar datos
+
+⏱️ Total: ~10 minutos por documento
+```
+
+#### CON Secretary:
+```
+👤: "Hey Secretary, procesa esta factura"
+
+📱 Secretary:
+📄 Factura detectada:
+   • Proveedor: Acme Corp
+   • Importe: €1,250.00
+   • Fecha: 18/03/2026
+   • Vencimiento: 25/03/2026
+
+✅ Guardado en:
+   • 💾 Drive (carpeta correcta)
+   • 📊 Notion (database financials)
+   • 🧠 Vector Memory (búsqueda futura)
+
+💡 Recordatorio: "Vence en 7 días"
+
+[✅ Archivar] [📤 Reenviar] [💰 Incluir en financials]
+
+⏱️ Total: 5 segundos de voz + 1 click
+```
+
+---
+
+### 🎯 Caso 8: Notas de Voz → Acción
+
+#### SIN Secretary:
+```
+👤: (conduciendo)
+👤: (idea importante)
+👤: "Tengo que recordar esto..."
+👤: (no puede escribir)
+👤: "Ok, lo recuerdo después..."
+👤: (no lo recuerda)
+
+⏱️ Resultado: 0% de captura de ideas en movimiento
+```
+
+#### CON Secretary:
+```
+👤: 🎤 Nota de voz
+   "Hey Secretary, apuntar que necesito 
+    llamar a Juan sobre el presupuesto"
+
+📱 Secretary:
+✅ Nota procesada y guardada
+
+   📝 Transcripción:
+   "Necesito llamar a Juan sobre el presupuesto"
+
+   🧠 Memorias actualizadas:
+   • Action item: Llamar a Juan
+   • Context: Presupuesto
+   • Priority: Alta
+
+   ✅ Sincronizado a:
+   • Notion (Tasks)
+   • Obsidian (Inbox)
+
+📊 Notas de voz hoy: 5
+💡 Recordatorio: "Llamar a Juan" en tu lista
+
+⏱️ Captura: 100% de ideas en movimiento
+```
+
+---
+
+### 🎯 Caso 9: Research Proactivo
+
+#### SIN Secretary:
+```
+👤: "Tengo una reunión sobre IA mañana"
+👤: Buscar en Google...
+👤: "últimas noticias de IA..."
+👤: 20 tabs abiertos
+👤: "Ok, esto parece relevante..."
+👤: Leer, resumir, preparar
+
+⏱️ Total: ~1-2 horas de research manual
+📉 Problema: Información desactualizada, sesgo de búsqueda
+```
+
+#### CON Secretary:
+```
+👤: "Hey Secretary, investiga sobre las últimas 
+     tendencias en IA para mi reunión de mañana"
+
+📱 Secretary:
+🔍 Research en progreso (3 fuentes)...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 INVESTIGACIÓN: Tendencias IA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔹 OpenAI GPT-5
+   • Lanzamiento esperado Q2 2026
+   • Mejoras en reasoning multimodal
+
+🔹 Google Gemini 2.0
+   • Integración con Workspace
+   • 50% más barato que GPT-4
+
+🔹 Claude 4
+   • Focus en seguridad y alignment
+   • Disponible ahora
+
+📰 3 artículos analizados
+📅 Para tu reunión: 18/03/2026
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⏱️ Total: 5 segundos de voz
+⏱️ Resultado: Research completo en 30 segundos
+```
+
+---
+
+### 🎯 Caso 10: Automatización Invisible
+
+```
+⏰ 08:00 AM (Automático - SIN intervención)
+┌─────────────────────────────────────────┐
+│ Secretary ejecuta en background:        │
+│                                         │
+│ ✓ Triaje de emails (Gmail/Outlook)     │
+│ ✓ RSS digest (últimas noticias)        │
+│ ✓ Weather check                        │
+│ ✓ Brief del día                        │
+│                                         │
+│ 📱 Si hay ACTION REQUIRED:              │
+│    → WhatsApp con botones              │
+│                                         │
+│ 📧 Si todo OK:                         │
+│    → Solo disponible, no interrumpe   │
+└─────────────────────────────────────────┘
+
+⏰ 22:00 PM (Automático)
+┌─────────────────────────────────────────┐
+│ Secretary ejecuta:                      │
+│                                         │
+│ ✓ Sync de tareas a Things 3           │
+│ ✓ Logistics triage                    │
+│ ✓ Backup de estado en SESSION-STATE   │
+│ ✓ Memory refresh                       │
+│ ✓ Notion sync                          │
+└─────────────────────────────────────────┘
+
+⏱️ Total intervención humana: 0
+💰 Valor: Productividad incrementada
+```
+
+---
+
+## 📊 Resumen: Impacto Cuantificable
+
+### Tiempo Ahorrado por Día
+
+| Actividad | Sin Secretary | Con Secretary | Ahorro |
+|-----------|---------------|---------------|--------|
+| Morning briefing | 15 min | 0 seg | 15 min |
+| Gestión reuniones | 10 min | 5 seg | 10 min |
+| Triage emails | 30 min | 2 min | 28 min |
+| Ghost write | 45 min | 3 seg | 45 min |
+| Research | 60 min | 30 seg | 60 min |
+| **Total** | **~3 horas** | **~3 min** | **~2.9 horas** |
+
+### Ahorro Semanal/Mensual
+
+```
+📊 DIARIO
+├── 2.9 horas ahorradas
+├── 15+ decisiones automatizadas
+└── 0 interrupciones de context switching
+
+📊 SEMANAL (5 días)
+├── 14.5 horas ahorradas
+├── 75+ decisiones automatizadas
+└── Equivalent a casi 2 días de trabajo
+
+📊 MENSUAL (20 días)
+├── 58 horas ahorradas
+├── 300+ decisiones automatizadas
+└── Equivalent a 1.5 semanas de trabajo
+```
+
+---
+
+## 🔄 Antes vs Después
+
+### El Día de un Profesional SIN ClawSecretary
+
+```
+06:30 ⏰ Despertar, revisar phone
+07:00 📧 47 emails, leer urgent 5, ignorar 42
+07:30 🌤️ Buscar weather en app
+07:45 📅 Abrir calendario, enterarse del día
+08:00 🚌 Transport
+08:30 ☕ Primera pausa café - organizar mentalmente
+09:00 💼 REUNIÓN - "Who took notes?"
+09:45 📧 Responder emails urgentes
+10:00 ☕ Pause - "What did I decide in that meeting?"
+10:15 📝 Escribir email de resumen
+10:30 📧 Más emails
+11:00 🎯 Intentando focus...
+11:05 📱 Notification - responder WhatsApp
+11:10 🎯 Focus otra vez...
+11:15 📱 Notification...
+...
+
+⏱️ Productive hours: ~3-4 horas
+😤 Context switches: 50+
+📉 Decisions made: Pocas, muchas pospuestas
+```
+
+### El Día de un Profesional CON ClawSecretary
+
+```
+06:30 ⏰ Despertar
+06:31 📱 WhatsApp de Secretary:
+       "Buenos días! Briefing listo 👋"
+       
+       📅 3 reuniones, 1 deadline
+       📧 2 emails action required
+       💡 AI tip: "Reunión 10am tiene docs pendientes"
+       
+06:35 ☕ Café - leer briefing
+06:40 📱 "Confirmed" en botón
+
+09:00 💼 REUNIÓN
+09:45 "Hey Secretary, cierra reunión"
+09:45.03 ✅ Acta en Notion, Vector, Transcript
+
+10:00 🎯 "Hey Secretary, activa modo focus"
+10:00.03 🧘 Lights + Sonos + Silence
+10:00.04 💻 IDE abierto, coding
+
+11:55 📱 "Focus ending soon - prepare for next meeting?"
+
+...
+
+⏱️ Productive hours: 6-7 horas
+😤 Context switches: ~10 (solo las necesarias)
+📈 Decisions made: 30+, la mayoría automatizadas
+🧠 Cognitive load: Mínimo
+```
+
+---
+
+## 💡 Por Qué ClawSecretary es Diferente
+
+### No es solo un chatbot con herramientas
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    COMPARACIÓN                               │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  🤖 CHATBOT TRADICIONAL                                    │
+│  ├── Requiere input explícito del usuario                  │
+│  ├── "Ejecuta X" = solo puede ejecutar X                  │
+│  ├── No tiene contexto de agenda                           │
+│  ├── No se entera de cambios automáticamente               │
+│  └── Tú eres el trigger                                   │
+│                                                              │
+│  🦞 CLAWSECRETARY                                          │
+│  ├── Proactivo: se entera SOLO                            │
+│  ├── Context-aware: sabe tu agenda, emails, preferencias  │
+│  ├── Automático: ejecuta en background                    │
+│  ├── Persistente: SESSION-STATE.md nunca olvida          │
+│  ├── P2P: negocia con otros secretaries directamente      │
+│  ├── IoT: controla tu ambiente                            │
+│  ├── Second brain: sabe TODO lo que sabes                 │
+│  └── Ghost write: documenta SIN que lo pidas              │
+│                                                              │
+│  🦞 = TU SECRETARIO DIGITAL, NO UN CHATBOT               │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### El Valor Diferenciador
+
+| Característica | Valor |
+|----------------|-------|
+| **Proactividad** | No tienes que pedir, simplemente pasa |
+| **Persistencia** | WAL = nunca pierde contexto |
+| **P2P Encryption** | Privacidad total en negociaciones |
+| **Zero-Config** | QR scan = listo, sin setup |
+| **Ghost Write** | Actas sin esfuerzo, buscables después |
+| **Memory Lifecycle** | "Recuerda" tus preferencias |
+| **IoT Integration** | Tu espacio de trabajo se adapta |
+| **Second Brain Sync** | TODO en Notion, Obsidian, Vector |
+
+---
+
+## 🎯 Quick Start para Usuario Final
+
+### 1. Instalación (30 segundos)
+
+```
+1. Abrir OpenClaw Dashboard
+2. Ir a Extensions → ClawSecretary
+3. Click "Install"
+4. Listo
+```
+
+### 2. Activación Magic Setup (60 segundos)
+
+```
+1. Escanear QR desde el móvil
+2. Secretary auto-detecta servicios
+3. QR adicional para WhatsApp
+4. "Listo! Empieza a chatear"
+```
+
+### 3. Primeros Comandos
+
+```
+/briefing          → Briefing del día
+/pair             → Regenerar Magic Setup
+/status           → Ver estado de conexiones
+```
+
+### 4. Wake Words
+
+```
+"Hey Secretary, briefing"
+"Hey Secretary, añade reunión..."
+"Hey Secretary, activa focus"
+"Hey Secretary, cierra..."
+```
+
+### 5. WhatsApp (desde cualquier lugar)
+
+```
+Enviar mensaje normal:
+"Buenos días, briefing del día"
+
+Comandos:
+"/briefing" → Full briefing
+"/status"   → System status
+"/help"     → Available commands
+```
+
+---
+
+## Lo que el Usuario NUNCA Ve (pero Beneficia)
+
+| Tecnología | Oculta bajo el capó | Beneficio visible |
+|------------|---------------------|-------------------|
+| `SESSION-STATE.md` | WAL invisible | "Siempre recuerda" |
+| RSA encryption | P2P cifrado | "Reuniones sin emails" |
+| `chunkByParagraph()` | Document parsing | "Textos bien formateados" |
+| `runtime.channel.activity` | Activity tracking | "Sabía que te gusta focus a las 10" |
+| LanceDB vectors | Semantic search | "Encontré tu factura de 2024" |
+| Proactive hooks | Background jobs | "Ya te traje el briefing" |
+| Subagent parallelism | Concurrent execution | "Todo rápido" |
+| `memory-lifecycle` | Context injection | "Recuerda que prefieres..." |
+
+---
+
+## 🚀 Empieza AHORA
+
+### Resumen de Valor
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                 ¿POR QUÉ CLAWSECRETARY?                     │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  ⏰ AHORRA TIEMPO                                          │
+│  └── 2.9 horas/día = 60+ horas/mes                        │
+│                                                              │
+│  🧠 MEJORA MEMORIA                                          │
+│  └── Nunca más "se me olvidó"                              │
+│                                                              │
+│  🤝 SIMPLIFICA COMUNICACIÓN                                │
+│  └── P2P = 0 emails, reuniones coordinadas solitas         │
+│                                                              │
+│  📝 ELIMINA TRABAJO MANUAL                                  │
+│  └── Ghost write = 0 actasymanuales                        │
+│                                                              │
+│  🎯 AUMENTA FOCUS                                          │
+│  └── IoT + Mode Focus = deep work                          │
+│                                                              │
+│  📊 DECISIONES MEJORADAS                                    │
+│  └── Research proactivo = info siempre disponible           │
+│                                                              │
+│  🔒 PRIVacidad                                              │
+│  └── RSA encryption, local storage, zero data sharing      │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Siguiente Paso
+
+```bash
+# Para administradores de sistema
+openclaw extensions install @openclaw/secretary
+
+# Para usuarios
+# Ir a: Dashboard → Extensions → ClawSecretary → Activate
 ```
 
 ---
