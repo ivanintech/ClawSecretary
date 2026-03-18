@@ -1,4 +1,4 @@
-import type { OpenClawPluginApi } from "../../../src/plugins/types.js";
+import type { OpenClawPluginApi } from "../../../../src/plugins/types.js";
 
 export interface SlackReaction {
   name: string;
@@ -25,7 +25,9 @@ export interface SlackChannel {
 export async function checkSlackConfigured(api: OpenClawPluginApi): Promise<boolean> {
   try {
     const slackConfig = api.config.channels?.slack;
-    return !!(slackConfig?.enabled && slackConfig?.token);
+    const hasToken = !!(slackConfig?.botToken || slackConfig?.appToken || 
+      (slackConfig?.accounts && Object.values(slackConfig.accounts).some(a => a?.botToken || a?.appToken)));
+    return !!(slackConfig?.enabled && hasToken);
   } catch {
     return false;
   }
@@ -37,18 +39,23 @@ export async function slackSendMessage(
   content: string,
 ): Promise<{ success: boolean; ts?: string; error?: string }> {
   if (!await checkSlackConfigured(api)) {
-    return { success: false, error: "Slack not configured. Set channels.slack.token in config." };
+    return { success: false, error: "Slack not configured. Set channels.slack.botToken in config." };
   }
 
   try {
-    const result = await api.runtime.messaging.send({
-      channel: "slack",
-      recipient: to,
-      message: { text: content },
-    });
-
-    api.logger.info(`[Slack] Message sent to ${to}: ${content.substring(0, 50)}...`);
-    return { success: true, ts: result.id };
+    const runtime = api.runtime as any;
+    const messaging = runtime?.messaging;
+    if (messaging?.send) {
+      const result = await messaging.send({
+        channel: "slack",
+        recipient: to,
+        message: { text: content },
+      });
+      api.logger.info(`[Slack] Message sent to ${to}: ${content.substring(0, 50)}...`);
+      return { success: true, ts: result?.id };
+    }
+    api.logger.error(`[Slack] Messaging not available`);
+    return { success: false, error: "Messaging not available" };
   } catch (err: any) {
     api.logger.error(`[Slack] Failed to send message: ${err.message}`);
     return { success: false, error: err.message };
@@ -66,7 +73,8 @@ export async function slackReactToMessage(
   }
 
   try {
-    const slackApi = api.runtime.tools?.slack;
+    const runtime = api.runtime as any;
+    const slackApi = runtime?.tools?.slack;
     if (slackApi?.react) {
       await slackApi.react({ channelId, messageId: messageTs, emoji });
       api.logger.info(`[Slack] Reacted with ${emoji} to message ${messageTs}`);
@@ -91,7 +99,8 @@ export async function slackPinMessage(
   }
 
   try {
-    const slackApi = api.runtime.tools?.slack;
+    const runtime = api.runtime as any;
+    const slackApi = runtime?.tools?.slack;
     if (slackApi?.pin) {
       await slackApi.pin({ channelId, messageId: messageTs });
       api.logger.info(`[Slack] Pinned message ${messageTs} in ${channelId}`);
@@ -115,7 +124,8 @@ export async function slackUnpinMessage(
   }
 
   try {
-    const slackApi = api.runtime.tools?.slack;
+    const runtime = api.runtime as any;
+    const slackApi = runtime?.tools?.slack;
     if (slackApi?.unpin) {
       await slackApi.unpin({ channelId, messageId: messageTs });
       api.logger.info(`[Slack] Unpinned message ${messageTs} in ${channelId}`);
@@ -139,7 +149,8 @@ export async function slackReadMessages(
   }
 
   try {
-    const slackApi = api.runtime.tools?.slack;
+    const runtime = api.runtime as any;
+    const slackApi = runtime?.tools?.slack;
     if (slackApi?.readMessages) {
       const result = await slackApi.readMessages({ channelId, limit });
       return { success: true, messages: result.messages };
@@ -162,7 +173,8 @@ export async function slackDeleteMessage(
   }
 
   try {
-    const slackApi = api.runtime.tools?.slack;
+    const runtime = api.runtime as any;
+    const slackApi = runtime?.tools?.slack;
     if (slackApi?.deleteMessage) {
       await slackApi.deleteMessage({ channelId, messageId: messageTs });
       api.logger.info(`[Slack] Deleted message ${messageTs} in ${channelId}`);
@@ -187,7 +199,8 @@ export async function slackEditMessage(
   }
 
   try {
-    const slackApi = api.runtime.tools?.slack;
+    const runtime = api.runtime as any;
+    const slackApi = runtime?.tools?.slack;
     if (slackApi?.editMessage) {
       await slackApi.editMessage({ channelId, messageId: messageTs, content });
       api.logger.info(`[Slack] Edited message ${messageTs} in ${channelId}`);

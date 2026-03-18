@@ -1,5 +1,5 @@
 import { Type } from "@sinclair/typebox";
-import type { OpenClawPluginApi, OpenClawPluginToolContext } from "../../../../src/plugins/types.js";
+import type { OpenClawPluginApi, OpenClawPluginToolContext } from "../../../src/plugins/types.js";
 
 /**
  * Image Generation Tool
@@ -14,7 +14,7 @@ import type { OpenClawPluginApi, OpenClawPluginToolContext } from "../../../../s
  * - PKM documentation images
  */
 export function createImageGenerationTool(api: OpenClawPluginApi) {
-  return api.registerTool({
+  const tool = {
     name: "image_generator",
     description: "Generate images for calendar summaries, meeting diagrams, visual briefings, and PKM documentation using OpenClaw's native image generation API with support for multiple providers (DALL-E, Midjourney, etc.).",
     inputSchema: Type.Object({
@@ -56,7 +56,7 @@ export function createImageGenerationTool(api: OpenClawPluginApi) {
     }),
 
     execute: async (
-      _context: OpenClawPluginToolContext,
+      _context: any,
       args: Record<string, unknown>,
     ) => {
       try {
@@ -97,10 +97,9 @@ export function createImageGenerationTool(api: OpenClawPluginApi) {
           console.log(`[Secretary:ImageGen] 🎨 Using model: ${model}`);
         }
 
-        const result = await api.runtime.imageGeneration.generate({
+        const result = await (api.runtime.imageGeneration as any).generate({
           cfg: api.config,
           agentDir: api.resolvePath(""),
-          authStore: api.authStore,
           prompt: enhancedPrompt,
           modelOverride: model,
           count,
@@ -108,7 +107,7 @@ export function createImageGenerationTool(api: OpenClawPluginApi) {
           resolution,
         });
 
-        const imageSummary = result.images.map((img, idx) => {
+        const imageSummary = result.images.map((img: any, idx: number) => {
           const sizeBytes = img.buffer.length;
           const sizeKB = (sizeBytes / 1024).toFixed(2);
           return `[${idx + 1}] ${img.mimeType}, ${sizeKB} KB${img.fileName ? ` (${img.fileName})` : ""}`;
@@ -124,7 +123,7 @@ export function createImageGenerationTool(api: OpenClawPluginApi) {
               type: "text",
               text: `🎨 Generated ${result.images.length} image(s) using ${result.provider}/${result.model}\n\n${imageSummary}`,
             },
-            ...result.images.map((img) => ({
+            ...result.images.map((img: any) => ({
               type: "image" as const,
               image: img.buffer.toString("base64"),
               mimeType: img.mimeType,
@@ -152,5 +151,7 @@ export function createImageGenerationTool(api: OpenClawPluginApi) {
         };
       }
     },
-  });
+  };
+  api.registerTool(tool as any);
+  return tool;
 }

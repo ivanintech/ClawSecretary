@@ -2,13 +2,13 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { Type } from "@sinclair/typebox";
 import type { OpenClawPluginApi } from "../../../src/plugins/types.js";
-import { selectVoiceForContext, type VoiceContext } from "../helpers/tts-voice-selector";
+import { selectVoiceForContext, type VoiceContext } from "./helpers/tts-voice-selector.js";
 import {
   chunkMarkdownForWhatsApp,
   convertTablesForChannel,
   resolveTextChunkLimit,
   resolveChunkMode,
-} from "../helpers/text-processor";
+} from "./helpers/text-processor.js";
 
 // WhatsApp Web Integration - Zero API Keys Required
 async function sendViaWhatsAppWeb(api: OpenClawPluginApi, recipient: string, message: object): Promise<object> {
@@ -21,13 +21,19 @@ async function sendViaWhatsAppWeb(api: OpenClawPluginApi, recipient: string, mes
     }
 
     // Use OpenClaw's built-in WhatsApp integration
-    const result = await api.runtime.messaging.send({
+    const runtime = api.runtime as any;
+    const messaging = runtime?.messaging;
+    if (!messaging?.send) {
+      throw new Error("WhatsApp messaging not available");
+    }
+
+    const result = await messaging.send({
       channel: "whatsapp",
       recipient: recipient,
       message: message,
     });
 
-    return { success: true, message_id: result.id || crypto.randomUUID() };
+    return { success: true, message_id: result?.id || crypto.randomUUID() };
   } catch (error) {
     console.log("[Secretary:WhatsApp] ⚠️ WhatsApp Web no disponible, usando fallback");
 
@@ -171,7 +177,7 @@ export function createWhatsAppTool(api: OpenClawPluginApi) {
             text: processedBody,
             interactive: {
               type: "button",
-              buttons: buttons?.slice(0, 3).map((btn, idx) => ({
+              buttons: buttons?.slice(0, 3).map((btn: string, idx: number) => ({
                 id: `btn_${idx + 1}`,
                 title: btn,
               })) || [],
@@ -190,7 +196,7 @@ export function createWhatsAppTool(api: OpenClawPluginApi) {
               sections: [
                 {
                   title: "Selecciona una opción",
-                  rows: listItems?.slice(0, 10).map((item, idx) => ({
+                  rows: listItems?.slice(0, 10).map((item: any, idx: number) => ({
                     id: `item_${idx + 1}`,
                     title: item.title,
                     description: item.description,
@@ -209,9 +215,12 @@ export function createWhatsAppTool(api: OpenClawPluginApi) {
           const voiceSelection = await selectVoiceForContext(context, api.config);
           
           // Generate audio with voice selection
-          const audioPath = await runtime.tts?.textToSpeech(processedBody, {
-            voice: voiceSelection.voiceId || undefined,
+          const audioResult = await (runtime.tts as any)?.textToSpeech({
+            text: processedBody,
+            cfg: api.config,
           });
+
+          const audioPath = audioResult?.audioPath || audioResult;
 
           if (audioPath) {
             const contextEmoji = getContextEmoji(context);

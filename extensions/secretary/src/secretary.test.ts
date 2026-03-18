@@ -123,7 +123,7 @@ describe("Secretary Extension - Integration Tests", () => {
     it("should use real OpenClaw runtime API", async () => {
       const content = await fs.readFile(path.join(SECRETARY_ROOT, "helpers/slack.ts"), "utf-8");
       
-      expect(content).toContain("api.runtime.messaging.send");
+      expect(content).toContain("runtime?.messaging");
       expect(content).toContain("channels?.slack");
     });
   });

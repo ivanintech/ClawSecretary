@@ -8,7 +8,8 @@ export type CalendarEvent = {
   endTime: string; // ISO string
   description?: string;
   location?: string;
-  source?: "local" | "google" | "outlook" | "calendly";
+  source?: "local" | "google" | "outlook" | "calendly" | "p2p";
+  peerUrl?: string;
   researched?: boolean;
 };
 

@@ -1,4 +1,4 @@
-import type { OpenClawPluginApi } from "../../../src/plugins/types.js";
+import type { OpenClawPluginApi } from "../../../../src/plugins/types.js";
 import { execFileAsync } from "./common.js";
 
 export interface IoTActivityEvent {
@@ -85,18 +85,14 @@ async function recordIoTActivity(
   event: IoTActivityEvent,
 ): Promise<void> {
   try {
-    if (api.runtime.channel.activity?.record) {
-      await api.runtime.channel.activity.record({
+    const runtime = api.runtime as any;
+    const activity = runtime?.channel?.activity;
+    if (activity?.record) {
+      await activity.record({
         channel: "iot",
-        activity: {
-          type: event.device,
-          action: event.action,
-          target: event.target,
-          timestamp: event.timestamp,
-          success: event.success,
-        },
+        direction: event.success ? "outbound" : "inbound",
       });
-      api.logger.debug(`[IoT:Activity] Recorded: ${event.device}/${event.action}`);
+      api.logger.info(`[IoT:Activity] Recorded: ${event.device}/${event.action}`);
     }
   } catch (err: any) {
     api.logger.warn(`[IoT:Activity] Failed to record: ${err.message}`);

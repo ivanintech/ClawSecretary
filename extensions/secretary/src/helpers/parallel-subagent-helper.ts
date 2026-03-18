@@ -1,5 +1,4 @@
-import { logger } from "../../../src/logger.js";
-import type { OpenClawPluginApi } from "../../../src/plugins/types.js";
+import type { OpenClawPluginApi } from "../../../../src/plugins/types.js";
 
 export type ParallelSubagentTask = {
   message: string;
@@ -36,7 +35,7 @@ export async function executeParallelSubagents(
     return [];
   }
 
-  logger.info(`[ParallelSubagent] 🚀 Starting ${tasks.length} parallel subagents`);
+  api.logger.info(`[ParallelSubagent] 🚀 Starting ${tasks.length} parallel subagents`);
 
   const startTime = Date.now();
 
@@ -75,14 +74,14 @@ export async function executeParallelSubagents(
     const successfulCount = finalResults.filter((r) => r.success).length;
     const duration = Date.now() - startTime;
 
-    logger.info(
+    api.logger.info(
       `[ParallelSubagent] ✅ Completed: ${successfulCount}/${tasks.length} in ${duration}ms`,
     );
 
     return finalResults;
   } catch (error) {
     const duration = Date.now() - startTime;
-    logger.error(
+    api.logger.error(
       `[ParallelSubagent] ❌ Failed after ${duration}ms: ${error instanceof Error ? error.message : String(error)}`,
     );
     throw error;
@@ -97,7 +96,7 @@ async function launchSubagent(
   const sessionKey = task.sessionKey ?? `secretary-parallel-${index}`;
   
   try {
-    logger.debug(`[ParallelSubagent] 🎯 Launching agent ${index + 1}: ${task.message.slice(0, 50)}...`);
+    api.logger.info(`[ParallelSubagent] 🎯 Launching agent ${index + 1}: ${task.message.slice(0, 50)}...`);
     
     const result = await api.runtime.subagent.run({
       sessionKey,
@@ -112,7 +111,7 @@ async function launchSubagent(
 
     return { runId: result.runId, sessionKey };
   } catch (error) {
-    logger.error(`[ParallelSubagent] ❌ Failed to launch agent ${index + 1}: ${error}`);
+    api.logger.error(`[ParallelSubagent] ❌ Failed to launch agent ${index + 1}: ${error}`);
     throw error;
   }
 }
@@ -129,7 +128,7 @@ async function waitSubagent(
     });
     return result;
   } catch (error) {
-    logger.error(`[ParallelSubagent] ❌ Wait failed for ${runId}: ${error}`);
+    api.logger.error(`[ParallelSubagent] ❌ Wait failed for ${runId}: ${error}`);
     return { status: "error", error: String(error) };
   }
 }
@@ -145,7 +144,7 @@ async function getSessionMessages(
     });
     return result.messages;
   } catch (error) {
-    logger.warn(
+    api.logger.warn(
       `[ParallelSubagent] ⚠️ Failed to retrieve messages for ${sessionKey}: ${error}`,
     );
     return [];

@@ -1,4 +1,4 @@
-import type { OpenClawPluginApi } from "../../../src/plugins/types.js";
+import type { OpenClawPluginApi } from "../../../../src/plugins/types.js";
 
 const PROMPT_INJECTION_PATTERNS = [
   /ignore (all|any|previous|above|prior) instructions/i,
@@ -119,12 +119,10 @@ export function formatMemoriesForContext(memories: MemoryEntry[]): string {
 export async function registerMemoryLifecycleHooks(api: OpenClawPluginApi): Promise<void> {
   api.logger.info(`[memory-lifecycle] Registering memory lifecycle hooks`);
 
-  api.on("agent_end", async (event) => {
+  api.on("agent_end", async (event: { messages: unknown[]; success: boolean; error?: string; durationMs?: number }) => {
     try {
-      const outcome = event.outcome || "";
-      const duration = event.endedAt && event.startedAt
-        ? Math.round((new Date(event.endedAt).getTime() - new Date(event.startedAt).getTime()) / 1000)
-        : 0;
+      const outcome = event.success ? "completed successfully" : `failed: ${event.error || "unknown"}`;
+      const duration = event.durationMs ? Math.round(event.durationMs / 1000) : 0;
 
       const memoryEntry = await captureMemoryFromText(
         api,
@@ -142,9 +140,9 @@ export async function registerMemoryLifecycleHooks(api: OpenClawPluginApi): Prom
     }
   });
 
-  api.on("before_agent_start", async (event) => {
+  api.on("before_agent_start", async (event: { prompt: string; messages?: unknown[] }) => {
     try {
-      const relevant = recallRelevantMemories(event.prompt?.slice(0, 200) || "", 3);
+      const relevant = recallRelevantMemories(event.prompt.slice(0, 200), 3);
 
       if (relevant.length > 0) {
         const context = formatMemoriesForContext(relevant);

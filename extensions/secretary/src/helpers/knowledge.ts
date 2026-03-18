@@ -170,18 +170,19 @@ export async function syncGhostWriteToSecondBrain(
 ): Promise<{
   transcript: GhostWriteTranscriptResult;
   knowledge: string[];
-  chunkInfo: { totalChunks: number; wordCount: number };
+  chunkInfo: { chunks: string[]; totalChunks: number; originalLength: number };
 }> {
-  const [transcript, chunkInfo] = await Promise.all([
+  const [transcript, chunkResult] = await Promise.all([
     appendGhostWriteTranscript(api, sessionKey, title, content),
     chunkByParagraphForDocuments(api, content, 4000, { splitLongParagraphs: true }),
   ]);
   
   const knowledge = await syncKnowledge(api, title, content);
+  const wordCount = content.split(/\s+/).filter(Boolean).length;
 
   api.logger.info(
-    `[GhostWrite] Document processed: ${chunkInfo.chunkCount} chunks, ${content.split(/\s+/).length} words`,
+    `[GhostWrite] Document processed: ${chunkResult.chunkCount} chunks, ${wordCount} words`,
   );
 
-  return { transcript, knowledge, chunkInfo };
+  return { transcript, knowledge, chunkInfo: { chunks: chunkResult.chunks, totalChunks: chunkResult.chunkCount, originalLength: chunkResult.originalLength } };
 }

@@ -1,4 +1,4 @@
-import type { OpenClawPluginApi } from "../../../src/plugins/types.js";
+import type { OpenClawPluginApi } from "../../../../src/plugins/types.js";
 
 export interface DeviceStatus {
   battery: {
@@ -64,7 +64,7 @@ export async function invokeMobileCommand(
   params?: Record<string, unknown>,
 ): Promise<{ success: boolean; payload?: unknown; error?: string }> {
   try {
-    const gatewayOpts = { gatewayUrl: api.config.gateway?.publicUrl };
+    const gatewayOpts = { gatewayUrl: api.config.gateway?.remote?.url };
     const nodeId = "self";
 
     const result = await (api.runtime.tools as any)?.nodes?.invoke?.({
@@ -318,7 +318,7 @@ export async function hideCanvas(api: OpenClawPluginApi): Promise<{ success: boo
   }
 }
 
-export async function formatDeviceStatus(status: DeviceStatus): string {
+export function formatDeviceStatus(status: DeviceStatus): string {
   const lines: string[] = [];
   lines.push("📱 **Device Status**");
   lines.push("");
@@ -330,11 +330,11 @@ export async function formatDeviceStatus(status: DeviceStatus): string {
   return lines.join("\n");
 }
 
-export async function formatLocationContext(location: LocationData): string {
+export function formatLocationContext(location: LocationData): string {
   return `📍 Location: ${location.latitude.toFixed(4)}, ${location.longitude.toFixed(4)} (${Math.round(location.accuracy)}m accuracy)`;
 }
 
-export async function formatNotificationSummary(notifications: NotificationItem[]): string {
+export function formatNotificationSummary(notifications: NotificationItem[]): string {
   if (notifications.length === 0) {
     return "📭 No recent notifications";
   }

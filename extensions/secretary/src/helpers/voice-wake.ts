@@ -1,4 +1,4 @@
-import type { OpenClawPluginApi } from "../../../src/plugins/types.js";
+import type { OpenClawPluginApi } from "../../../../src/plugins/types.js";
 import fs from "node:fs/promises";
 import path from "node:path";
 

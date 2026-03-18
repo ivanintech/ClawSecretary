@@ -21,8 +21,8 @@ async function verifyV2() {
   // 2. Test Orchestrator Setup Status
   const orchestrator = createOrchestratorTool({
     resolvePath: (p: string) => path.join(__dirname, p),
-    log: (msg) => console.log(`[LOG] ${msg}`),
-    error: (msg) => console.error(`[ERR] ${msg}`),
+    log: (msg: string) => console.log(`[LOG] ${msg}`),
+    error: (msg: string) => console.error(`[ERR] ${msg}`),
   } as any);
 
   console.log("\nTesting 'setup_status' action:");

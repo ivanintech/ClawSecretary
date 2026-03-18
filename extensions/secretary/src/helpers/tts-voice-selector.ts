@@ -1,8 +1,8 @@
-import type { OpenClawConfig } from "../../../src/config/config.js";
-import { resolveTtsConfig } from "../../../src/config/types.tts.js";
-import type { SpeechVoiceOption } from "../../../src/tts/provider-types.js";
-import { normalizeSpeechProviderId } from "../../../src/tts/provider-registry.js";
-import { listSpeechVoices } from "../../../src/tts/tts.js";
+import type { OpenClawConfig } from "../../../../src/config/config.js";
+import { resolveTtsConfig } from "../../../../src/tts/tts.js";
+import type { SpeechVoiceOption } from "../../../../src/tts/provider-types.js";
+import { normalizeSpeechProviderId } from "../../../../src/tts/provider-registry.js";
+import { listSpeechVoices } from "../../../../src/tts/tts.js";
 
 export type VoiceContext =
   | "briefing" // Calm, professional tone for daily briefings

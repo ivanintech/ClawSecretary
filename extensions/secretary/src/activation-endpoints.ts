@@ -401,7 +401,7 @@ export function createOAuthProviderHandler(api: OpenClawPluginApi) {
 
       // Verificar si el provider ya está configurado en auth-profiles
       const cfg = api.config;
-      const authProfiles = cfg.agents?.defaults?.auth_profiles || {};
+      const authProfiles = cfg.auth?.profiles || {};
       const isProviderConfigured = Object.keys(authProfiles).some(key =>
         key.toLowerCase().includes(provider.toLowerCase())
       );

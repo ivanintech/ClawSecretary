@@ -1,5 +1,5 @@
-import type { OpenClawPluginApi } from "../../../src/plugins/types.js";
-import { chunkByParagraph } from "../../../src/auto-reply/chunk.js";
+import type { OpenClawPluginApi } from "../../../../src/plugins/types.js";
+import { chunkByParagraph } from "../../../../src/auto-reply/chunk.js";
 
 export type ChunkMode = "length" | "newline";
 
@@ -84,9 +84,10 @@ export async function chunkMarkdownForWhatsApp(
 export async function chunkByNewlines(
   api: OpenClawPluginApi,
   text: string,
+  maxLineLength = 4000,
 ): Promise<ChunkResult> {
   try {
-    const chunks = api.runtime.channel.text.chunkByNewline(text);
+    const chunks = api.runtime.channel.text.chunkByNewline(text, maxLineLength);
     return {
       chunks,
       originalLength: text.length,
@@ -116,15 +117,15 @@ export async function convertTablesForChannel(
   }
 }
 
-type MarkdownTableMode = "whatsapp" | "telegram" | "discord" | "default";
+type MarkdownTableMode = "off" | "bullets" | "code";
 
 function getTableModeForChannel(channel: string): MarkdownTableMode {
   const channelMap: Record<string, MarkdownTableMode> = {
-    whatsapp: "whatsapp",
-    telegram: "telegram",
-    discord: "discord",
+    whatsapp: "bullets",
+    telegram: "bullets",
+    discord: "code",
   };
-  return channelMap[channel] ?? "default";
+  return channelMap[channel] ?? "off";
 }
 
 export async function hasControlCommand(
@@ -144,9 +145,10 @@ export async function isControlCommandMessage(
   text?: string,
 ): Promise<boolean> {
   try {
-    return api.runtime.channel.text.isControlCommandMessage(text);
+    if (!text) return false;
+    return api.runtime.channel.text.hasControlCommand(text);
   } catch (error) {
-    api.logger.warn(`[text-processor] isControlCommandMessage failed: ${error}`);
+    api.logger.warn(`[text-processor] hasControlCommand failed: ${error}`);
     return false;
   }
 }

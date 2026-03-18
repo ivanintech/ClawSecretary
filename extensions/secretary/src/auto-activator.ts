@@ -189,7 +189,7 @@ Si expira, simplemente ejecuta este comando nuevamente para generar uno nuevo.
     type: "mobile" | "web" | "desktop";
     userAgent?: string;
   }): Promise<{
-    success: boolean;
+    success: true;
     pairingId: string;
     deviceName: string;
     instructions: string;
@@ -327,7 +327,7 @@ Tu Secretary está listo para usar:
       await fs.writeFile(summaryPath, summary, 'utf-8');
 
     } catch (error) {
-      this.api.logger.error(`[AutoActivator] Error saving pairing info:`, error);
+      this.api.logger.error(`[AutoActivator] Error saving pairing info: ${error}`);
     }
   }
 
