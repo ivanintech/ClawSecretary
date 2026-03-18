@@ -80,6 +80,14 @@ import {
   checkRemindersAvailable,
   remindersListLists,
 } from "./helpers/reminders.js";
+import {
+  getVoiceWakeStatus,
+  setVoiceWakeEnabled,
+  setWakeWord,
+  setLanguage,
+  formatVoiceWakeStatus,
+  loadVoiceWakeConfig,
+} from "./helpers/voice-wake.js";
 import { CalendarStore } from "./store.js";
 import { VaultManager } from "./vault.js";
 import { updateSessionState, appendWorkingBuffer, searchDeepMemory } from "./wal-helpers.js";
@@ -183,6 +191,10 @@ export class SecretaryOrchestrator {
         "reminders_create",
         "reminders_complete",
         "reminders_sync",
+        "voice_wake_status",
+        "voice_wake_enable",
+        "voice_wake_disable",
+        "voice_wake_set_word",
       ],
       description: "Action to perform.",
     }),
@@ -340,6 +352,14 @@ export class SecretaryOrchestrator {
         return this.handleRemindersComplete(params);
       case "reminders_sync":
         return this.handleRemindersSync(params);
+      case "voice_wake_status":
+        return this.handleVoiceWakeStatus(params);
+      case "voice_wake_enable":
+        return this.handleVoiceWakeEnable(params);
+      case "voice_wake_disable":
+        return this.handleVoiceWakeDisable(params);
+      case "voice_wake_set_word":
+        return this.handleVoiceWakeSetWord(params);
       default:
         return { content: [{ type: "text", text: `⚠️ Unknown action: ${params.action}` }] };
     }
@@ -1386,6 +1406,51 @@ export class SecretaryOrchestrator {
       ],
       details: result,
     };
+  }
+
+  // ========== VOICE WAKE HANDLERS ==========
+
+  private async handleVoiceWakeStatus(_params: any) {
+    const status = await getVoiceWakeStatus(this.api);
+    const formatted = formatVoiceWakeStatus(status);
+
+    return { content: [{ type: "text", text: formatted }], details: { status } };
+  }
+
+  private async handleVoiceWakeEnable(_params: any) {
+    const result = await setVoiceWakeEnabled(this.api, true);
+
+    if (result.success) {
+      await updateSessionState(this.workspaceDir, "VoiceWake", "Proactive mode enabled");
+      return { content: [{ type: "text", text: "✅ Voice Wake proactivo habilitado." }] };
+    }
+    return { content: [{ type: "text", text: `❌ Error: ${result.error}` }] };
+  }
+
+  private async handleVoiceWakeDisable(_params: any) {
+    const result = await setVoiceWakeEnabled(this.api, false);
+
+    if (result.success) {
+      await updateSessionState(this.workspaceDir, "VoiceWake", "Proactive mode disabled");
+      return { content: [{ type: "text", text: "✅ Voice Wake proactivo deshabilitado." }] };
+    }
+    return { content: [{ type: "text", text: `❌ Error: ${result.error}` }] };
+  }
+
+  private async handleVoiceWakeSetWord(params: any) {
+    const wakeWord = params.wakeWord || params.word || params.title;
+
+    if (!wakeWord) {
+      return { content: [{ type: "text", text: "⚠️ Wake word es requerido." }] };
+    }
+
+    const result = await setWakeWord(this.api, wakeWord);
+
+    if (result.success) {
+      await updateSessionState(this.workspaceDir, "VoiceWake", `Wake word changed to: ${wakeWord}`);
+      return { content: [{ type: "text", text: `✅ Wake word configurado: "${wakeWord}"` }] };
+    }
+    return { content: [{ type: "text", text: `❌ Error: ${result.error}` }] };
   }
 }
 
