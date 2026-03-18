@@ -13,7 +13,7 @@
     <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License"/>
   </a>
   <img src="https://img.shields.io/badge/OpenClaw%20Integration-98%25-brightgreen" alt="Integration"/>
-  <img src="https://img.shields.io/badge/Phase-2%20Complete-success" alt="Phase"/>
+  <img src="https://img.shields.io/badge/Phase-3%20Complete-success" alt="Phase"/>
 </p>
 
 ---
@@ -48,6 +48,12 @@
 - **📝 Ghost Write** - Automated closure documentation
 - **🧠 Memory Lifecycle** - Context-aware recall across sessions
 - **📱 Zero-Config Activation** - Magic Setup via QR code
+- **💬 Slack Integration** - Send, read, mark done
+- **📱 iMsg Integration** - iMessage via macOS Messages.app
+- **⏰ Apple Reminders** - Today/week/overdue/create/complete
+- **🎤 Voice Wake** - Custom "Hey Secretary" wake word
+- **📡 Node Mode** - Offline resilience with queue sync
+- **📱 Mobile Core** - iOS/Android device control via node.invoke
 
 ### Integration Status
 
@@ -62,6 +68,12 @@
 | Subagent Runtime | ✅ Complete | Parallel execution |
 | Memory Lifecycle | ✅ Complete | Hooks integration |
 | Activity Tracking | ✅ Complete | IoT analytics |
+| **Slack Integration** | ✅ Complete | 3 actions |
+| **iMsg Integration** | ✅ Complete | 3 actions (macOS) |
+| **Apple Reminders** | ✅ Complete | 6 actions (macOS) |
+| **Voice Wake** | ✅ Complete | Custom wake word |
+| **Node Mode** | ✅ Complete | Offline resilience |
+| **Mobile (iOS/Android)** | ✅ Complete | 15+ actions via node.invoke |
 
 ---
 
@@ -228,8 +240,8 @@ extensions/secretary/
 ├── index.ts                          # Plugin entry point (198 lines)
 │
 ├── src/
-│   ├── orchestrator.ts               # Main action dispatcher (1180 lines)
-│   │   ├── 40+ action handlers
+│   ├── orchestrator.ts               # Main action dispatcher (1725 lines)
+│   │   ├── 55+ action handlers
 │   │   ├── Proactive hooks
 │   │   └── Parallel execution
 │   │
@@ -249,16 +261,22 @@ extensions/secretary/
 │   │   ├── intelligence.ts            # Web search & research (124 lines)
 │   │   ├── iot.ts                    # IoT control + activity tracking (128 lines)
 │   │   ├── memory-lifecycle.ts       # Memory hooks (182 lines)
-│   │   ├── text-processor.ts         # Native chunking (378 lines)
-│   │   ├── knowledge.ts              # Second brain sync (187 lines)
+│   │   ├── text-processor.ts          # Native chunking (378 lines)
+│   │   ├── knowledge.ts               # Second brain sync (187 lines)
 │   │   ├── parallel-subagent-helper.ts # Parallel execution (209 lines)
 │   │   ├── pairing.ts                # Magic setup (66 lines)
+│   │   ├── slack.ts                  # Slack messaging (190 lines)
+│   │   ├── imsg.ts                  # iMessage (178 lines)
+│   │   ├── reminders.ts              # Apple Reminders (293 lines)
+│   │   ├── voice-wake.ts           # Voice Wake config (171 lines)
+│   │   ├── node-mode.ts             # Offline resilience (297 lines)
+│   │   ├── mobile.ts               # Mobile integration (330 lines)
 │   │   ├── alerts.ts                # Urgent notifications
-│   │   ├── autonomy.ts              # Autonomy level reader
-│   │   ├── calendly.ts              # Calendly API
-│   │   ├── common.ts                # CLI execution
-│   │   ├── email.ts                 # Email fetching
-│   │   ├── tts-voice-selector.ts   # Voice selection
+│   │   ├── autonomy.ts               # Autonomy level reader
+│   │   ├── calendly.ts             # Calendly API
+│   │   ├── common.ts               # CLI execution
+│   │   ├── email.ts                # Email fetching
+│   │   ├── tts-voice-selector.ts    # Voice selection
 │   │   ├── whatsapp.ts              # WhatsApp utilities
 │   │   └── activation.ts            # Zero-config activation
 │   │
@@ -354,6 +372,24 @@ The main orchestrator supports 40+ actions:
 | Action | Description | Hooks |
 |--------|-------------|-------|
 | `negotiate_meeting` | P2P slot negotiation | RSA, Hierarchy |
+
+#### Mobile (iOS/Android via node.invoke)
+| Action | Description | Protocol |
+|--------|-------------|----------|
+| `mobile_device_status` | Battery, network, storage | node.invoke |
+| `mobile_device_info` | Model, OS, app version | node.invoke |
+| `mobile_location` | GPS coordinates | node.invoke |
+| `mobile_photos` | Recent photos gallery | node.invoke |
+| `mobile_contacts_search` | Contact lookup | node.invoke |
+| `mobile_contacts_add` | Add new contact | node.invoke |
+| `mobile_notifications` | Notification triage | node.invoke |
+| `mobile_notification_action` | Open/dismiss/reply | node.invoke |
+| `mobile_sms` | Send SMS (Android) | node.invoke |
+| `mobile_motion` | Activity & pedometer | node.invoke |
+| `mobile_photo_capture` | Take photo | node.invoke |
+| `mobile_video_record` | Record video | node.invoke |
+| `mobile_screen_record` | Screen capture | node.invoke |
+| `mobile_notify` | Push notification | node.invoke |
 
 ### Lifecycle Hooks
 

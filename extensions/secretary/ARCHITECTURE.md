@@ -1,6 +1,6 @@
 # ClawSecretary Architecture Guide
 
-**Version:** 2.0  
+**Version:** 3.0  
 **Last Updated:** March 18, 2026  
 **OpenClaw Integration:** 98%
 
@@ -138,10 +138,38 @@ sequenceDiagram
 
 ### 1. Orchestrator
 
-**File:** `src/orchestrator.ts` (1180 lines)
+**File:** `src/orchestrator.ts` (1725 lines)
 
 The central dispatcher for all Secretary actions. Maintains the action registry and delegates to appropriate handlers.
 
+```
+┌─────────────────────────────────────────────────────────┐
+│                  SecretaryOrchestrator                     │
+├─────────────────────────────────────────────────────────┤
+│  Properties:                                            │
+│  ├── store: CalendarStore       # Local event storage    │
+│  ├── vault: VaultManager       # Secrets management      │
+│  ├── crm: CRMManager           # Third-party sync        │
+│  └── workspaceDir: string      # Base path               │
+├─────────────────────────────────────────────────────────┤
+│  Public Methods:                                        │
+│  ├── execute(runId, params, ctx) → ToolResult          │
+│  └── registerProactiveHooks(api) → void                │
+├─────────────────────────────────────────────────────────┤
+│  Actions (55+):                                        │
+│  ├── Calendar: briefing, conflict_guardian, gog_sync     │
+│  ├── Email: gmail_triager, email_concierge             │
+│  ├── Intelligence: proactive_research, rss_digest        │
+│  ├── IoT: trigger_focus_mode, get_iot_activity        │
+│  ├── Knowledge: sync_knowledge, finalize_closure         │
+│  ├── P2P: negotiate_meeting                           │
+│  ├── Slack: slack_send, slack_read, slack_mark_done     │
+│  ├── iMsg: imsg_list, imsg_history, imsg_send         │
+│  ├── Reminders: reminders_today/week/overdue/create     │
+│  ├── Voice Wake: voice_wake_status/enable/disable      │
+│  ├── Node Mode: node_status, node_sync, node_set_mode   │
+│  └── Mobile: 15+ device actions via node.invoke        │
+└─────────────────────────────────────────────────────────┘
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                  SecretaryOrchestrator                   │
@@ -276,6 +304,29 @@ class CalendarStore {
 
 ### Helpers Directory
 
+```
+src/helpers/
+├── intelligence.ts          # Web search, RSS, weather, venues
+├── iot.ts                  # Hue/Sonos control + activity tracking
+├── memory-lifecycle.ts     # Memory hooks and caching
+├── text-processor.ts       # Native chunking and formatting
+├── knowledge.ts            # Second brain sync
+├── parallel-subagent-helper.ts  # Concurrent execution
+├── pairing.ts              # Magic setup QR generation
+├── slack.ts                # Slack messaging integration
+├── imsg.ts                # iMessage integration (macOS)
+├── reminders.ts           # Apple Reminders (macOS)
+├── voice-wake.ts          # Voice Wake configuration
+├── node-mode.ts           # Offline resilience
+├── mobile.ts              # Mobile device integration (iOS/Android)
+├── alerts.ts              # Urgent notifications
+├── autonomy.ts            # Autonomy level parsing
+├── calendly.ts            # Calendly API client
+├── common.ts             # CLI execution utilities
+├── email.ts              # Gmail/Outlook/Himalaya
+├── tts-voice-selector.ts # Context-aware voice selection
+├── whatsapp.ts           # WA button/list builders
+└── activation.ts          # Zero-config activation
 ```
 src/helpers/
 ├── intelligence.ts          # Web search, RSS, weather, venues
@@ -446,6 +497,187 @@ const { transcript, knowledge, chunkInfo } = await syncGhostWriteToSecondBrain(
   content
 );
 // Returns sync destinations and chunking info
+```
+
+### Helper: Mobile (`mobile.ts`)
+
+**Purpose:** iOS/Android device control via OpenClaw's node.invoke RPC protocol
+
+**Protocol:** All mobile commands use `node.invoke` to communicate with paired mobile devices
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                  Mobile Integration Flow                        │
+├─────────────────────────────────────────────────────────────┤
+│                                                               │
+│  Secretary Action                                             │
+│  (mobile_location)                                           │
+│       │                                                      │
+│       ▼                                                      │
+│  invokeMobileCommand()                                       │
+│       │                                                      │
+│       ▼                                                      │
+│  Gateway: node.invoke RPC                                    │
+│       │                                                      │
+│       ▼                                                      │
+│  Mobile App (iOS/Android)                                   │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │ InvokeCommandRegistry                                  │   │
+│  │ ├── camera.snap → CameraHandler                      │   │
+│  │ ├── location.get → LocationHandler                    │   │
+│  │ ├── contacts.search → ContactsHandler                 │   │
+│  │ ├── notifications.list → NotificationsHandler         │   │
+│  │ └── ... (20+ commands)                               │   │
+│  └─────────────────────────────────────────────────────┘   │
+│       │                                                      │
+│       ▼                                                      │
+│  Result payload returns via RPC                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Key Functions:**
+```typescript
+// Device status
+const status = await getDeviceStatus(api);
+// { battery: { level, state }, network: { status }, storage: {...} }
+
+// Location
+const location = await getLocation(api, "balanced");
+// { latitude, longitude, accuracy, timestamp }
+
+// Contacts
+const contacts = await searchContacts(api, "Juan");
+// [{ id, name, phone, email }]
+
+// Notifications
+const notifs = await listNotifications(api, 20);
+// [{ key, app, title, text, timestamp }]
+
+// Photos
+const photos = await getRecentPhotos(api, 10);
+// [{ id, path, timestamp, width, height }]
+
+// Motion/Activity
+const activity = await getMotionActivity(api);
+// { activity: "walking", confidence: 0.95 }
+
+// Camera
+const photo = await takePhoto(api, "back", 0.8);
+// { success, path }
+```
+
+**Available Commands:**
+| Command | Description | Platform |
+|---------|-------------|----------|
+| `device.status` | Battery, network, storage | Both |
+| `device.info` | Model, OS, version | Both |
+| `location.get` | GPS coordinates | Both |
+| `contacts.search` | Search contacts | Both |
+| `contacts.add` | Add contact | Both |
+| `calendar.events` | Get calendar events | Both |
+| `calendar.add` | Create event | Both |
+| `notifications.list` | List notifications | Both |
+| `notifications.action` | Open/dismiss/reply | Both |
+| `photos.latest` | Recent photos | Both |
+| `sms.send` | Send SMS | Android |
+| `motion.activity` | Activity recognition | Both |
+| `motion.pedometer` | Step counter | Both |
+| `camera.snap` | Take photo | Both |
+| `camera.clip` | Record video | Both |
+| `screen.record` | Screen capture | Both |
+| `system.notify` | Push notification | Both |
+| `canvas.present` | Show canvas | Both |
+| `canvas.hide` | Hide canvas | Both |
+
+### Helper: Node Mode (`node-mode.ts`)
+
+**Purpose:** Offline resilience and sync queue
+
+```typescript
+// Check gateway connectivity
+const isOnline = await checkGatewayReachable(api);
+
+// Queue action for later sync
+const { queued, id } = await queueOfflineAction(api, "reminder_create", params);
+
+// Sync pending actions when online
+const result = await syncOfflineQueue(api);
+// { success, synced: 5, failed: 0, errors: [] }
+
+// Set node mode (full/edge/offline)
+await setNodeMode(api, "offline");
+
+// Local caching for offline
+await cacheCalendar(api, events);
+await cacheMemory(api, memoryContent);
+```
+
+### Helper: Slack (`slack.ts`)
+
+**Purpose:** Slack workspace integration
+
+```typescript
+// Send message
+await slackSendMessage(api, "#general", "Hello!");
+
+// Mark task as done
+await slackMarkAsDone(api, channelId, messageTs);
+
+// Read recent messages
+const result = await slackReadMessages(api, channelId, 20);
+// { success, messages: [...] }
+```
+
+### Helper: iMsg (`imsg.ts`)
+
+**Purpose:** iMessage via macOS Messages.app (macOS only)
+
+```typescript
+// List recent chats
+const chats = await imsgListChats(10);
+
+// Get message history
+const { chat, messages } = await imsgGetRecentMessages("Juan", 20);
+
+// Send message
+await imsgSendQuick("Juan", "Hello from Secretary!");
+```
+
+### Helper: Reminders (`reminders.ts`)
+
+**Purpose:** Apple Reminders integration (macOS only)
+
+```typescript
+// Get today's reminders
+const today = await remindersGetToday();
+
+// Get overdue items
+const overdue = await remindersGetOverdue();
+
+// Create from natural language
+await remindersCreateFromNaturalLanguage("Call mom tomorrow at 3pm");
+
+// Complete a reminder
+await remindersComplete(reminderId);
+```
+
+### Helper: Voice Wake (`voice-wake.ts`)
+
+**Purpose:** Custom wake word configuration
+
+```typescript
+// Get status
+const status = await getVoiceWakeStatus(api);
+// { enabled, wakeWord, language, proactiveEnabled }
+
+// Enable/disable
+await setVoiceWakeEnabled(api, true);
+
+// Set custom wake word
+await setWakeWord(api, "Hey Secretary");
+
+// Load config
+const config = await loadVoiceWakeConfig(api);
 ```
 
 ### Helper: Parallel Subagent (`parallel-subagent-helper.ts`)
@@ -843,25 +1075,31 @@ if (hours === 8) { /* Could run multiple times */ }
 
 ## Future Roadmap
 
-### Phase 3: Memory & Lifecycle Integration
-- [ ] Vector memory (LanceDB) integration
-- [ ] Persistent memory across sessions
-- [ ] Memory-based recommendations
+### Phase 3: Skills Core Integration (COMPLETED)
+- [x] Slack Integration (send, read, mark done)
+- [x] iMsg Integration (macOS iMessage)
+- [x] Apple Reminders (macOS)
+- [x] Voice Wake (custom wake word)
+- [x] Node Mode (offline resilience)
+- [x] Mobile Integration (iOS/Android via node.invoke)
 
-### Phase 4: Activity Intelligence
-- [ ] P2P connection health tracking
-- [ ] Activity pattern analytics
-- [ ] Proactive briefing improvements
+### Phase 4: Mobile Core
+- [ ] Calendar native sync with mobile events
+- [ ] Contacts bidirectional sync
+- [ ] Notification smart triage
+- [ ] Activity monitoring proactivo
 
-### Phase 5: Advanced Text Processing
-- [ ] Email threading
-- [ ] Multi-language support
-- [ ] Voice command NLP
+### Phase 5: Vision/ML Mobile
+- [ ] OCR in-device for receipts
+- [ ] Object detection in photos
+- [ ] AI document analysis
+- [ ] Whisper real-time transcription
 
-### Phase 6: Canvas/Nodes Runtime
-- [ ] UI generation for briefings
-- [ ] Interactive dashboards
-- [ ] Visual analytics
+### Phase 6: Advanced Automation
+- [ ] Location-based rules
+- [ ] SMS automation
+- [ ] Morning/evening routines
+- [ ] Third-party app integration
 
 ---
 
@@ -890,7 +1128,7 @@ if (hours === 8) { /* Could run multiple times */ }
 | `crm.ts` | ~60 | CRM integrations |
 | `constants.ts` | ~50 | Localization |
 
-### Helper Files (15)
+### Helper Files (21)
 
 | File | Lines | Purpose |
 |------|-------|---------|
@@ -901,6 +1139,12 @@ if (hours === 8) { /* Could run multiple times */ }
 | `knowledge.ts` | 187 | Second brain sync |
 | `parallel-subagent-helper.ts` | 209 | Parallel execution |
 | `pairing.ts` | 66 | Magic setup |
+| `slack.ts` | 190 | Slack messaging |
+| `imsg.ts` | 178 | iMessage (macOS) |
+| `reminders.ts` | 293 | Apple Reminders |
+| `voice-wake.ts` | 171 | Voice Wake config |
+| `node-mode.ts` | 297 | Offline resilience |
+| `mobile.ts` | 330 | Mobile device control |
 | `alerts.ts` | ~40 | Notifications |
 | `autonomy.ts` | ~30 | Autonomy parsing |
 | `calendly.ts` | ~60 | Calendly API |
@@ -910,7 +1154,7 @@ if (hours === 8) { /* Could run multiple times */ }
 | `whatsapp.ts` | ~80 | WA utilities |
 | `activation.ts` | ~100 | Activation logic |
 
-### Total: 33 modules, ~5000 lines of TypeScript
+### Total: 39 modules, ~7000 lines of TypeScript
 
 ---
 
@@ -930,7 +1174,7 @@ if (hours === 8) { /* Could run multiple times */ }
 
 ---
 
-**Document Version:** 2.0  
+**Document Version:** 3.0  
 **Last Updated:** March 18, 2026  
 **Authors:** ClawSecretary Team  
 **License:** MIT
