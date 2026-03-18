@@ -16,6 +16,7 @@ import { createImageGenerationTool } from "./src/image-generation-tool.js";
 import { createNegotiationOfferHandler } from "./src/negotiation.js";
 import { createOAuthInjectHandler, createPublicKeyHandler } from "./src/oauth-bridge.js";
 import { createOrchestratorTool, registerProactiveHooks } from "./src/orchestrator.js";
+import { registerMemoryLifecycleHooks } from "./src/helpers/memory-lifecycle.js";
 import { createPdfExtractionTool } from "./src/pdf-extraction-tool.js";
 import { createPrivacyTool } from "./src/privacy-tool.js";
 import { createTranscriptionTool } from "./src/transcription-tool.js";
@@ -55,6 +56,9 @@ export default function register(api: OpenClawPluginApi) {
 
   // Stage 3: Register proactive monitoring hooks (Lobster 🦞)
   registerProactiveHooks(api);
+
+  // Register memory lifecycle hooks (before_agent_start, agent_end)
+  registerMemoryLifecycleHooks(api);
 
   // Register public webhook endpoint for Meta WhatsApp events
   api.registerHttpRoute({

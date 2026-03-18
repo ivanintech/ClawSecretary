@@ -27,7 +27,12 @@ import {
   fetchWeather,
   performWebSearch,
 } from "./helpers/intelligence.js";
-import { triggerHueScene, triggerSonosFocus } from "./helpers/iot.js";
+import {
+  triggerHueScene,
+  triggerSonosFocus,
+  getIoTActivityLog,
+  getIoTActivityStats,
+} from "./helpers/iot.js";
 import {
   executeParallelSubagents,
   ParallelScenarios,
@@ -41,6 +46,12 @@ import {
   resolveChunkMode,
 } from "./helpers/text-processor.js";
 import { syncKnowledge, syncGhostWriteToSecondBrain } from "./helpers/knowledge.js";
+import {
+  registerMemoryLifecycleHooks,
+  recallRelevantMemories,
+  formatMemoriesForContext,
+  getMemoryStats,
+} from "./helpers/memory-lifecycle.js";
 import { generatePairingLink, printMagicLink } from "./helpers/pairing.js";
 import { waButtonPayload } from "./helpers/whatsapp.js";
 import { CalendarStore } from "./store.js";
@@ -132,6 +143,8 @@ export class SecretaryOrchestrator {
         "urgent_alert",
         "magic_pair",
         "process_text",
+        "get_iot_activity",
+        "get_memory_stats",
       ],
       description: "Action to perform.",
     }),
@@ -254,6 +267,10 @@ export class SecretaryOrchestrator {
         return this.handleUrgentAlert(params);
       case "process_text":
         return this.handleProcessText(params);
+      case "get_iot_activity":
+        return this.handleGetIoTActivity(params);
+      case "get_memory_stats":
+        return this.handleGetMemoryStats(params);
       default:
         return { content: [{ type: "text", text: `⚠️ Unknown action: ${params.action}` }] };
     }
@@ -940,10 +957,47 @@ export class SecretaryOrchestrator {
   private async handleTriggerFocusMode(params: any) {
     const room = params.room || "Oficina";
     const scene = params.scene || "Concentración";
-    await triggerHueScene(room, scene);
-    await triggerSonosFocus("Escritorio");
+    await triggerHueScene(this.api, room, scene);
+    await triggerSonosFocus(this.api, "Escritorio");
     await updateSessionState(this.workspaceDir, "IoT", `Triggered focus: ${room}/${scene}`);
     return { content: [{ type: "text", text: "🧘 Focus mode active (IOT synced)." }] };
+  }
+
+  private async handleGetIoTActivity(params: any) {
+    const limit = params.limit || 20;
+    const stats = getIoTActivityStats();
+    const recent = getIoTActivityLog(limit);
+
+    let text = `📊 *IoT Activity Stats*\n`;
+    text += `Total: ${stats.total} | ✅ ${stats.successful} | ❌ ${stats.failed}\n`;
+    text += `By device: ${Object.entries(stats.byDevice).map(([k, v]) => `${k}: ${v}`).join(", ")}\n\n`;
+    text += `Recent activity:\n`;
+
+    for (const event of recent.slice(-5)) {
+      const status = event.success ? "✅" : "❌";
+      text += `${status} ${event.device}/${event.action}: ${event.target}\n`;
+    }
+
+    return {
+      content: [{ type: "text", text }],
+      details: { stats, recent },
+    };
+  }
+
+  private async handleGetMemoryStats(params: any) {
+    const stats = getMemoryStats();
+
+    let text = `🧠 *Memory Stats*\n`;
+    text += `Total entries: ${stats.total}\n`;
+    text += `By category:\n`;
+    for (const [category, count] of Object.entries(stats.byCategory)) {
+      text += `  ${category}: ${count}\n`;
+    }
+
+    return {
+      content: [{ type: "text", text }],
+      details: { stats },
+    };
   }
 
   private async handleUrgentAlert(params: any) {
