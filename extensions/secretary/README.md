@@ -1,1040 +1,921 @@
-# 🦞 ClawSecretary: The Autonomous Mobile-Edge SaaS - Status Vivo 🚀
+# ClawSecretary - Intelligent Personal Secretary Extension
 
-**Autonomía total. Privacidad absoluta. Magia pura. Integrado con el Core de OpenClaw.**
+<p align="center">
+  <img src="assets/secretary-banner.svg" width="400" alt="ClawSecretary"/>
+</p>
 
----
+<p align="center">
+  <strong>An intelligent, proactive secretary extension for OpenClaw</strong>
+</p>
 
-## 🎯 Estado Actual: 90% → 95% INTEGRACIÓN (Post-Phase 1 Merge) ✅
-
-**¡AVANCE EXCELENTE!** Secretary está masivamente integrado con el núcleo de OpenClaw. El sistema es funcional y listo para producción, con nuevas capacidades disponibles Phase 1 merge y algunas integraciones pendientes. Estado real:
-
-### ✅ CÓDIGO COMPLETO (90% implementado y funcional)
-- ✅ **Plugin Detection:** OpenClaw reconoce Secretary v1.0.0 correctamente
-- ✅ **Build System:** Compilación exitosa con dependencias del core
-- ✅ **Core APIs Base:** Todas las APIs principales integradas y funcionando
-- ✅ **6 Herramientas Principales:** Calendar, Orchestrator, PDF, Privacy, Transcription, WhatsApp
-- ✅ **7 Endpoints HTTP:** Webhooks, OAuth, P2P negotiation, triggers + 3 nuevos de activación
-- ✅ **Zero-Configuration OAuth:** RSA-2048 tunnel implementado
-- ✅ **Phase 1 Merge:** Sincronizado con upstream/main, 7 conflictos resueltos
-
-Gracias a esta integración profunda, ClawSecretary ofrece una experiencia 100% plug & play con:
-
-### ✅ Lo que YA funciona (6 Herramientas Principales + Core APIs)
-
-#### 🛠️ **6 Herramientas Secretary Implementadas**
-| Tool | Archivo | Líneas de Código | Descripción |
-|------|---------|---------------|-------------|
-| `secretary_calendar` | `calendar-tool.ts` | 175 | Gestión de calendario con detección de conflictos WAL |
-| `secretary_orchestrator` | `orchestrator.ts` | 956 | Orquestador central con 32 acciones diferentes |
-| `secretary_pdf_extract` | `pdf-extraction-tool.ts` | 109 | Extracción de PDFs usando `api.extractPdfContent()` |
-| `secretary_privacy` | `privacy-tool.ts` | 61 | Protocolo de privacidad y federated execution |
-| `secretary_transcribe` | `transcription-tool.ts` | 81 | Transcripción usando `api.runtime.stt.transcribeAudioFile()` |
-| `secretary_whatsapp` | `whatsapp-tool.ts` | 204 | WhatsApp Business con TTS del core |
-
-#### 🔌 **11 Helpers Externos Implementados**
-| Módulo | Funciones | Estado |
-|--------|----------|--------|
-| `pairing.ts` | Magic QR codes, auto-discovery | ✅ Funcional |
-| `email.ts` | Google, Outlook, Himalaya CLI | ⚠️ Requiere CLI tools |
-| `intelligence.ts` | RSS, venues, weather, orders | ⚠️ Algunos son mocks |
-| `knowledge.ts` | Notion, Obsidian, vector memory | ✅ Funcional |
-| `autonomy.ts` | L1-L4 trust levels | ✅ Funcional |
-| `common.ts` | Financial data extraction | ✅ Funcional |
-
-#### 🎯 **Integración Core APIs (100% Funcional)**
-| Core API | Método de Uso | Herramienta Secretary |
-|----------|---------------|-------------------|
-| `createMemorySearchTool()` | Búsqueda semántica sqlite-vec | ✅ memory_search, memory_get |
-| `transcribeAudioFile()` | Transcripción local | ✅ secretary_transcribe |
-| `textToSpeech()` | Síntesis de voz | ✅ secretary_whatsapp |
-| `extractPdfContent()` | Extracción PDF local | ✅ secretary_pdf_extract |
-| `AutoAuthOrchestrator` | OAuth bridge | ✅ oauth-bridge.ts |
-
-#### 🔐 **OAuth Security Completo**
-| Componente | Implementación | Estado |
-|----------|---------------|--------|
-| RSA-2048 Tunnel | `oauth-bridge.ts` + `/oauth-inject` | ✅ Funcional |
-| Public Key Exchange | `/public-key` endpoint | ✅ Funcional |
-| P2P Negotiation | `/negotiate/offer` | ✅ Funcional |
-| AutoAuthOrchestrator | Core authentication | ✅ Integrado |
+<p align="center">
+  <a href="https://github.com/ivanintech/ClawSecretary/blob/main/LICENSE">
+    <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License"/>
+  </a>
+  <img src="https://img.shields.io/badge/OpenClaw%20Integration-98%25-brightgreen" alt="Integration"/>
+  <img src="https://img.shields.io/badge/Phase-2%20Complete-success" alt="Phase"/>
+</p>
 
 ---
 
-## 🆕 **NUEVAS CAPACIDADES DEL PHASE 1 MERGE - DISPONIBLES PARA INTEGRAR**
+## Table of Contents
 
-**March 17, 2026:** Successful merge with OpenClaw upstream/main. **4 nuevas APIs principales ahora disponibles** para mejorar Secretary significativamente.
+1. [Overview](#overview)
+2. [Quick Start](#quick-start)
+3. [Core Capabilities](#core-capabilities)
+4. [Architecture](#architecture)
+5. [API Reference](#api-reference)
+6. [Modules](#modules)
+7. [Configuration](#configuration)
+8. [Use Cases](#use-cases)
+9. [Development](#development)
+10. [Troubleshooting](#troubleshooting)
 
-### 🔴 **CRITICAL: Integraciones Inmediatas (Phase 2)**
+---
 
-#### 1. **Media Understanding API (NUEVA)**
-```typescript
-// CAPACIDAD NUEVA DEL CORE - NO INTEGRADA AÚN
-runtime.mediaUnderstanding.runFile(file, model)
-runtime.mediaUnderstanding.describeImageFile(file, model)
-runtime.mediaUnderstanding.describeVideoFile(file, model)
-runtime.mediaUnderstanding.transcribeAudioFile(file)
+## Overview
+
+**ClawSecretary** is an advanced OpenClaw plugin that transforms your AI assistant into a proactive, intelligent personal secretary. It combines calendar management, email triage, IoT automation, P2P negotiations, and second-brain synchronization into a unified experience.
+
+### Key Features
+
+- **🗓️ Multi-Calendar Management** - Local, Google, Outlook, Calendly sync
+- **📧 Intelligent Email Triage** - Automatic prioritization and routing
+- **🤖 Proactive Briefings** - Daily summaries delivered automatically
+- **🔍 Deep Research** - Web search with multi-provider support
+- **💡 IoT Integration** - Philips Hue & Sonos automation
+- **🤝 P2P Negotiations** - RSA-encrypted meeting coordination
+- **📝 Ghost Write** - Automated closure documentation
+- **🧠 Memory Lifecycle** - Context-aware recall across sessions
+- **📱 Zero-Config Activation** - Magic Setup via QR code
+
+### Integration Status
+
+| Category | Status | Coverage |
+|----------|--------|----------|
+| OpenClaw Core APIs | ✅ 98% | 14 runtime APIs |
+| Media Understanding | ✅ Complete | Audio/Video processing |
+| Web Search | ✅ Complete | Multi-provider |
+| Image Generation | ✅ Complete | Native support |
+| WhatsApp Channel | ✅ Complete | Interactive messages |
+| Text Processing | ✅ Complete | Paragraph-aware chunking |
+| Subagent Runtime | ✅ Complete | Parallel execution |
+| Memory Lifecycle | ✅ Complete | Hooks integration |
+| Activity Tracking | ✅ Complete | IoT analytics |
+
+---
+
+## Quick Start
+
+### Installation
+
+```bash
+# Install from local source
+cd extensions/secretary
+npm install
+
+# Or link to development
+npm link
 ```
 
-**Estado Actual:** ⚠️ Usando API antigua (`runtime.stt.transcribeAudioFile()`)
-**Estado Deseado:** ✅ Usar nuevo API (`runtime.mediaUnderstanding.transcribeAudioFile()`)
-**Impacto:** 🟢 Transcripción mejorada, análisis de imágenes/videos
-**Esfuerzo:** Bajo (2-4 horas)
+### Activation (Magic Setup)
 
----
+```bash
+# Generate magic pairing link
+openclaw channels whatsapp connect
 
-#### 2. **Image Generation API (NUEVA)**
-```typescript
-// CAPACIDAD NUEVA DEL CORE - NO INTEGRADA AÚN
-runtime.imageGeneration.generate(prompt, model, options)
-runtime.imageGeneration.listProviders()
+# Or use the built-in activation
+openclaw pair
 ```
 
-**Estado Actual:** ❌ Sin capacidades de generación de imágenes
-**Estado Deseado:** ✅ Crear herramienta `secretary_generate_image`
-**Impacto:** 🟡 Resúmenes visuales calendario, diagramas de reuniones
-**Esfuerzo:** Medio (4-6 horas)
+### Basic Commands
 
----
-
-#### 3. **Web Search API (NUEVA)**
-```typescript
-// CAPACIDAD NUEVA DEL CORE - NO INTEGRADA AÚN
-runtime.webSearch.search(query, options)
-runtime.webSearch.listProviders()
+```
+/briefing          - Generate daily briefing
+/pair             - Generate magic setup link
+/status           - Check all service connections
+/calendar list     - View local calendar events
+/calendar add     - Add new event (with conflict detection)
 ```
 
-**Estado Actual:** ⚠️ Usando Tavily API externa (dependencia extra)
-**Estado Deseado:** ✅ Migrar a `runtime.webSearch.search()`
-**Impacto:** 🟢 Eliminar dependencia Tavily, proveedores múltiples
-**Esfuerzo:** Bajo (1-2 horas)
-
 ---
 
-#### 4. **Enhanced TTS API (NUEVA)**
-```typescript
-// CAPACIDAD MEJORADA DEL CORE - PARCIALMENTE INTEGRADA
-runtime.tts.listVoices()
-runtime.tts.textToSpeech(text, voice, options)
-runtime.tts.textToSpeechTelephony(text, voice)
-```
+## Core Capabilities
 
-**Estado Actual:** ⚠️ Usando `textToSpeech()` pero sin selección de voz
-**Estado Deseado:** ✅ Selección de voz por contexto (calm vs urgent)
-**Impacto:** 🟡 Voz personalizada para diferentes contextos
-**Esfuerzo:** Bajo (1-2 horas)
+### 1. Proactive Calendar Management
 
----
-
-### 🟡 **MODERNIZACIÓN OPORTUNIDADES**
-
-#### 5. **WhatsApp Native Channel (Migración en Progreso)**
-```typescript
-// CAPACIDAD DEL CORE - PARCIALMENTE MIGRADA
-api.runtime.messaging.send({
-  channel: "whatsapp",
-  recipient: phoneNumber,
-  message,
-})
-```
-
-**Estado Actual:** ⚠️ Usando Maton API (dependencia externa)
-**Estado Deseado:** ✅ Usar built-in WhatsApp channel del core
-**Impacto:** 🔴 Zero-config completado (sin API keys)
-**Esfuerzo:** Medio (2-3 horas)
-
----
-
-#### 6. **Subagent Runtime (Enhancement)** ✅ INTEGRADO
-```typescript
-// CAPACIDAD DEL CORE - INTEGRADA
-runtime.subagent.run(agentId, message, options)
-runtime.subagent.waitForRun(runId)
-```
-
-**Estado:** ✅ COMPLETADO (marzo 17, 2026)
-- **Estado Anterior:** Usando `sessions_spawn` pero no delegación subagent
-- **Estado Actual:** Ejecución paralela de tareas complejas implementada
-- **Archivos:**
-  - `src/helpers/parallel-subagent-helper.ts` (nuevo)
-  - `src/orchestrator.ts`: Action `parallel_briefing` añadida + método `handleParallelBriefing()` implementado
-- **Capacidades Realizadas:**
-  - ✅ Procesamiento paralelo (briefing + calendar sync)
-  - ✅ Coordinación multi-agente escalable
-  - ✅ Pre-built scenarios: `briefingAndCalendarSync()`, `analyzeMultipleEmails()`, `parallelResearch()`
-  - ✅ Action `parallel_briefing` disponible en el orchestrator
-  - ✅ Helper functions: `executeParallelSubagents()`, `executeSingleSubagent()`
-- **Impacto:** 🟡 MEDIUM - Mayor eficiencia, coordinación multi-agente
-- **Esfuerzo:** Medio (4-6 horas) ✅ COMPLETADO
-
----
-
-**3. Image Generation API (NUEVA - Integrada ✅)**
-```typescript
-// CAPACIDAD DEL CORE - INTEGRADA
-runtime.imageGeneration.generate(prompt, options)
-runtime.imageGeneration.listProviders()
-```
-
-**Integración Completada:** ✅ (marzo 17, 2026)
-- **Estado Anterior:** Sin capacidades de generación de imágenes
-- **Estado Actual:** Nueva herramienta `image_generator` disponible
-- **Archivos:**
-  - `src/image-generation-tool.ts` (nuevo - 170 líneas)
-  - `index.ts`: Herramienta registrada
-- **Beneficios Realizados:**
-  - ✅ Resúmenes visuales calendario para WhatsApp
-  - ✅ Diagramas de reuniones automáticos
-  - ✅ Gráficos de flujo para briefings
-  - ✅ Imágenes generadas para documentación PKM
-  - ✅ Pre-defined use cases: `calendar_summary`, `meeting_diagram`, `visual_briefing`, `pkm_documentation`
-  - ✅ Soporte multi-proveedor (DALL-E, Midjourney, etc.)
-- **Impacto:** 🟡 MEDIUM - Nuevo feature competitivo
-- **Esfuerzo:** Medio (4-6 horas) ✅ COMPLETADO
-
----
-
-**5. WhatsApp Native Channel (VERIFICADO ✅)**
-```typescript
-// CAPACIDAD DEL CORE - INTEGRADA
-api.runtime.messaging.send({
-  channel: "whatsapp",
-  recipient: phoneNumber,
-  message,
-})
-```
-
-**Estado:** ✅ COMPLETADO (verificado - no se requirió cambio)
-- **Estado Actual:** Ya usando native WhatsApp channel del core
-- **Archivos:** `src/whatsapp-tool.ts` (función `sendViaWhatsAppWeb`)
-- **Variedades:** `send_text`, `send_buttons`, `send_list`, `send_voice`
-- **Beneficios Realizados:**
-  - ✅ Zero-config completado (sin API keys)
-  - ✅ QR-native linking
-  - ✅ Sin dependencia Maton para WhatsApp (Maton solo usado para Outlook email)
-  - ✅ Mensajes nativos vía core
-- **Impacto:** 🔴 HIGH - Zero-config philosophy completado
-- **Esfuerzo:** Medio (2-3 horas) ✅ VERIFICADO COMPLETADO
-
----
-
-**6. Enhanced TTS (Voice Selection) (INTEGRADA ✅)**
-```typescript
-// CAPACIDAD DEL CORE - INTEGRADA
-runtime.tts.listVoices()
-runtime.tts.textToSpeech(text, voice, options)
-```
-
-**Estado:** ✅ COMPLETADO (marzo 17, 2026)
-- **Estado Anterior:** Sin personalización de voz
-- **Estado Actual:** Selección de voz por contexto
-- **Archivos:**
-  - `src/helpers/tts-voice-selector.ts` (nuevo - 250 líneas)
-  - `src/whatsapp-tool.ts`: Parámetro `voiceContext` agregado
-- **Contextos Implementados:**
-  - `briefing`: Voz calm, lenta para análisis (velocidad 0.9)
-  - `alert`: Voz urgent, rápida para alertas críticas (velocidad 1.2)
-  - `conversational`: Voz friendly, normal (velocidad 1.0)
-  - `presentation`: Voz formal, autoritativa para reportes (velocidad 0.95)
-- **Beneficios Realizados:**
-  - ✅ Voz personalizada por contexto
-  - ✅ Diferentes velocidades suavizadas
-  - ✅ Context emojis en caption
-- **Impacto:** 🟡 MEDIUM - Experiencia de usuario mejorada
-- **Esfuerzo:** Bajo (1-2 horas) ✅ COMPLETADO
-
----
-
-**7. Text Processing APIs (NUEVA - Integrada ✅)**
-```typescript
-// CAPACIDAD DEL CORE - INTEGRADA
-runtime.channel.text.chunkTextWithMode(text, limit, mode)
-runtime.channel.text.chunkMarkdownText(text, limit)
-runtime.channel.text.convertMarkdownTables(markdown, mode)
-runtime.channel.text.hasControlCommand(text)
-runtime.channel.text.resolveTextChunkLimit(cfg, channel)
-```
-
-**Estado:** ✅ COMPLETADO (marzo 18, 2026)
-- **Estado Anterior:** Sin procesamiento de texto nativo
-- **Estado Actual:** Chunking y formateo nativo de tablas Markdown
-- **Archivos:**
-  - `src/helpers/text-processor.ts` (nuevo - 290 líneas)
-  - `src/orchestrator.ts`: Action `process_text` añadida
-  - `src/whatsapp-tool.ts`: Integración de text processing en envío de mensajes
-- **APIs Utilizadas:**
-  - `chunkTextWithMode()` - Chunking con modo configurable
-  - `chunkMarkdownText()` - Chunking específico para Markdown
-  - `convertMarkdownTables()` - Conversión de tablas para WhatsApp
-  - `hasControlCommand()` - Detección de comandos
-  - `resolveTextChunkLimit()` - Límite dinámico por canal
-- **Beneficios Realizados:**
-  - ✅ Chunking automático de mensajes largos
-  - ✅ Conversión de tablas Markdown para WhatsApp
-  - ✅ Detección de comandos de control
-  - ✅ Límites dinámicos por canal
-  - ✅ Mejor manejo de emails y documentos
-- **Impacto:** 🔴 HIGH - Mejora inmediata en procesamiento
-- **Esfuerzo:** Bajo (1-2 horas) ✅ COMPLETADO
-
----
-
-## 📋 **MATRIZ DE INTEGRACIÓN PHASE 2**
-
-| Prioridad | API/Feature | Estado Actual | Estado Deseado | Impacto | Esfuerzo | Deadline |
-|-----------|-------------|---------------|----------------|---------|----------|----------|
-| ✅ 1 | Media Understanding | `stt.transcribe` (old) | `mediaUnderstanding.*` (new) | HIGH | Bajo (2-4h) | ✅ COMPLETADO |
-| ✅ 2 | Web Search | Tavily externa | `webSearch.search()` (core) | HIGH | Bajo (1-2h) | ✅ COMPLETADO |
-| ✅ 3 | Image Generation | ❌ No capacidad | Nueva tool | HIGH | Medio (4-6h) | ✅ COMPLETADO |
-| ✅ 4 | WhatsApp Native | Maton API | Core channel | HIGH | Medio (2-3h) | ✅ COMPLETADO |
-| ✅ 5 | Enhanced TTS | Sin voz custom | `listVoices()` + contexto | MEDIUM | Bajo (1-2h) | ✅ COMPLETADO |
-| ✅ 6 | Subagent Runtime | Sessions_spawn básico | Ejecución paralela | MEDIUM | Medio (4-6h) | ✅ COMPLETADO |
-| ✅ 7 | Text Processing | Sin chunking nativo | `channel.text.*` APIs | HIGH | Bajo (1-2h) | ✅ COMPLETADO |
-| 🟢 8 | Session Management | WAL local | Core session APIs | LOW | Medio (3-4h) | Semana 3 |
-| 🟢 9 | Cron Integration | ✅ Heartbeats parciales | Scheduled briefings | LOW | Medio (2-3h) | Semana 3 |
-| 🟢 10 | Canvas/Nodes | ❌ No capacidad | Renderizado visual | LOW | Alto (8-12h) | Opcional |
-
-**Progreso:** 7/10 integraciones completadas (70%). **Timeline: Phase 2 (2-3 semanas)** → **95% Integración Completada**
-
----
-
-## 🏗️ Arquitectura: "Cloud as a Bridge, Edge as the Brain" 💻☁️📱
-
-### Actualizado para usar el Core de OpenClaw 2026
+The Secretary maintains a unified view of your schedule across multiple sources:
 
 ```mermaid
-graph TD
-    %% Input Layer
-    User((👤 Usuario)) -- WhatsApp/Voz --> WA[📱 WhatsApp Business API]
-    WA -- Webhook Seguro --> Cloud[☁️ Cloud Bridge]
-    
-    %% Secure Communication
-    Cloud -- Túnel RSA-2048 --> Edge[📱 Edge Node: Tu Teléfono]
-    
-    %% OpenClaw Core Integration (100% Local)
-    Edge -- API Calls Locales --> Core[🧠 OpenClaw Core APIs]
-    
-    %% Core Services Directional Flow
-    Core --> STT[🎵 Speech-to-Text Local]
-    Core --> TTS[🎤 Text-to-Speech Local] 
-    Core --> Memory[🗄️ Vector Memory: sqlite-vec]
-    Core --> PDF[📄 PDF Extraction Local]
-    Core --> Auth[🔐 OAuth Profiles]
-    
-    %% Secretary Tools Execution
-    Core --> Tools[🛠️ Secretary Tools]
-    Tools --> EmailCal[📧 Email/Calendar]
-    Tools --> Docs[📄 Document Processing]
-    Tools --> IoT[💡 IoT Control]
-    
-    %% Data Persistence
-    Tools --> WAL[📝 SESSION-STATE.md]
-    WAL -->|Contexto Real| Core
-    
-    %% Output Channels
-    Tools --> PKM[📚 Obsidian/Notion Sync]
-    Edge -->|Respuesta| Cloud
-    Cloud -->|Botón Interactivo| User
+graph LR
+    A[Local Store] --> B[CalendarStore]
+    C[Google Calendar] --> D[fetchGogEvents]
+    E[Outlook] --> F[fetchOutlookInbox]
+    G[Calendly] --> H[fetchCalendlyEvents]
+    B --> I[Conflict Guardian]
+    D --> I
+    F --> I
+    H --> I
+    I --> J[Briefing Generator]
 ```
 
-### ¿Por Qué Es Revolucionario?
+**Key Features:**
+- WAL-compliant event persistence in `SESSION-STATE.md`
+- Conflict detection with automatic resolution suggestions
+- Cross-calendar deduplication
+- Autonomy-aware behavior (L1-L4 levels)
 
-1. **Zero-Storage Cloud:** El Next.js bridge (Vercel) gestiona OAuth flujos pero **nunca almacena** IDs, tokens, o mensajes.
-2. **Edge Intelligence:** Todos los embeddings, búsqueda vectorial usando **sqlite-vec del core**, y logs de sesión (`SESSION-STATE.md`) permanecen en tu dispositivo.
-3. **Secure Tunnel:** Todo el tráfico entre el Cloud Bridge y tu Mobile Node se cifra usando **RSA-2048**, garantizando que tus datos privados permanezcan privados.
+### 2. Intelligent Email Triage
 
----
+Emails are automatically classified and prioritized:
 
-## 📚 Documentación Actualizada
+| Priority | Keywords | Action |
+|----------|----------|--------|
+| 🚨 Critical | urgent, firma, asap | Immediate WhatsApp alert |
+| 📧 Normal | newsletter, update | Digest inclusion |
+| 🗑️ Low | unsubscribe, promotion | Auto-archive hint |
 
-### 🛠️ Stack Tecnológico Real (Integrado con Core OpenClaw)
+**Supported Sources:**
+- Gmail (via `fetchGmailUnread`)
+- Outlook (via Maton API)
+- Himalaya CLI (local email)
 
-| Componente | Herramienta Real (Usando Core) | ¿Por qué es mejor la privacidad? |
-|:---|:---|:---|
-| **SaaS Dashboard** | Next.js (Vercel) + PWA |servidor efímero. Solo rutea OAuth.|
-| **OAuth Gateway** | Nango.dev + AutoAuthOrchestrator | Gestiona refresh tokens delegándolos al móvil bajo demanda por WebSockets.|
-| **Edge Storage** | sqlite-vec del Core (Node) | Almacena embeddings vectoriales localmente con alta eficiencia.|
-| **Transcriptor** | `transcribeAudioFile()` del Core | No envía audíos a APIs de terceros. Soporta múltiples providers locales.|
-| **Memory Search** | `createMemorySearchTool()` del Core | Usa sqlite-vec o qmd según tu configuración, sin dependencias externas.|
+### 3. Web Intelligence
 
-### ✅ Features Completas - Orchestador con 32 Acciones
-
-#### 🎯 **Orchestrator: 32 Acciones Implementadas (956 líneas)**
-| Categoría | Acciones | Estado |
-|----------|---------|--------|
-| **Briefing & Agenda** | `briefing`, `gog_sync`, `calendly_sync` | ✅ Funcional |
-| **Email Management** | `gmail_triager`, `email_concierge`, `himalaya_list/read` | ✅ Funcional (requiere CLI) |
-| **Calendar Intelligence** | `conflict_guardian`, `setup_status`, `proactive_research` | ✅ Funcional |
-| **Communication** | `whatsapp_preview`, `urgent_alert` | ✅ Funcional |
-| **Document Processing** | `ingest_document`, `financial_triage` | ✅ Funcional |
-| **Audio Processing** | `voice_command_executor`, `audio_summary` | ✅ Funcional |
-| **Task Management** | `sync_tasks`, `logistics_triage` | ✅ Funcional |
-| **Knowledge Sync** | `sync_to_notion`, `sync_knowledge` | ✅ Funcional |
-| **Negotiation P2P** | `negotiate_meeting` | ✅ Funcional |
-| **IoT Control** | `trigger_focus_mode` | ✅ Funcional (requiere hardware) |
-
-#### 🌐 **5 Endpoints HTTP Implementados**
-| Endpoint | Método | Función |
-|---------|--------|---------|
-| `/plugins/secretary/wa-webhook` | POST | WhatsApp con transcripción automática |
-| `/plugins/secretary/trigger` | POST | Apple Shortcuts / Stream Deck integration |
-| `/plugins/secretary/oauth-inject` | POST | OAuth bridge cifrado RSA-2048 |
-| `/plugins/secretary/public-key` | GET | Intercambio de claves P2P |
-| `/plugins/secretary/negotiate/offer` | POST | Negociación entre agentes |
-
-#### 💾 **Sistema de Persistencia WAL Completo**
-| Componente | Archivo | Función |
-|----------|---------|---------|
-| **SESSION-STATE.md** | `wal-helpers.ts` | Write-Ahead Logging para estado agéntico |
-| **Calendar Store** | `store.ts` | JSON-based calendar con detección de conflictos |
-| **Working Buffer** | `memory/working-buffer.md` | Buffer de trabajo timestamps |
-| **Vector Memory** | Core sqlite-vec | Integración completa con memoria del core |
-
-#### 🔄 **Proactive Hooks Avanzados**
-| Hook | Evento | Función |
-|------|--------|---------|
-| `before_prompt_build` | Context injection | Inyecta SESSION-STATE.md en tiempo real |
-| `gateway_start` | Magic setup | Genera QR codes automáticamente |
-| `subagent_ended` | Tracking | Monitoriza subagent outcomes |
-| `tool_result_persist` | Conflict check | Detecta calendario automáticamente |
-
----
-
-## ⚠️ **DEPENDENCIAS Y REQUISITOS - IMPORTANTE**
-
-### 📦 **Dependencias Necesarias (Faltantes)**
-```bash
-# Dependencia crítica que falta en package.json:
-npm install qrcode-terminal  # Para magic QR codes (usado en pairing.ts)
-```
-
-### 🔑 **Variables de Entorno (Ahora la mayoría son OPCIONALES gracias a Auto-OAuth)**
-
-#### 🟢 **ESSENCIALES (Mínimo para funcionamiento):**
-```bash
-# WhatsApp (único que requiere configuración manual)
-MATON_API_KEY=your_key           # WhatsApp Business API
-WA_PHONE_NUMBER_ID=your_id      # Meta WhatsApp Business  
-SAAS_BRIDGE_TOKEN=secure_token   # Puente OAuth cifrado
-```
-
-#### 🟡 **AHORA OPCIONALES (Auto-detectados desde auth-profiles):**
-```bash
-# ❌ YA NO NECESARIAS (auto-detectadas):
-# NOTION_API_KEY=your_key         # ✅ Auto-detectado con auth profiles
-# TAVILY_API_KEY=your_key        # ✅ Auto-detectado con auth profiles
-# CALENDLY_API_KEY=your_key      # ✅ Auto-detectado con auth profiles
-# MICROSOFT_OUTLOOK_API_KEY=key  # ✅ Auto-detectado con auth profiles
-```
-
-#### 📋 **CONFIGURACIÓN ÚNICA (OpenClaw OAuth):**
-```bash
-# Configurar servicios OAuth una sola vez en OpenClaw:
-openclaw agents add default --auth-choice google-gemini-cli    # Google
-openclaw agents add default --auth-choice token --provider notion   # Notion
-openclaw agents add default --auth-choice token --provider calendly # Calendly
-openclaw agents add default --auth-choice microsoft                # Outlook
-
-# ¡Listo! Secretary auto-detectará todo automáticamente
-```
-
-#### 🔵 **LOCAL PATHS (Opcionales):**
-```bash
-OBSIDIAN_VAULT_PATH=/path/to/vault   # Sincronización local Obsidian
-```
-
-### 🛠️ **Herramientas CLI Externas (Ahora con Auto-OAuth alternatives)**
-
-**Nota:** Gracias a la integración con OpenClaw Auth Profiles, la mayoría de servicios ahora funcionan con OAuth automático.
-
-| Herramienta | Usado en | Auto-OAuth | Status | Alternativa Automática |
-|------------|----------|-----------|--------|---------------------|
-| `gog` CLI | Google Calendar, Gmail | ✅ **Google OAuth** | ⚠️ Optativo | OpenClaw auth profiles |
-| `himalaya` | Email terminal | ⚠️ Gmail OAuth | ❌ Mock | Gmail API vía auth profiles |
-| `blogwatcher` | RSS aggregation | ✅ **Feedly/Google Reader** | ❌ Mock | RSS auto-detectado |
-| `goplaces` | Places search | ✅ **Google Places API** | ❌ Mock | Places API auto-detectada |
-| `ordercli` | Food order history | ❌ No disponible | ❌ Mock | Input manual |
-
-#### 🚀 **RECOMENDACIÓN: Usa OAuth Automático siempre que sea posible**
-
-```bash
-# PASO 1: Configurar OAuth en OpenClaw (una sola vez)
-openclaw agents add default --auth-choice google-gemini-cli
-openclaw agents add default --auth-choice microsoft  
-
-# PASO 2: ¡LISTO! Secretary detectará automáticamente:
-# - Google Calendar/Gmail sin CLI `gog`
-# - Outlook sin API keys manuales
-# - Todos los tokens refrescados automáticamente
-```
-
----
-
-## 🚀 OAuth y Tokens Automáticos: Magia OpenClaw Integration ✨
-
-### **REVOLUCIÓN: ZERO CONFIGURATION OAUTH**
-
-¡Ahora Secretary utiliza el poderoso sistema de **AutoAuthOrchestrator** de OpenClaw para obtener casi todos los OAuth y tokens automáticamente! 
-
-#### 🤖 **Cómo funciona la magia automática:**
+Powered by OpenClaw's native `runtime.webSearch`:
 
 ```typescript
-// Ejemplo real - Notion API key detectada automáticamente
-const auth = await resolveApiKeyForProvider({
-  provider: "notion",
-  cfg: await loadConfig(), // OpenClaw config global
+const results = await performWebSearch(query, {
+  providerId: "perplexity",  // Optional: auto-detect
+  maxResults: 10,
 });
-// ✅ Auto-detecta desde auth-profiles.json sin ningún setup!
 ```
 
-#### 🎯 **Proveedores OAuth Automatizados:**
+**Features:**
+- Multi-provider auto-detection
+- No external API keys required
+- Contextual research for meetings
+- Opportunity discovery
 
-| Servicio | Auto-Detect | Tipo | Método |
-|----------|-------------|------|--------|
-| **Notion** | ✅ Auto | API Key | `auth-profiles.json` |
-| **Google Calendar** | ✅ Auto | OAuth | `auth-profiles.json` → `gog CLI` |
-| **Google Gmail** | ✅ Auto | OAuth | `auth-profiles.json` → `gog CLI` |
-| **Microsoft Outlook** | ✅ Auto | OAuth | `auth-profiles.json` → Graph API |
-| **Calendly** | ✅ Auto | API Key | `auth-profiles.json` |
-| **Tavily (Intelligence)** | ✅ Auto | API Key | `auth-profiles.json` |
-| **RSS/Feeds** | ✅ Auto | OAuth | Feedly, Google Reader (auto-detected) |
-| **Places/Maps** | ✅ Auto | API Key | Google Places (auto-detected) |
+### 4. IoT Automation
 
-#### 🔑 **Flujo Automático:**
+Integrates with physical devices for ambient intelligence:
 
-1. **Setup inicial:** `openclaw onboard` (configura OAuth en OpenClaw)
-2. **Zero config:** Secretary descubre automáticamente los tokens en `auth-profiles.json`
-3. **Auto-refresh:** Los tokens OAuth se refrescan automáticamente antes de expirar
-4. **Fallback smart:** Si no hay auth-profiles, usa variables de entorno
+```typescript
+// Focus mode activation
+await triggerHueScene(api, "Oficina", "Concentración");
+await triggerSonosFocus(api, "Escritorio");
 
-#### 💡 **Ejemplos prácticos:**
+// Activity tracking (automatic via runtime.channel.activity)
+const stats = getIoTActivityStats();
+// { total: 15, successful: 14, failed: 1, byDevice: { "philips-hue": 10, "sonos": 5 } }
+```
 
-```bash
-# 1. Configurar Google OAuth (una sola vez)
-openclaw agents add my-agent --auth-choice google-gemini-cli
+### 5. P2P Negotiations
 
-# 2. Secretary detecta automáticamente Google Calendar/Gmail
-# ¡Sin configuración adicional!
+Secure meeting coordination with RSA encryption:
 
-# 3. Configurar Notion API (una sola vez)  
-openclaw agents add my-agent --auth-choice token --provider notion
-
-# 4. Secretary usa Notion automáticamente
-# ¡Zero configuration!
+```
+┌─────────────┐     RSA-encrypted      ┌─────────────┐
+│  Secretary  │◄─────── offer ────────►│   Peer      │
+│   (Host)    │                         │  Secretary  │
+└─────────────┘                         └─────────────┘
+       │                                       │
+       │ Calendar check                        │
+       ▼                                       ▼
+  Slot selection                          Confirmation
+  Auto-commit if free                    or counter-propose
 ```
 
 ---
 
-## 🔥 El Magic Onboarding Fluj Perfectos: Todo Automático 👑
+## Architecture
 
-### 1. El Portal (Activación Web)
+### High-Level Diagram
 
-1. **Configura OpenClaw** con el plugin Secretary habilitado:
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        OpenClaw Gateway                          │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐    │
+│  │   Tools      │    │   Hooks      │    │  HTTP Routes │    │
+│  ├──────────────┤    ├──────────────┤    ├──────────────┤    │
+│  │ Calendar     │    │ gateway_start│    │ /wa-webhook  │    │
+│  │ WhatsApp     │    │ before_prompt│    │ /trigger     │    │
+│  │ Transcription│    │ agent_end    │    │ /oauth-inject│    │
+│  │ Image Gen    │    │ message_recv │    │ /negotiate   │    │
+│  │ Orchestrator │    │ subagent_end │    │ /activate/*  │    │
+│  │ PDF Extract  │    │              │    │              │    │
+│  │ Privacy      │    │              │    │              │    │
+│  └──────────────┘    └──────────────┘    └──────────────┘    │
+│                                                                  │
+│  ┌──────────────────────────────────────────────────────────┐  │
+│  │                    Secretary Core                          │  │
+│  │  ┌────────────────┐  ┌────────────────┐  ┌───────────┐  │  │
+│  │  │  Orchestrator │  │  WAL Helpers   │  │  Store    │  │  │
+│  │  │  (40 actions) │  │  SESSION-STATE │  │  calendar │  │  │
+│  │  └────────────────┘  └────────────────┘  └───────────┘  │  │
+│  └──────────────────────────────────────────────────────────┘  │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
 
-```json
-{
-  "plugins": {
-    "enabled": true,
-    "entries": {
-      "secretary": {
-        "enabled": true,
-        "config": {
-          "saasBridgeToken": "tu-token-seguro"
-        }
-      }
+### Module Map
+
+```
+extensions/secretary/
+├── index.ts                          # Plugin entry point (198 lines)
+│
+├── src/
+│   ├── orchestrator.ts               # Main action dispatcher (1180 lines)
+│   │   ├── 40+ action handlers
+│   │   ├── Proactive hooks
+│   │   └── Parallel execution
+│   │
+│   ├── store.ts                      # Calendar persistence (35 lines)
+│   │
+│   ├── wal-helpers.ts                # WAL protocol (286 lines)
+│   │   ├── Session hierarchy tracking
+│   │   ├── Vector memory delegation
+│   │   └── SESSION-STATE.md updates
+│   │
+│   ├── negotiation.ts                 # P2P RSA protocol (180 lines)
+│   │   ├── RSA encryption/decryption
+│   │   ├── Slot negotiation
+│   │   └── Session hierarchy
+│   │
+│   ├── helpers/
+│   │   ├── intelligence.ts            # Web search & research (124 lines)
+│   │   ├── iot.ts                    # IoT control + activity tracking (128 lines)
+│   │   ├── memory-lifecycle.ts       # Memory hooks (182 lines)
+│   │   ├── text-processor.ts         # Native chunking (378 lines)
+│   │   ├── knowledge.ts              # Second brain sync (187 lines)
+│   │   ├── parallel-subagent-helper.ts # Parallel execution (209 lines)
+│   │   ├── pairing.ts                # Magic setup (66 lines)
+│   │   ├── alerts.ts                # Urgent notifications
+│   │   ├── autonomy.ts              # Autonomy level reader
+│   │   ├── calendly.ts              # Calendly API
+│   │   ├── common.ts                # CLI execution
+│   │   ├── email.ts                 # Email fetching
+│   │   ├── tts-voice-selector.ts   # Voice selection
+│   │   ├── whatsapp.ts              # WhatsApp utilities
+│   │   └── activation.ts            # Zero-config activation
+│   │
+│   ├── calendar-tool.ts              # Calendar CRUD (175 lines)
+│   ├── whatsapp-tool.ts              # WhatsApp messaging (339 lines)
+│   ├── transcription-tool.ts         # Audio transcription
+│   ├── image-generation-tool.ts      # Image creation
+│   ├── pdf-extraction-tool.ts       # PDF processing
+│   ├── privacy-tool.ts              # Privacy enforcement
+│   ├── vault.ts                     # Secret management
+│   ├── crm.ts                       # CRM integrations
+│   ├── webhook.ts                    # WhatsApp webhooks
+│   ├── oauth-bridge.ts              # Mobile-edge OAuth
+│   ├── auto-activator.ts            # Zero-config setup
+│   ├── activation-endpoints.ts      # Activation API
+│   └── constants.ts                 # Localization
+│
+└── data/                            # Runtime data
+    ├── calendar.json                # Local events
+    └── sessions/                   # Subagent sessions
+```
+
+---
+
+## API Reference
+
+### OpenClaw Runtime APIs Used
+
+| API | Usage | File |
+|-----|-------|------|
+| `runtime.mediaUnderstanding.transcribeAudioFile()` | Audio transcription | transcription-tool.ts |
+| `runtime.webSearch.runWebSearch()` | Web research | intelligence.ts |
+| `runtime.imageGeneration.generate()` | Image creation | image-generation-tool.ts |
+| `runtime.tts.listVoices()` | Voice selection | tts-voice-selector.ts |
+| `runtime.tts.textToSpeech()` | Voice messages | whatsapp-tool.ts |
+| `runtime.subagent.run()` | Parallel execution | parallel-subagent-helper.ts |
+| `runtime.subagent.waitForRun()` | Run completion | parallel-subagent-helper.ts |
+| `runtime.subagent.getSessionMessages()` | Message retrieval | parallel-subagent-helper.ts |
+| `runtime.subagent.deleteSession()` | Session cleanup | wal-helpers.ts |
+| `runtime.channel.text.chunkTextWithMode()` | Text chunking | text-processor.ts |
+| `runtime.channel.text.chunkMarkdownTextWithMode()` | Markdown chunking | text-processor.ts |
+| `runtime.channel.text.convertMarkdownTables()` | Table conversion | text-processor.ts |
+| `runtime.channel.text.hasControlCommand()` | Command detection | text-processor.ts |
+| `runtime.channel.activity.record()` | IoT tracking | iot.ts |
+| `runtime.messaging.send()` | WhatsApp send | whatsapp-tool.ts |
+| `api.extractPdfContent()` | PDF extraction | orchestrator.ts |
+
+### Orchestrator Actions
+
+The main orchestrator supports 40+ actions:
+
+#### Calendar & Scheduling
+| Action | Description | Hooks |
+|--------|-------------|-------|
+| `briefing` | Daily agenda + weather + insights | WAL, memory |
+| `parallel_briefing` | Concurrent briefing + calendar sync | Subagent |
+| `conflict_guardian` | Detect and resolve schedule conflicts | WAL |
+| `gog_sync` | Google Calendar synchronization | WAL |
+| `calendly_sync` | Calendly bookings import | WAL |
+
+#### Email & Communication
+| Action | Description | Hooks |
+|--------|-------------|-------|
+| `email_concierge` | Outlook triage with alerts | WhatsApp |
+| `gmail_triager` | Gmail inbox prioritization | WAL |
+| `himalaya_list` | Local email listing | - |
+| `himalaya_read` | Email content reading | - |
+
+#### Intelligence & Research
+| Action | Description | Hooks |
+|--------|-------------|-------|
+| `proactive_research` | Web search on topics | WAL |
+| `search_opportunities` | Venue/opportunity discovery | WAL |
+| `rss_digest` | News feed compilation | WhatsApp |
+| `get_personal_context` | Memory recall | WAL |
+
+#### IoT & Automation
+| Action | Description | Hooks |
+|--------|-------------|-------|
+| `trigger_focus_mode` | Hue + Sonos automation | Activity |
+| `get_iot_activity` | Activity statistics | Activity |
+| `contextual_monitor` | WAL-based monitoring | WAL |
+
+#### Document & Knowledge
+| Action | Description | Hooks |
+|--------|-------------|-------|
+| `ingest_document` | PDF processing + extraction | Vault |
+| `sync_knowledge` | Notion/Obsidian sync | VectorDB |
+| `finalize_closure` | Ghost write to transcript | Transcript |
+| `process_text` | Native text chunking | Text |
+
+#### P2P & Collaboration
+| Action | Description | Hooks |
+|--------|-------------|-------|
+| `negotiate_meeting` | P2P slot negotiation | RSA, Hierarchy |
+
+### Lifecycle Hooks
+
+Registered via `registerProactiveHooks()` and `registerMemoryLifecycleHooks()`:
+
+```typescript
+// Gateway lifecycle
+api.on("gateway_start", () => { /* Morning briefing setup */ });
+
+// Agent lifecycle
+api.on("before_agent_start", (event) => {
+  // Inject relevant memories
+  return { prependContext: memoryContext };
+});
+
+api.on("agent_end", (event) => {
+  // Capture task completion
+  captureMemoryFromText(api, `Task: ${event.outcome}`);
+});
+
+// Message lifecycle
+api.on("message_received", (event) => {
+  // Financial triage trigger
+  if (/factura|pago/.test(event.content)) triggerFinancialCheck();
+});
+
+api.on("message_sending", (event) => {
+  // Append verification signature
+  return { content: `${event.content}\n\n💡 _Verificado con Secretary_` };
+});
+
+// Subagent lifecycle
+api.on("subagent_ended", (event) => {
+  // WAL sync for delegation
+  updateSessionState(workspace, "SUBAGENT_SYNC", event.outcome);
+});
+
+// Prompt building
+api.on("before_prompt_build", (event) => {
+  // Inject recent real-world context
+  return { appendSystemContext: recentState };
+});
+```
+
+---
+
+## Modules
+
+### Orchestrator (`orchestrator.ts`)
+
+The central dispatcher for all Secretary actions. Uses a switch-based action router.
+
+**Key Design Patterns:**
+
+1. **Action Enum Pattern** - All 40+ actions defined in `parameters.action.enum`
+2. **Handler Method Pattern** - Each action has a dedicated `handle*` method
+3. **Context Propagation** - `api`, `store`, `vault`, `crm` passed via constructor
+4. **WAL Integration** - Every action updates `SESSION-STATE.md`
+
+```typescript
+class SecretaryOrchestrator {
+  // Constructor - dependency injection
+  constructor(private api: OpenClawPluginApi) {
+    this.store = new CalendarStore(api.resolvePath("./data"));
+    this.vault = new VaultManager(this.workspaceDir);
+    this.crm = new CRMManager();
+  }
+
+  // Execute - action dispatch
+  async execute(runId, params, ctx?) {
+    switch (params.action) {
+      case "briefing": return this.handleBriefing(runId, params, apiKey);
+      case "parallel_briefing": return this.handleParallelBriefing();
+      // ... 38 more actions
     }
   }
 }
 ```
 
-2. **Ejecuta el Gateway:**
-```bash
-openclaw gateway run
+### WAL Helpers (`wal-helpers.ts`)
+
+Implements the Write-Ahead Logging protocol for persistent state.
+
+**WAL Protocol Principle:**
+> "STOP and PERSIST before you REPLY."
+
+**SESSION-STATE.md Structure:**
+```markdown
+# Active Working Memory (WAL) 🦞
+
+**Status**: READY
+
+---
+
+## SessionHierarchy
+### [2026-03-18T10:30:00Z] orchestrator session "secretary-briefing" started (depth=1)
+
+## Last Sync
+### [2026-03-18T10:25:00Z] Synced 5 gog events.
+
+## Conflicts
+### [2026-03-18T09:15:00Z] Collision: "Review" vs "Team Standup"
+
+## IoT
+### [2026-03-18T10:00:00Z] Triggered focus: Oficina/Concentración
+
+## Closure
+### [2026-03-18T11:30:00Z] Finalized: Meeting notes summary...
 ```
 
-3. **¡El Magic QR aparece automáticamente!** El gateway genera un código QR con el pairing link.
-
-### 2. El Enlace Mágico (Emparejamiento QR)
-
-When you scan the QR with your phone, magic occurs:
-
-- **Self-Healing Node:** Your phone automatically becomes an OpenClaw Execution Node and downloads necessary components.
-- **Secure RSA-2048 Tunnel:** An encrypted point-to-point connection is established with your cloud bridge.
-- **Zero-Latency State:** The PWA syncs your `SOUL.md` and prepares your local vector memory for instant responses.
-
-### 3. Social Sync (OAuth 2.0 ONE-CLICK)
-
-From your phone's PWA dashboard, you can now connect any service **INMEDIATELY**:
-
-- [x] **Google Calendar** - Automatic event sync and conflict resolution
-- [x] **Gmail** - Smart email triaging and ghost writing 
-- [x] **Notion** - Knowledge sync with auto-deduplication
-- [x] **WhatsApp Business** - Interactive briefings and voice responses
-
-**The Magic Flow:**
-1. Click "Connect Google" → OAuth handshake happens IN the bridge
-2. Google returns tokens → Bridge encrypts with YOUR RSA public key  
-3. Bridge injects encrypted tokens → `/plugins/secretary/oauth-inject`
-4. AutoAuthOrchestrator decrypts WITH YOUR PRIVATE KEY → Saves in auth-profiles.json
-5. **ALL DONE** - The Secretary can now sync calendars and emails directly from your device
-
-### 4. Account Management (SaaS Portal)
-
-Access your panel to **manage subscription** completely visually:
-
-- **Pricing Plans:** Choose between Launch, Pro, and Business tiers
-- **Billing:** Securely renew or cancel your subscription via Stripe  
-- **Privacy Assurance:** Billing data is kept separate from your agent's private memory
-
----
-
-## 🧠 Núcleo de Inteligencia: Capabilidades Completas 2026
-
-ClawSecretary no es solo un plugin; es un ecosistema autónomo potenciado por el Core de OpenClaw:
-
-| Capacidad | Estado | Integración del Core |
-|:---|:---|:---|
-| **Unified Agenda Briefing** | ✅ Listo | Usa calendar APIs + voice del core |
-| **Ghost Writing & Auto-Commit** | ✅ Listo + Transcripción local | `transcribeAudioFile()` + TTS |
-| **Conflict Guardian** | ✅ Piloto automático L3/L4 | Niveles de confianza automática |
-| **Zero-Latency Hyper-Context** | ✅ Contexto en tiempo real | Hooks `before_prompt_build` |
-| **Memory Vectorial** | ✅ Usando Core | sqlite-vec+vector search del core |
-| **PDF Processing** | ✅ Funcional | `extractPdfContent()` del core |
-
----
-
-## 📦 **Quick Start MAXIMAMENTE Automatizado: 60 Segundos ✨**
-
-### **EXPERIENCIA DEL CLIENTE: ZERO KNOWLEDGE REQUIRED**
-
-**El flujo está diseñado para que ABSOLUTAMENTE CUALQUIERA pueda usar Secretary sin ninguna configuración técnica.**
-
----
-
-### 🚀 **Paso 1: Iniciar (Automático - 10 segundos)**
-
-```bash
-# ¡SOLO UN COMANDO! Todo es automático:
-openclaw gateway run
+**Session Hierarchy Tracking:**
+```typescript
+interface SessionHierarchyEntry {
+  sessionKey: string;
+  role: "orchestrator" | "leaf" | "peer";
+  spawnDepth: number;
+  parentSessionKey?: string;
+  childSessionKeys: string[];
+  createdAt: string;
+  status: "active" | "completed" | "failed";
+  metadata?: Record<string, unknown>;
+}
 ```
 
-**¿Qué pasa automáticamente?**
-- ✅ **Plugin Auto-Enable:** Si Secretary no está activado, OpenClaw lo activa automáticamente
-- ✅ **Dependencies Auto-Install:** Si faltan dependencias, se instalan solas
-- ✅ **Config Auto-Generate:** Si no hay config, OpenClaw genera una configuración por defecto
-- ✅ **Magic QR:** El QR code de pairing aparece AUTOMÁTICAMENTE
+### Negotiation (`negotiation.ts`)
 
-**No necesitas:**
-- ❌ Editar archivos de configuración
-- ❌ Instalar plugins manualmente  
-- ❌ Configurar rutas o paths
-- ❌ Saber nada técnico
+P2P meeting coordination with RSA encryption.
 
----
+**Flow:**
+1. Peer generates offer with proposed time slots
+2. Offer encrypted with our public RSA key
+3. We decrypt and check against our calendar
+4. Accept first free slot OR reject with reason
+5. Reply encrypted with peer's public key
 
-### 📱 **Paso 2: Escanear & Instalar (Mágico - 20 segundos)**
+**Security Features:**
+- RSA-2048 encryption for all P2P payloads
+- No shared secrets required
+- Session hierarchy for negotiation tracking
 
-1. **Escanea el QR** con tu cámara del teléfono
-2. **Abre el enlace** - Te lleva al Dashboard PWA
-3. **Toca "Add to Home Screen"** - Se instala como app nativa
+### Memory Lifecycle (`memory-lifecycle.ts`)
 
-**Magia Automática:**
-- ✅ **Self-Healing:** Tu teléfono descarga componentes automáticamente
-- ✅ **RSA-2048 Tunnel:** Conexión segura establecida instantáneamente
-- ✅ **Zero-Latency:** Sincronización inmediata de tu contexto
+Context-aware memory across agent sessions.
 
----
-
-### 🔗 **Paso 3: Conectar Cuentas (1-Click - 30 segundos)**
-
-Desde la app en tu teléfono:
-
-1. **Toca "Connect Google"** - ¡UN SOLO CLICK!
-2. **Inicia sesión normal** con tu cuenta de Google
-3. **¡LISTO!** Todo configurado automáticamente
-
-**Magia OAuth Zero-Configuration:**
-```javascript
-// ESTO PASA AUTOMÁTICAMENTE - El usuario no ve nada de esto
-
-// 1. OAuth handshake ocurre en el bridge
-const tokens = await nangoClient.getToken('google');
-
-// 2. Token se encripta con tu llave pública RSA
-const encrypted = encryptRSA(tokens, userPublicKey);
-
-// 3. Se inyecta directamente en tu dispositivo local
-await fetch('/plugins/secretary/oauth-inject', {
-  method: 'POST',
-  body: JSON.stringify({ encryptedPayload: encrypted })
+**Hook Implementation:**
+```typescript
+api.on("before_agent_start", async (event) => {
+  const relevant = recallRelevantMemories(event.prompt.slice(0, 200), 3);
+  if (relevant.length > 0) {
+    return {
+      prependContext: formatMemoriesForContext(relevant)
+    };
+  }
 });
 
-// 4. AutoAuthOrchestrator del core lo guarda localmente
-// 5. El bridge elimina toda traza del token (Zero Storage)
+api.on("agent_end", async (event) => {
+  captureMemoryFromText(api, `Completed: ${event.outcome}`, "agent_end");
+});
 ```
 
-**Lo que ve el usuario:**
-- ✅ Pantalla de login normal de Google 
-- ✅ Botones grandes y claros: "Connect Google", "Connect Notion"
-- ✅ Indicador de progreso: "Configurando magicamente..."
-- ✅ Mensaje final: "¡Listo! Tu Secretary está activo"
+**Memory Categories:**
+- `preference` - User likes/dislikes
+- `decision` - Choices made
+- `fact` - Factual information
+- `entity` - People, contacts
+- `other` - Uncategorized
 
----
+**Security:**
+- Prompt injection detection with rejection
 
-### 🎯 **Paso 4: USAR INMEDIATAMENTE (Zero Learning Curve)**
+### Text Processor (`text-processor.ts`)
 
-**¡YA PUEDES EMPEZAR A USARLO!** Literalmente 60 segundos después de empezar:
+Native OpenClaw text processing integration.
 
-#### 💬 **Por WhatsApp:**
-- `"Briefing"` → Recibe tu agenda diaria con botones interactivos
-- `"Resumen reunión"` → Transcribe audio y envía resumen automáticamente
-- `"Programar reunión con equipo"` -> El secretario negocia y agenda automáticamente
-
-#### 🎤 **Voice Notes:**
-- Graba cualquier nota de voz en WhatsApp
-- **Transcripción automática** usando tu teléfono (no se envía a la nube)
-- **Resumen automático** con contexto de tus reuniones anteriores
-- **Acciones automáticas** (enviar email, crear tarea, actualizar calendario)
-
-#### 📄 **Documentos:**
-- Reenvía cualquier PDF a WhatsApp
-- **Extracción automática** de texto e imágenes en tu teléfono
-- **Indexación automática** en tu memoria vectorial local
-- **Búsqueda semántica** después: "búsqueda el documento sobre..."
-
-#### 🗓️ **Calendario Inteligente:**
-- **Resolución automática de conflictos** basada en tu nivel de confianza
-- **Briefings proactivos** por la mañana con cambios relevantes
-- **Negociación automática** de citas entre contactos
-
----
-
-### 🔄 **Magic Auto-Maintenance:**
-
-**El Secretary se mantiene solo automáticamente:**
-
-- ✅ **Token Auto-Refresh:** OAuth tokens se refrescan automáticamente antes de expirar
-- ✅ **Error Auto-Recovery:** Si algo falla, el sistema reintenta automáticamente
-- ✅ **Context Auto-Sync:** Tu memoria vectorial se mantiene actualizada
-- ✅ **Feature Auto-Updates:** Nuevas funcionalidades se instalan automáticamente
-
----
-
-### 🎨 **Ejemplo REAL de Flujo de Usuario (60 segundos totales):**
-
-```
-Segundo 0:  Usuario ejecuta `openclaw gateway run`
-Segundo 5:  QR code aparece en la terminal
-Segundo 10: Usuario escanea QR con teléfono
-Segundo 15: Dashboard PWA se abre
-Segundo 20: Usuario toca "Add to Home Screen"
-Segundo 25: Usuario toca "Connect Google"
-Segundo 35: Login de Google, autoriza, regresa a la app
-Segundo 45: App muestra "¡Secretary activo! ✨"
-Segundo 50: Usuario manda WhatsApp: "Briefing"
-Segundo 55: Recibe respuesta con su agenda del día
-Segundo 60: Usuario usa Secretary por primera vez
-```
-
-**RESULTADO:** El usuario tiene un asistente de IA personal totalmente funcional sin tocar NADA técnico.
-
----
-
-## 🎯 Verification Matrix (90% → 95% COMPLETADO - Post-Phase 1 Merge ✅)
-
-| Test Case | Método | Resultado | APIs/Auto-OAuth | Estado |
-|:---|:---|:---|:---|:---|
-| **Plugin Detection** | `openclaw plugins list` | ✅ Secretary v1.0.0 detectado | Plugin SDK | ✅ **PASS** |
-| **Build System** | `pnpm build` | ✅ Compilación exitosa | Build system | ✅ **PASS** |
-| **6 Tools Registration** | Plugin startup | ✅ All 6 tools registrados | Plugin SDK | ✅ **PASS** |
-| **Core API Integration** | Código análisis | ✅ Todas las APIs funcionando |Todas las core APIs | ✅ **PASS** |
-| **Memory System** | `memory_search` tool | ✅ Resultados sqlite-vec | `createMemorySearchTool()` | ✅ **PASS** |
-| **Audio Processing** | `secretary_transcribe` | ✅ Transcripción local | `transcribeAudioFile()` | ✅ **PASS** |
-| **WhatsApp Integration** | `secretary_whatsapp` | ✅ TTS + botones | `textToSpeech()` | ✅ **PASS** |
-| **PDF Processing** | `secretary_pdf_extract` | ✅ Extracción local | `extractPdfContent()` | ✅ **PASS** |
-| **OAuth Security** | RSA-2048 tunnel | ✅ Token injection cifrado | `AutoAuthOrchestrator` | ✅ **PASS** |
-| **32 Orchestrator Actions** | `orchestrator.ts` | ✅ 32 acciones implementadas | Core runtime | ✅ **PASS** |
-| **🆕 Auto-OAuth: Notion** | `syncToNotion()` | ✅ Auto-detecta API key | `resolveApiKeyForProvider()` | ✅ **PASS** |
-| **🆕 Auto-OAuth: Google** | `fetchGogEvents()` | ✅ Auto-detecta OAuth | `resolveApiKeyForProvider()` | ✅ **PASS** |
-| **🆕 Auto-OAuth: Outlook** | `fetchOutlookInbox()` | ✅ Auto-detecta tokens | `resolveApiKeyForProvider()` | ✅ **PASS** |
-| **🆕 Auto-OAuth: Tavily** | `proactive_research()` | ✅ Auto-detecta API key | `resolveApiKeyForProvider()` | ✅ **PASS** |
-| **🆕 Auto-OAuth: Calendly** | `calendly_sync()` | ✅ Auto-detecta API key | `resolveApiKeyForProvider()` | ✅ **PASS** |
-| **🆕 Phase 1 Merge** | Git merge upstream/main | ✅ 7 conflicts resueltos | 4 nuevas APIs disponibles | ✅ **PASS** |
-
----
-
-## 🆕 **PHASE 1 COMPLETED - Phase 2 READY** (March 17, 2026)
-
-### ✅ **PHASE 1: TECHNICAL SYNCHRONIZATION - COMPLETED**
-
-**Logros:**
-- ✅ Exitoso merge con OpenClaw upstream/main
-- ✅ 7 conflictos resueltos sin pérdida de datos
-- ✅ 4 nuevas runtime APIs disponibles para integración
-- ✅ Zero breaking changes introducidos
-
-**Nuevas Capacidades del Core (Disponibles pero NO integradas aún):**
-1. **Media Understanding API** - Análisis mejorado de imágenes/videos/audio
-2. **Image Generation API** - Creación de contenido visual
-3. **Web Search API** - Búsqueda nativa (eliminar Tavily dependency)
-4. **Enhanced TTS API** - Selección de voz por contexto
-
-**Detalles Completos:**
-- 📄 `SESSION_SUMMARY_MERGE.md` - Análisis completo del merge
-- 📄 `OPENCLAW_INTEGRATION_GAP.md` - 9 integraciones pendientes identificadas
-
----
-
-### 📋 **PHASE 2: CODE AUDIT & REFACTOR - READY TO START**
-
-**Objetivo:** Integrar 4 nuevas runtime APIs disponibles post-Phase 1
-
-**Timeline Estimado:** 2-3 semanas
-
-**Acciones Críticas (Semana 1):**
-1. **Migración a Media Understanding API** - Transcripción mejorada
-2. **Migración a Web Search API** - Eliminar dependencia Tavily
-3. **Completar WhatsApp Native** - Zero-config completado
-4. **Crear Image Generation Tool** - Nueva herramienta visual
-
-**Matriz de Prioridades Phase 2:**
-| Prioridad | API/Feature | Esfuerzo | Impacto | Deadline |
-|-----------|-------------|----------|---------|----------|
-| 🔴 1 | Media Understanding | Bajo (2-4h) | HIGH | Semana 1 |
-| 🔴 2 | Web Search | Bajo (1-2h) | HIGH | Semana 1 |
-| 🔴 3 | WhatsApp Native | Medio (2-3h) | HIGH | Semana 1 |
-| 🔴 4 | Image Generation | Medio (4-6h) | HIGH | Semana 2 |
-| 🟡 5 | Enhanced TTS | Bajo (1-2h) | MEDIUM | Semana 2 |
-| 🟡 6 | Subagent Runtime | Medio (4-6h) | MEDIUM | Semana 2 |
-
-**Target:** 90% → 95% integración completada
-
----
-
-## ⚠️ **ISSUES CONOCIDOS Y TROUBLESHOOTING**
-
-### 🔧 **Dependencias Faltantes (Fáciles de Solucionar)**
-```bash
-# Issue: Error en pairing.ts con qrcode-terminal
-# Solución:
-npm install qrcode-terminal
-
-# Issue: yargs no encontrado (solo archivos verify)
-# Solución: No es crítico, son solo archivos de testing
-# npm install yargs  # Opcional, solo para verify files
-```
-
-### 🐛 **Errores Menores Conocidos**
+**Key Functions:**
 ```typescript
-// 1. verify-orchestrator.ts línea 1 - Import incorrecta:
-// ❌ Incorrecto: import { Orchestrator } from './src/orchestrator';
-// ✅ Correcto: import { createOrchestratorTool } from './src/orchestrator';
-// Impacto: Solo afecta archivos de prueba, no el plugin en producción
+// Paragraph-aware chunking (upstream feature)
+const chunks = chunkByParagraph(text, 4000, { splitLongParagraphs: true });
 
-// 2. Algunos helpers usan herramientas CLI mockeadas
-// goplaces, blogwatcher, ordercli → Devuelven arrays vacíos si no instalados
-// Impacto: Funcionalidad limitada pero el sistema sigue funcionando
+// Markdown-safe chunking
+const chunks = chunkMarkdownForWhatsApp(api, markdown, 4000, "length");
+
+// Table conversion for channels
+const whatsapp = convertTablesForChannel(api, markdown, "whatsapp");
+
+// Dynamic limits per channel
+const limit = resolveTextChunkLimit(api, "whatsapp"); // 4000
+const limit = resolveTextChunkLimit(api, "telegram");  // 4096
 ```
 
-### 📋 **Setup Rápido - Commands Esenciales**
+### Parallel Subagent Helper (`parallel-subagent-helper.ts`)
+
+Concurrent task execution using OpenClaw's subagent runtime.
+
+**Pattern:**
+```typescript
+const results = await executeParallelSubagents(api, [
+  {
+    message: "Generate briefing",
+    sessionKey: "secretary-briefing",
+    extraSystemPrompt: "You are an executive assistant..."
+  },
+  {
+    message: "Sync calendar",
+    sessionKey: "secretary-calendar-sync"
+  }
+]);
+
+// Results include runId, sessionKey, success, messages
+```
+
+**Pre-built Scenarios:**
+- `ParallelScenarios.briefingAndCalendarSync()`
+- `ParallelScenarios.analyzeMultipleEmails(emails)`
+- `ParallelScenarios.parallelResearch(topics)`
+
+### IoT (`iot.ts`)
+
+Smart home integration with activity tracking.
+
+**Devices Supported:**
+- Philips Hue (via `openhue` CLI)
+- Sonos (via `sonos` CLI)
+
+**Activity Recording:**
+```typescript
+// Automatic via runtime.channel.activity
+await recordIoTActivity(api, {
+  device: "philips-hue",
+  action: "set_scene",
+  target: "Oficina/Concentración",
+  success: true,
+  timestamp: new Date().toISOString()
+});
+
+// Query stats
+const stats = getIoTActivityStats();
+// { total: 15, successful: 14, failed: 1, byDevice: {...} }
+```
+
+### Knowledge (`knowledge.ts`)
+
+Second brain synchronization.
+
+**Sync Targets:**
+1. **VectorDB (LanceDB)** - via `storeVectorMemory()`
+2. **Obsidian** - Local vault markdown files
+3. **Notion** - Database pages via API
+
+**Ghost Write Flow:**
+```typescript
+const { transcript, knowledge, chunkInfo } = await syncGhostWriteToSecondBrain(
+  api,
+  "Meeting Closure 2026-03-18",
+  "Discussed Q1 targets...",
+  sessionKey
+);
+// transcript: appendAssistantMessageToSessionTranscript()
+// knowledge: synced to VectorDB + Notion + Obsidian
+// chunkInfo: { totalChunks, wordCount }
+```
+
+---
+
+## Configuration
+
+### Environment Variables
+
 ```bash
-# 1. Instalar dependencia faltante
-npm install qrcode-terminal
+# Calendar Sync
+GOG_ACCOUNT=your@gmail.com
 
-# 2. Configurar variables de entorno mínimas
-export MATON_API_KEY="your_key_here"
-export WA_PHONE_NUMBER_ID="your_phone_id"
-export SAAS_BRIDGE_TOKEN="your_secure_token"
+# Email
+MATON_API_KEY=          # Outlook via Maton
+CALENDLY_API_KEY=      # Calendly bookings
 
-# 3. Verificar instalación (opcional)
-node verify-orchestrator.ts
+# Knowledge
+NOTION_API_KEY=        # Notion sync
+NOTION_DATABASE_ID=    # Target database
+OBSIDIAN_VAULT_PATH=   # Local vault path
 
-# 4. Iniciar el sistema
-openclaw gateway run
+# IoT
+HUE_BRIDGE_IP=         # Philips Hue bridge
+SONOS_SPEAKER=         # Default speaker
+
+# Personalization
+USER_CITY=Madrid       # Weather location
+WA_DEFAULT_PHONE=      # Default WhatsApp recipient
+
+# Security
+SAAS_BRIDGE_TOKEN=     # Mobile-edge OAuth
+```
+
+### OpenClaw Config Integration
+
+The Secretary auto-detects:
+- WhatsApp channel configuration
+- Calendly OAuth via `resolveApiKeyForProvider`
+- Google Places auth profiles
+- Vector memory (LanceDB/qmd)
+
+---
+
+## Use Cases
+
+### 1. Morning Briefing
+
+```
+08:00 → Cron triggers
+       ↓
+Gmail triage (20 unread)
+RSS digest (top 5)
+Weather check (Madrid)
+Calendar merge (local + gog + calendly)
+       ↓
+Briefing generated with insights
+       ↓
+WhatsApp sent with buttons:
+  [Confirm] [Get Tip] [Nearby Places]
+```
+
+### 2. Meeting Closure Ghost Write
+
+```
+Meeting ends
+       ↓
+Agent captures summary
+       ↓
+/finalize_closure action triggered
+       ↓
+Ghost Write pipeline:
+  1. chunkByParagraph() - Document segmentation
+  2. appendAssistantMessageToSessionTranscript() - Audit trail
+  3. syncKnowledge() - VectorDB + Notion + Obsidian
+       ↓
+SESSION-STATE.md updated
+```
+
+### 3. P2P Schedule Negotiation
+
+```
+Peer sends encrypted offer
+  { slots: ["09:00-10:00", "14:00-15:00"] }
+       ↓
+Decrypt with RSA private key
+Check against calendar store
+       ↓
+[If free] Auto-commit event
+[If busy] Send rejection with reason
+       ↓
+Reply encrypted to peer
+```
+
+### 4. Focus Mode Activation
+
+```
+User: "Start focus mode"
+       ↓
+/trigger_focus_mode action
+       ↓
+Parallel execution:
+  • triggerHueScene("Oficina", "Concentración")
+  • triggerSonosFocus("Escritorio")
+       ↓
+Activity recorded to runtime.channel.activity
+       ↓
+SESSION-STATE.md: "Triggered focus: Oficina/Concentración"
+```
+
+### 5. Memory-Enhanced Context
+
+```
+Before agent start
+       ↓
+Hook: before_agent_start
+Recall relevant memories (query: user's recent topics)
+       ↓
+Prepend context:
+  === RELEVANT MEMORIES ===
+  ### Preferences
+  - Prefiere reuniones de max 45 min
+  ### Decisions
+  - [2026-03-15] Decided to postpone vacation
+  ### Facts
+  - Current project: Q1 launch
+  ===================
+       ↓
+Agent starts with enhanced context
 ```
 
 ---
 
-## 🔮 Roadmap y Estado Real (Post-Phase 1 Merge Actualizado)
+## Development
+
+### Project Structure
+
+```
+extensions/secretary/
+├── src/
+│   ├── *.ts              # Source modules
+│   └── helpers/          # Utility functions
+├── data/                 # Runtime data (gitignored)
+├── assets/               # Images, logos
+├── *.md                  # Documentation
+├── package.json
+└── openclaw.plugin.json  # Plugin manifest
+```
+
+### Adding New Actions
+
+1. Add action name to `orchestrator.parameters.action.enum`
+2. Create `handle*` method in `SecretaryOrchestrator`
+3. Add case to `execute()` switch
+4. (Optional) Add WAL update in handler
+5. (Optional) Register proactive hook
+
+```typescript
+// Example: Adding "my_action"
+case "my_action": return this.handleMyAction(params);
+
+// Add to enum
+enum: [..., "my_action"]
+
+// Create handler
+private async handleMyAction(params: any) {
+  await updateSessionState(this.workspaceDir, "MyModule", "Did something");
+  return { content: [{ type: "text", text: "Done!" }] };
+}
+```
+
+### Testing
+
+```bash
+# Run extension tests
+pnpm test -- extensions/secretary
+
+# Build for production
+pnpm build
+
+# Check types
+pnpm tsgo
+```
+
+### Code Style
+
+- TypeScript strict mode
+- ESM modules
+- Semantic naming (Spanish for user-facing, English for code)
+- WAL comments on state changes
+- Error handling with graceful fallbacks
 
 ---
 
-### ✅ **PHASE 1 COMPLETED (Technical Synchronization - March 17, 2026)**
+## Troubleshooting
 
-**Objetivo:** Sincronizar con upstream OpenClaw para acceso a nuevas capacidades
+### Common Issues
 
-**Logros Completados:**
-- [x] ✅ **Estado: 90% → 95% potencial tras completar Phase 2**
-- [x] ✅ **Upstream Merge Exitoso** - Fusionado con upstream/main, 7 conflictos resueltos
-- [x] ✅ **6 Core Tools con 32 acciones** - Todos implementados y funcionando
-- [x] ✅ **7 HTTP Endpoints** - WhatsApp webhooks, OAuth bridge, P2P negotiation + 3 nuevos de activación
-- [x] ✅ **11 Helpers externos** - Email, knowledge, intelligence modules
-- [x] ✅ **Memory system** - sqlite-vec del core completamente integrado
-- [x] ✅ **Audio system** - STT + TTS del core funcionando perfectamente
-- [x] ✅ **PDF processing** - Core PDF extraction local implementado
-- [x] ✅ **RSA security** - OAuth bridge, P2P negotiation completos
-- [x] ✅ **WAL protocol** - SESSION-STATE.md + working buffer persistence
-- [x] ✅ **Plugin SDK integration** - Complete integration con hooks y registries
-- [x] ✅ **Build system** - Compilación exitosa con dependencias del core
-- [x] ✅ **4 nuevas APIs disponibles** - Media Understanding, Image Generation, Web Search, Enhanced TTS
+| Issue | Solution |
+|-------|----------|
+| WhatsApp not sending | Check `channels.whatsapp.enabled` in config |
+| Calendar not syncing | Verify `GOG_ACCOUNT` env var |
+| IoT commands failing | Ensure `openhue`/`sonos` CLI installed |
+| Memory recall empty | Check `before_agent_start` hook registration |
+| P2P negotiation timeout | Verify public key exchange |
 
-**Impacto del Phase 1:**
-- 🟢 Acceso a 4 nuevas runtime APIs del core
-- 🟢 Mejor alineación con patrones oficiales de OpenClaw
-- 🟢 Acceso a mejoras upstream futuras via runtime APIs
-- 🟢 Zero breaking changes introducidos
+### Debug Mode
 
----
+```bash
+# Enable verbose logging
+DEBUG=secretary:* openclaw gateway run
 
-### 📋 **PHASE 2 READY (Code Audit & Refactor - PRÓXIMO)**
+# Check session state
+cat workspace/SESSION-STATE.md
 
-**Objetivo:** Integrar nuevas APIs del core disponibles post-Phase 1
+# View activity log
+curl http://localhost:18789/plugins/secretary/activate/status
+```
 
-**Timeline Estimado:** 2-3 semanas
+### Log Locations
 
-#### 🔴 **ACTION ITEMS CRÍTICOS (Semana 1)**
-
-**1. Migración a Media Understanding API**
-- **Estado Actual:** Usando `runtime.stt.transcribeAudioFile()` (API antigua)
-- **Estado Deseado:** `runtime.mediaUnderstanding.transcribeAudioFile()`
-- **Archivos:** `transcription-tool.ts`
-- **Impacto:** 🟢 HIGH - Transcripción mejorada, análisis de imágenes/videos
-- **Esfuerzo:** Bajo (2-4 horas)
-
-**2. Migración a Web Search API**
-- **Estado Actual:** Usando Tavily API externa (dependencia extra)
-- **Estado Deseado:** `runtime.webSearch.search()` nativa
-- **Archivos:** `intelligence.ts`
-- **Impacto:** 🟢 HIGH - Eliminar dependencia externa
-- **Esfuerzo:** Bajo (1-2 horas)
-
-**3. Completar WhatsApp Native Migration**
-- **Estado Actual:** Usando Maton API (dependencia externa)
-- **Estado Deseado:** Built-in WhatsApp channel del core
-- **Archivos:** `whatsapp-tool.ts`
-- **Impacto:** 🔴 HIGH - Zero-config completado
-- **Esfuerzo:** Medio (2-3 horas)
-
-**4. Crear Secretary Image Generation**
-- **Estado Actual:** Sin capacidades de generación de imágenes
-- **Estado Deseado:** Nueva herramienta `image-generation-tool.ts`
-- **Archivos:** NEW `image-generation-tool.ts`
-- **Impacto:** 🟡 MEDIUM - Nueva feature competitiva
-- **Esfuerzo:** Medio (4-6 horas)
-
-#### 🟡 **MODERNIZATION (Semana 2)**
-
-**5. Enhanced TTS Voice Selection**
-- **Estado:** `textToSpeech()` sin personalización
-- **Deseado:** Voz por contexto (calm, urgent)
-- **Impacto:** 🟡 MEDIUM
-- **Esfuerzo:** Bajo (1-2 horas)
-
-**6. Subagent Runtime Integration**
-- **Estado:** `sessions_spawn` básico
-- **Deseado:** Ejecución paralela
-- **Impacto:** 🟡 MEDIUM
-- **Esfuerzo:** Medio (4-6 horas)
-
-**Matriz de Prioridades Phase 2:**
-| Prioridad | API/Feature | Esfuerzo | Impacto | Deadline |
-|-----------|-------------|----------|---------|----------|
-| 🔴 1 | Media Understanding | Bajo (2-4h) | HIGH | Semana 1 |
-| 🔴 2 | Web Search | Bajo (1-2h) | HIGH | Semana 1 |
-| 🔴 3 | WhatsApp Native | Medio (2-3h) | HIGH | Semana 1 |
-| 🔴 4 | Image Generation | Medio (4-6h) | HIGH | Semana 2 |
-| 🟡 5 | Enhanced TTS | Bajo (1-2h) | MEDIUM | Semana 2 |
-| 🟡 6 | Subagent Runtime | Medio (4-6h) | MEDIUM | Semana 2 |
-
-**Target:** 90% → 95% integración completada
+- Gateway: `~/.openclaw/logs/gateway.log`
+- Secretary: Console output with `[Secretary]` prefix
+- WAL: `workspace/SESSION-STATE.md`
 
 ---
 
-### 🔮 **PHASE 3: Upstream Study Report (FUTURO)**
+## Interesting Implementation Details
 
-**Objetivo:** Generar reporte completo de cambios upstream y estrategias evolutivas
+### 1. Zero-Configuration Philosophy
 
-**Contenido:**
-- 📊 Análisis detallado de cambios upstream/core
-- 🔍 Herramientas nuevas integrables en Secretary
-- 📈 Roadmap evolutivo alineado con OpenClaw
-- 🏆 Estrategia para mantener ventaja competitiva
+The Secretary auto-detects API keys and credentials:
+```typescript
+const auth = await resolveApiKeyForProvider({
+  provider: "calendly",
+  cfg,
+});
+// Falls back to env vars if auth profiles unavailable
+```
 
-**Timing:** Después de completar Phase 2
+### 2. WAL-Compliant Persistence
 
----
+Every state-changing action updates SESSION-STATE.md:
+```typescript
+await updateSessionState(workspaceDir, "Module", "Action taken");
+// Format: ## Module\n### [timestamp] Action taken
+```
 
-### 🔮 **PHASE LEJANA (Features Avanzadas - 1-2 meses)**
+### 3. Autonomy Levels
 
-**Nota:** Items aquí son features futuras, no bloquean Phase 2
-- [ ] **SaaS Standalone Dashboard** - Next.js PWA shell con billing
-- [ ] **Stripe Integration** - Sistema de pagos integrado con core
-- [ ] **Mobile UI/PWA** - Rich phone interface
-- [ ] **Mobile Health Monitoring** - Dashboard para estado de integraciones
-- [ ] **ION Architecture Expansion** - Añadir más integraciones (Slack, Teams, etc.)
+Behavior adapts based on event title prefixes:
+- `L3:` - Auto-resolve conflicts
+- `L4:` - Full autonomous decision making
+- Default - Prompt user confirmation
 
----
+### 4. Paragraph-Aware Chunking
 
-### 📋 **MATRIZ DE ESTADO ACTUAL:**
+Documents split on paragraph boundaries, preserving meaning:
+```typescript
+const chunks = chunkByParagraph(text, 4000, { splitLongParagraphs: true });
+// Better than naive character splitting
+```
 
-**🟢 Funcionalidad Core: 100% operativa**
-- Transcripción WhatsApp, core APIs, calendar, PDF - Todo funcional
-- 32 acciones autónomas implementadas
-- Zero-configuration OAuth via AutoAuthOrchestrator
-- 11 helpers funcionales (algunos con mocks opcionales)
+### 5. RSA P2P Security
 
-**🟡 Integraciones Externas: 70% funcionalidad**
-- Memory system, Audio, PDF, OAuth: 100% funcional
-- Email, WhatsApp: Parcial (requieren CLI tools o dependencias)
-- Intelligence: Funcional con algunos mocks tolerables
+No shared secrets - each party has keypair:
+```typescript
+// Encrypt for peer
+publicEncrypt(peerPublicKey, JSON.stringify(offer))
 
-**🔵 Features Futuras: 15% tras Phase 2**
-- Actualmente: CLI avanzada, dashboard, billing son mejoras
-- Post-Phase 2: Image Gen, Media Understanding, Web Search nativo
-
-**📈 Integraciones Pendientes (Phase 2):**
-- Media Understanding API (HIGH priority)
-- Web Search API (HIGH priority)
-- Image Generation API (HIGH priority - nuevo feature)
-- Enhanced TTS API (MEDIUM priority)
-
----
-
-### 📚 **DOCUMENTACIÓN COMPLETA:** files generated Post-Phase 1**
-
-1. ✅ `OPENCLAW_INTEGRATION_GAP.md` - Análisis de 9 integraciones pendientes
-2. ✅ `SESSION_SUMMARY_MERGE.md` - Detalles completos Phase 1 merge
-3. ✅ `PROJECT_REFERENCE.md` - Guía continuación del proyecto
-4. ✅ `README.md` - Actualizado con nuevas capacidades
-5. ✅ `ARCHITECTURE.md` - Actualizado con roadmap Phase 2 completo
-
-**Total Documentación:** ~2,000+ líneas de documentación técnica y estratégica
+// Decrypt locally
+privateDecrypt(privateKey, encryptedBase64)
+```
 
 ---
 
-### 🎯 **CONCLUSIÓN FINAL:**
+## Contributing
 
-**🟢 ESTADO ACTUAL: 90% COMPLETO - LISTO PARA PRODUCCIÓN**
+1. Fork the repository
+2. Create feature branch (`git checkout -b feature/amazing`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing`)
+5. Open Pull Request
 
-**ClawSecretary está completamente funcional y listo para producción inmediata.** El sistema completo de 6 herramientas, 32 acciones, 7 endpoints y 11 helpers está implementado y trabajando con las Core APIs de OpenClaw.
+### Guidelines
 
-**Solo requiere:**
-1. `npm install qrcode-terminal` (dependencia faltante)
-2. Configurar variables de entorno mínimas (MATON_API_KEY, WA_PHONE_NUMBER_ID, SAAS_BRIDGE_TOKEN)
-3. Opcional: Instalar herramientas CLI para funcionalidad extendida
-
-**📈 OBJETIVO PHASE 2:**
-- Timeline: 2-3 semanas
-- Target: 90% → 95% integración
-- Beneficios: Eliminar dependencias externas, capacidades mejoradas, nuevos features
-
-**🚀 SEGÚN PHASE 2:**
-- 4 nuevas APIs integradas
-- Mejor sincronización con upstream
-- Acceso a mejoras futuras del core
-- Ventaja competitiva mantenida
-
-**Los usuarios pueden empezar a usar Secretary INMEDIATAMENTE después de instalar `qrcode-terminal` y configurar las variables de entorno mínimas.**
+- Follow existing code style
+- Add tests for new actions
+- Update documentation (this file)
+- Use Conventional Commits
 
 ---
 
-_🦞 Powered by [OpenClaw Core APIs](https://github.com/openclaw/openclaw) - The Future of Agentic Computing_ ✅ **Phase 1 COMPLETED** 📋 **Phase 2 READY** 🚀 **Production Ready**
+## License
+
+MIT License - see [LICENSE](LICENSE) file.
+
+---
+
+<p align="center">
+  <strong>ClawSecretary</strong> - Your AI-Powered Personal Secretary 🦞
+</p>
+
+<p align="center">
+  Built with ❤️ for OpenClaw
+</p>
