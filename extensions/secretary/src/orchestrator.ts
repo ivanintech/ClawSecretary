@@ -32,6 +32,14 @@ import {
   executeParallelSubagents,
   ParallelScenarios,
 } from "./helpers/parallel-subagent-helper.js";
+import {
+  chunkMarkdownForWhatsApp,
+  convertTablesForChannel,
+  formatBriefingForWhatsApp,
+  processCommandText,
+  resolveTextChunkLimit,
+  resolveChunkMode,
+} from "./helpers/text-processor.js";
 import { syncKnowledge } from "./helpers/knowledge.js";
 import { generatePairingLink, printMagicLink } from "./helpers/pairing.js";
 import { waButtonPayload } from "./helpers/whatsapp.js";
@@ -123,6 +131,7 @@ export class SecretaryOrchestrator {
         "trigger_focus_mode",
         "urgent_alert",
         "magic_pair",
+        "process_text",
       ],
       description: "Action to perform.",
     }),
@@ -154,6 +163,8 @@ export class SecretaryOrchestrator {
     scene: Type.Optional(Type.String({ description: "Scene name for IoT." })),
     speaker: Type.Optional(Type.String({ description: "Speaker name (Sonos)." })),
     message: Type.Optional(Type.String({ description: "Alert message." })),
+    text: Type.Optional(Type.String({ description: "Text to process with native chunking/formatting." })),
+    mode: Type.Optional(Type.String({ description: "Channel mode for text processing: whatsapp, telegram, discord." })),
   });
 
   constructor(private api: OpenClawPluginApi) {
@@ -241,6 +252,8 @@ export class SecretaryOrchestrator {
         return this.handleTriggerFocusMode(params);
       case "urgent_alert":
         return this.handleUrgentAlert(params);
+      case "process_text":
+        return this.handleProcessText(params);
       default:
         return { content: [{ type: "text", text: `⚠️ Unknown action: ${params.action}` }] };
     }
@@ -929,6 +942,58 @@ export class SecretaryOrchestrator {
     if (phone) await triggerUrgentAlert(phone, msg);
     await updateSessionState(this.workspaceDir, "Alert", `Urgent message sent to ${phone}.`);
     return { content: [{ type: "text", text: "🚨 Alerta enviada." }] };
+  }
+
+  private async handleProcessText(params: any) {
+    const text = params.text || "";
+    const mode = params.mode || "whatsapp";
+
+    if (!text) {
+      return { content: [{ type: "text", text: "⚠️ No text provided for processing." }] };
+    }
+
+    try {
+      const limit = await resolveTextChunkLimit(this.api, mode as any);
+      const chunkMode = await resolveChunkMode(this.api, mode as any);
+
+      if (text.includes("|") && text.includes("---")) {
+        const converted = await convertTablesForChannel(this.api, text, mode as any);
+        const chunks = await chunkMarkdownForWhatsApp(this.api, converted, limit, chunkMode);
+
+        return {
+          content: [{ type: "text", text: `✅ Processed: ${chunks.chunkCount} chunks (${chunks.originalLength} chars)` }],
+          details: {
+            processed: true,
+            chunkCount: chunks.chunkCount,
+            originalLength: chunks.originalLength,
+            limit,
+            mode: chunkMode,
+          },
+        };
+      } else {
+        const chunks = await chunkMarkdownForWhatsApp(this.api, text, limit, chunkMode);
+
+        return {
+          content: [{ type: "text", text: `✅ Processed: ${chunks.chunkCount} chunks (${chunks.originalLength} chars)` }],
+          details: {
+            processed: true,
+            chunkCount: chunks.chunkCount,
+            originalLength: chunks.originalLength,
+            limit,
+            mode: chunkMode,
+          },
+        };
+      }
+    } catch (error) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: `❌ Text processing failed: ${error instanceof Error ? error.message : String(error)}`,
+          },
+        ],
+      };
+    }
   }
 }
 

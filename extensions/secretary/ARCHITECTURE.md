@@ -274,11 +274,12 @@ runtime.nodes.execute(device, action)
 | ✅ 4 | WhatsApp Native | Maton API | Core channel | HIGH | Medio (2-3h) | ✅ COMPLETADO |
 | ✅ 5 | Enhanced TTS | Sin voz custom | `listVoices()` + contexto | MEDIUM | Bajo (1-2h) | ✅ COMPLETADO |
 | ✅ 6 | Subagent Runtime | Sessions_spawn básico | Ejecución paralela | MEDIUM | Medio (4-6h) | ✅ COMPLETADO |
-| 🟢 7 | Session Management | WAL local | Core session APIs | LOW | Medio (3-4h) | Semana 3 |
-| 🟢 8 | Cron Integration | ✅ Heartbeats parciales | Scheduled briefings | LOW | Medio (2-3h) | Semana 3 |
-| 🟢 9 | Canvas/Nodes | ❌ No capacidad | UI generation | LOW | Alto (8-12h) | Opcional |
+| ✅ 7 | Text Processing | Sin chunking nativo | `channel.text.*` APIs | HIGH | Bajo (1-2h) | ✅ COMPLETADO |
+| 🟢 8 | Session Management | WAL local | Core session APIs | LOW | Medio (3-4h) | Semana 3 |
+| 🟢 9 | Cron Integration | ✅ Heartbeats parciales | Scheduled briefings | LOW | Medio (2-3h) | Semana 3 |
+| 🟢 10 | Canvas/Nodes | ❌ No capacidad | UI generation | LOW | Alto (8-12h) | Opcional |
 
-**Progreso:** 6/9 integraciones completadas (67%). **Resultado Esperado:** 90% → 95% integración completada en 2-3 semanas
+**Progreso:** 7/10 integraciones completadas (70%). **Resultado Esperado:** 90% → 95% integración completada en 2-3 semanas
 
 ---
 

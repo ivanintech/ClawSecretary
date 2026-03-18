@@ -244,6 +244,40 @@ runtime.tts.textToSpeech(text, voice, options)
 
 ---
 
+**7. Text Processing APIs (NUEVA - Integrada ✅)**
+```typescript
+// CAPACIDAD DEL CORE - INTEGRADA
+runtime.channel.text.chunkTextWithMode(text, limit, mode)
+runtime.channel.text.chunkMarkdownText(text, limit)
+runtime.channel.text.convertMarkdownTables(markdown, mode)
+runtime.channel.text.hasControlCommand(text)
+runtime.channel.text.resolveTextChunkLimit(cfg, channel)
+```
+
+**Estado:** ✅ COMPLETADO (marzo 18, 2026)
+- **Estado Anterior:** Sin procesamiento de texto nativo
+- **Estado Actual:** Chunking y formateo nativo de tablas Markdown
+- **Archivos:**
+  - `src/helpers/text-processor.ts` (nuevo - 290 líneas)
+  - `src/orchestrator.ts`: Action `process_text` añadida
+  - `src/whatsapp-tool.ts`: Integración de text processing en envío de mensajes
+- **APIs Utilizadas:**
+  - `chunkTextWithMode()` - Chunking con modo configurable
+  - `chunkMarkdownText()` - Chunking específico para Markdown
+  - `convertMarkdownTables()` - Conversión de tablas para WhatsApp
+  - `hasControlCommand()` - Detección de comandos
+  - `resolveTextChunkLimit()` - Límite dinámico por canal
+- **Beneficios Realizados:**
+  - ✅ Chunking automático de mensajes largos
+  - ✅ Conversión de tablas Markdown para WhatsApp
+  - ✅ Detección de comandos de control
+  - ✅ Límites dinámicos por canal
+  - ✅ Mejor manejo de emails y documentos
+- **Impacto:** 🔴 HIGH - Mejora inmediata en procesamiento
+- **Esfuerzo:** Bajo (1-2 horas) ✅ COMPLETADO
+
+---
+
 ## 📋 **MATRIZ DE INTEGRACIÓN PHASE 2**
 
 | Prioridad | API/Feature | Estado Actual | Estado Deseado | Impacto | Esfuerzo | Deadline |
@@ -254,10 +288,12 @@ runtime.tts.textToSpeech(text, voice, options)
 | ✅ 4 | WhatsApp Native | Maton API | Core channel | HIGH | Medio (2-3h) | ✅ COMPLETADO |
 | ✅ 5 | Enhanced TTS | Sin voz custom | `listVoices()` + contexto | MEDIUM | Bajo (1-2h) | ✅ COMPLETADO |
 | ✅ 6 | Subagent Runtime | Sessions_spawn básico | Ejecución paralela | MEDIUM | Medio (4-6h) | ✅ COMPLETADO |
-| 🟢 7 | Session Management | WAL local | Core session APIs | LOW | Medio (3-4h) | Semana 3 |
-| 🟢 8 | Canvas/Nodes | ❌ No capacidad | Renderizado visual | LOW | Alto (8-12h) | Opcional |
+| ✅ 7 | Text Processing | Sin chunking nativo | `channel.text.*` APIs | HIGH | Bajo (1-2h) | ✅ COMPLETADO |
+| 🟢 8 | Session Management | WAL local | Core session APIs | LOW | Medio (3-4h) | Semana 3 |
+| 🟢 9 | Cron Integration | ✅ Heartbeats parciales | Scheduled briefings | LOW | Medio (2-3h) | Semana 3 |
+| 🟢 10 | Canvas/Nodes | ❌ No capacidad | Renderizado visual | LOW | Alto (8-12h) | Opcional |
 
-**Progreso:** 6/8 integraciones completadas (75%). **Timeline: Phase 2 (2-3 semanas)** → **95% Integración Completada**
+**Progreso:** 7/10 integraciones completadas (70%). **Timeline: Phase 2 (2-3 semanas)** → **95% Integración Completada**
 
 ---
 

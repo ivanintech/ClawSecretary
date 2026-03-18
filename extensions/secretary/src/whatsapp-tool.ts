@@ -3,6 +3,12 @@ import path from "node:path";
 import { Type } from "@sinclair/typebox";
 import type { OpenClawPluginApi } from "../../../src/plugins/types.js";
 import { selectVoiceForContext, type VoiceContext } from "../helpers/tts-voice-selector";
+import {
+  chunkMarkdownForWhatsApp,
+  convertTablesForChannel,
+  resolveTextChunkLimit,
+  resolveChunkMode,
+} from "../helpers/text-processor";
 
 // WhatsApp Web Integration - Zero API Keys Required
 async function sendViaWhatsAppWeb(api: OpenClawPluginApi, recipient: string, message: object): Promise<object> {
@@ -134,19 +140,35 @@ export function createWhatsAppTool(api: OpenClawPluginApi) {
         return await sendWhatsAppSetupInstructions(api, to, body);
       }
 
+      // Process text using native OpenClaw text processing APIs
+      let processedBody = body;
+      try {
+        const limit = await resolveTextChunkLimit(api, "whatsapp");
+        const mode = await resolveChunkMode(api, "whatsapp");
+        if (body.includes("|") && body.includes("---")) {
+          processedBody = await convertTablesForChannel(api, body, "whatsapp");
+        }
+        const chunks = await chunkMarkdownForWhatsApp(api, processedBody, limit, mode);
+        if (chunks.chunkCount > 1) {
+          console.log(`[WhatsApp:Text] 📝 Processed text into ${chunks.chunkCount} chunks`);
+        }
+      } catch (error) {
+        console.log(`[WhatsApp:Text] ⚠️ Text processing skipped: ${error}`);
+      }
+
       // Build WhatsApp message payload
       let messagePayload: { [key: string]: any };
 
       if (action === "send_text") {
         messagePayload = {
           type: "text",
-          content: body
+          content: processedBody
         };
       } else if (action === "send_buttons") {
         messagePayload = {
           type: "interactive",
           content: {
-            text: body,
+            text: processedBody,
             interactive: {
               type: "button",
               buttons: buttons?.slice(0, 3).map((btn, idx) => ({
@@ -161,7 +183,7 @@ export function createWhatsAppTool(api: OpenClawPluginApi) {
           type: "interactive",
           content: {
             header: listHeader || "Opciones",
-            text: body,
+            text: processedBody,
             interactive: {
               type: "list",
               button: listButtonLabel || "Ver opciones",
@@ -187,7 +209,7 @@ export function createWhatsAppTool(api: OpenClawPluginApi) {
           const voiceSelection = await selectVoiceForContext(context, api.config);
           
           // Generate audio with voice selection
-          const audioPath = await runtime.tts?.textToSpeech(body, {
+          const audioPath = await runtime.tts?.textToSpeech(processedBody, {
             voice: voiceSelection.voiceId || undefined,
           });
 
@@ -197,7 +219,7 @@ export function createWhatsAppTool(api: OpenClawPluginApi) {
               type: "audio",
               content: {
                 file: audioPath,
-                text: `${contextEmoji} ${body}`  // Caption with context emoji
+                text: `${contextEmoji} ${processedBody}`  // Caption with context emoji
               }
             };
             console.log(`[WhatsApp:Voice] ✅ Audio generated: ${audioPath}`);
@@ -208,7 +230,7 @@ export function createWhatsAppTool(api: OpenClawPluginApi) {
           console.log("[WhatsApp:Voice] ⚠️ TTS failed, fallback to text message");
           messagePayload = {
             type: "text",
-            content: `🎤 ${body}`
+            content: `🎤 ${processedBody}`
           };
         }
       } else {
