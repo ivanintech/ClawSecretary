@@ -53,7 +53,9 @@ export class DeviceManager {
   getUserDevices(userId: string): DeviceInfo[] {
     return Array.from(devices.values())
       .filter(d => d.userId === userId && d.isActive)
+      // eslint-disable-next-line unicorn/no-array-sort
       .sort((a, b) => b.lastSeen.getTime() - a.lastSeen.getTime())
+      .slice()
   }
 
   getActiveDevices(): DeviceInfo[] {
@@ -80,7 +82,7 @@ export class DeviceManager {
     let cleaned = 0
     const now = Date.now()
     
-    for (const [id, device] of devices.entries()) {
+    for (const [, device] of devices.entries()) {
       if (device.isActive && (now - device.lastSeen.getTime()) > maxAgeMs) {
         device.isActive = false
         cleaned++

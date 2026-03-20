@@ -1,5 +1,4 @@
 import WebSocket from 'ws'
-import { v4 as uuidv4 } from 'uuid'
 import type pino from 'pino'
 import { DeviceManager } from './device-manager.js'
 
