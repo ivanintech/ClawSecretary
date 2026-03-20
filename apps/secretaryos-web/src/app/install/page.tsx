@@ -81,7 +81,6 @@ export default function InstallPage() {
   }
 
   const startPolling = (sid: string) => {
-    // Poll for WhatsApp connection status
     const interval = setInterval(async () => {
       try {
         const res = await fetch('/api/whatsapp', {
@@ -91,11 +90,11 @@ export default function InstallPage() {
         })
         const data = await res.json()
         
-        if (data.connected) {
-          clearInterval(interval)
-          setPollingInterval(null)
-          await completeInstall(sid)
-        }
+      if (data.connected) {
+        clearInterval(interval)
+        setPollingInterval(null)
+        await completeInstall(sid)
+      }
       } catch {
         // Continue polling
       }
@@ -107,11 +106,18 @@ export default function InstallPage() {
     setStatus('generating_qr')
     
     try {
-      // Complete WhatsApp connection and get session
+      // First complete the WhatsApp connection to get encrypted session
+      await fetch('/api/whatsapp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'complete', sessionId: sid })
+      })
+      
+      // Then get the session
       const res = await fetch('/api/whatsapp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'getSession', sessionId: sid, demo: sid.startsWith('demo-') })
+        body: JSON.stringify({ action: 'getSession' })
       })
       
       const data = await res.json()
@@ -220,14 +226,15 @@ export default function InstallPage() {
               </div>
               <div className="flex items-center gap-2 justify-center mb-4">
                 <MessageCircle className="w-5 h-5 text-green-500" />
-                <span className="text-green-700 font-medium">WhatsApp QR - Scan with WhatsApp</span>
+                <span className="text-green-700 font-medium">WhatsApp QR</span>
               </div>
               <p className="text-sm text-slate-600 mb-4">
-                Open WhatsApp on your phone → Settings → Linked Devices → Link a Device
+                Scan this QR with WhatsApp to link your account
               </p>
-              <p className="text-xs text-slate-400 mt-3">
-                QR expires in 60 seconds
-              </p>
+              <div className="flex items-center gap-2 justify-center text-sm text-slate-500">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Waiting for scan...
+              </div>
             </div>
           )}
 
@@ -240,44 +247,20 @@ export default function InstallPage() {
 
           {status === 'qr_ready' && (
             <div className="text-center">
+              <div className="bg-slate-50 rounded-2xl p-4 mb-6">
+                <img 
+                  src={qrDataUrl!}
+                  alt="Setup QR"
+                  className="w-64 h-64 mx-auto"
+                />
+              </div>
               <div className="flex items-center gap-2 justify-center mb-4">
                 <CheckCircle className="w-5 h-5 text-green-500" />
-                <span className="text-green-700 font-medium">Setup Complete!</span>
+                <span className="text-green-700 font-medium">Setup QR Ready</span>
               </div>
-              
-              <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-4 text-left">
-                <p className="text-sm font-medium text-green-800 mb-2">Copy this setup code:</p>
-                <div className="bg-white border border-green-300 rounded-lg p-3 font-mono text-xs break-all max-h-32 overflow-y-auto">
-                  {setupCode.substring(0, 100)}...
-                </div>
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(setupCode)
-                    alert('Setup code copied to clipboard!')
-                  }}
-                  className="mt-3 w-full py-2 px-4 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 flex items-center justify-center gap-2"
-                >
-                  <span>📋</span> Copy Setup Code
-                </button>
-              </div>
-              
-              <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-4 text-left">
-                <p className="text-sm font-medium text-slate-800 mb-2">On your Secretary app, run:</p>
-                <code className="block bg-slate-800 text-green-400 rounded-lg p-3 text-xs font-mono">
-                  secretary-mobile --code "{setupCode.substring(0, 50)}..."
-                </code>
-              </div>
-              
-              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4 text-left">
-                <p className="text-sm font-medium text-blue-800 mb-2">What happens next:</p>
-                <ol className="text-xs text-blue-700 space-y-1">
-                  <li>1. App saves the configuration locally</li>
-                  <li>2. App connects to bridge (WebSocket)</li>
-                  <li>3. WhatsApp session loaded</li>
-                  <li>4. Secretary is ready!</li>
-                </ol>
-              </div>
-              
+              <p className="text-sm text-slate-600 mb-6">
+                Scan this QR with Secretary app on your phone
+              </p>
               <button
                 onClick={regenerateQR}
                 className="w-full py-3 px-4 border border-slate-200 rounded-xl text-slate-700 hover:bg-slate-50 transition flex items-center justify-center gap-2"

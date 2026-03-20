@@ -75,12 +75,21 @@ export async function POST(request: Request) {
         console.error('Bridge error:', bridgeError)
         
         const demoQR = generateDemoQR()
+        // Generate QR as data URL
+        const QRCode = await import('qrcode')
+        const qrDataUrl = await QRCode.toDataURL(demoQR, {
+          margin: 2,
+          width: 300,
+          color: { dark: '#000000', light: '#FFFFFF' }
+        })
+        
         return NextResponse.json({
           success: true,
           status: 'pending',
           qrCode: demoQR,
+          qrDataUrl,
           sessionId: `demo-${Date.now()}`,
-          message: 'Escanea este código con WhatsApp (Demo)',
+          message: 'Demo mode - QR for testing',
           demo: true,
           expiresIn: 60
         } as WhatsAppLoginResult)
@@ -142,10 +151,23 @@ export async function POST(request: Request) {
     if (action === 'complete') {
       const sessionId = body.sessionId || profile?.whatsapp_session_id
       if (!sessionId || sessionId.startsWith('demo-')) {
+        // Store demo session
+        const demoSession = generateDemoEncryptedSession(user.id)
+        await supabase
+          .from('profiles')
+          .update({
+            whatsapp_connected: true,
+            whatsapp_encrypted_session: demoSession,
+            whatsapp_session_id: sessionId || `demo-${Date.now()}`,
+            whatsapp_phone: '+1234567890',
+            whatsapp_name: 'Demo User'
+          })
+          .eq('id', user.id)
+
         return NextResponse.json({
           success: true,
           connected: true,
-          message: 'Demo mode - session simulated'
+          sessionId: sessionId || `demo-${Date.now()}`
         })
       }
 
@@ -238,10 +260,21 @@ export async function GET() {
 }
 
 function generateDemoQR(): string {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-  let result = ''
-  for (let i = 0; i < 50; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length))
+  // Generate a demo WhatsApp-like QR data
+  // Format: version,type,edge_uuid,edge_password
+  const demoData = {
+    v: 1,
+    t: 'md',
+    u: `demo-${Date.now()}`,
+    d: Buffer.from(Math.random().toString()).toString('base64').substring(0, 20)
   }
-  return result
+  return JSON.stringify(demoData)
+}
+
+function generateDemoEncryptedSession(userId: string): string {
+  const demoSession = {
+    creds: { me: { jid: `${userId}@s.whatsapp.net`, name: 'Demo User' } },
+    keys: {}
+  }
+  return Buffer.from(JSON.stringify(demoSession)).toString('base64')
 }

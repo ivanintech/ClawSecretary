@@ -2,9 +2,11 @@
 
 FROM node:20-alpine AS build
 
+RUN apk add --no-cache git
+
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml* ./
+COPY package.json ./
 RUN npm install
 
 COPY tsconfig.json ./
@@ -14,9 +16,9 @@ RUN npm run build
 
 FROM node:20-alpine AS runtime
 
-WORKDIR /app
-
 RUN apk add --no-cache tini
+
+WORKDIR /app
 
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/node_modules ./node_modules

@@ -30,7 +30,7 @@ export interface DeviceInfo {
 
 export class BridgeClient {
   private config: BridgeConfig
-  private timeout = 30000
+  private timeout = 90000 // 90 seconds for WhatsApp pre-auth
 
   constructor(config: BridgeConfig) {
     this.config = config
