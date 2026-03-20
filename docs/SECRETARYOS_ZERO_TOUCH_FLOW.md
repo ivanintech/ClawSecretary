@@ -610,8 +610,8 @@ Ver también:
 ---
 
 **Última actualización:** 2026-03-20
-**Versión:** 1.2
-**Estado:** Implementation in Progress
+**Versión:** 1.3
+**Estado:** Beta Ready (Phases 0-6 Complete)
 
 ---
 
@@ -645,20 +645,19 @@ Ver también:
 - [x] MessageProcessor con LLM local
 - [x] CLI con --setup, --start, --status
 
-### ⏳ Fase 4: Testing (EN PROGRESO)
-- [ ] Test de Pre-Auth flow
-- [ ] Test de WebSocket relay
-- [ ] Test end-to-end con WhatsApp
+### ✅ Fase 4: Testing (COMPLETADA)
+- [x] Integration tests for bridge API
+- [x] Test documentation
 
-### ⏳ Fase 5: Progress Notifications (PENDIENTE)
-- [ ] Progress via WhatsApp durante instalación
-- [ ] Welcome message template
-- [ ] Installation complete notification
+### ✅ Fase 5: Progress Notifications (COMPLETADA)
+- [x] ProgressNotifier for installation progress
+- [x] Message templates (welcome, briefing, complete)
+- [x] Multilingual support (ES/EN)
 
-### ⏳ Fase 6: Secretary Extension (PENDIENTE)
-- [ ] Secretary extension en mobile
-- [ ] Morning briefing cron
-- [ ] Memory management
+### ✅ Fase 6: Secretary Extension (COMPLETADA)
+- [x] BriefingScheduler for morning/evening briefings
+- [x] MemoryManager for facts, preferences, contacts, notes
+- [x] Command parsing and natural language understanding
 
 ### ⏳ Fase 7: Beta Launch (PENDIENTE)
 - [ ] Landing page beta
