@@ -1,525 +1,228 @@
-# ClawSecretary - Guía de Usuario Final
+# SecretaryOS - User Guide
 
-## Tu Secretario Digital, En Tu Bolsillo
+## 🚀 Installation Guide
 
-**ClawSecretary** es tu secretario personal inteligente que vive en tu teléfono. Privado, proactivo, y siempre disponible.
+**Note:** SecretaryOS is currently in development. Full production deployment is in progress.
 
----
+### For Developers (Local Setup)
 
-## 🚀 Empezar en 3 Pasos (2 minutos)
+#### 1. Start the Bridge Server
 
-### Paso 1: Instalar
-
-**iOS:**
-```
-App Store → Buscar "OpenClaw" → Instalar
-```
-
-**Android:**
-```
-Google Play → Buscar "OpenClaw" → Instalar
+```bash
+cd apps/secretary-bridge
+npm install
+cp .env.example .env
+# Configure Supabase credentials in .env
+npm run dev
+# Server runs on http://localhost:3001
 ```
 
-### Paso 2: Conectar al Gateway (Tu Servidor Privado)
+#### 2. Start the Web App
 
-```
-┌─────────────────────────────────────────────────────┐
-│                                                      │
-│   📱 OpenClaw App                                   │
-│                                                      │
-│   ┌─────────────────────────────────────────────┐   │
-│   │                                              │   │
-│   │         📷 Escanear QR Code                 │   │
-│   │                                              │   │
-│   └─────────────────────────────────────────────┘   │
-│                                                      │
-│   ¿No tienes gateway?                               │
-│   → "Crear gateway local"                          │
-│                                                      │
-└─────────────────────────────────────────────────────┘
+```bash
+cd apps/secretaryos-web
+npm install
+cp .env.example .env.local
+# Configure Supabase credentials in .env.local
+npm run dev
+# App runs on http://localhost:3000
 ```
 
-**Opciones de Gateway:**
-
-| Opción | Privacidad | Dificultad | Mejor Para |
-|--------|-----------|------------|-----------|
-| **Tu propio servidor (VPS)** | 🔒🔒🔒 Máxima | Media | Usuarios avanzados |
-| **Gateway local (tu Mac/PC)** | 🔒🔒🔒 Máxima | Baja | Casa/oficina |
-| **Servicio gestionado** | 🔒🔒 Media | Muy Baja | Principiantes |
-
-### Paso 3: Conectar WhatsApp (Opcional)
+#### 3. Open the App
 
 ```
-┌─────────────────────────────────────────────────────┐
-│                                                      │
-│   📱 Secretary listo!                               │
-│                                                      │
-│   Conecta WhatsApp para recibir alertas:             │
-│                                                      │
-│   [Escanear QR de WhatsApp Business]                │
-│                                                      │
-│   ⏭️ Saltar (usarás solo voz/app)                   │
-│                                                      │
-└─────────────────────────────────────────────────────┘
+http://localhost:3000/install
 ```
 
 ---
 
-## 📱 Interfaz de Usuario
+## 📱 How It Works (Development Mode)
 
-### Pantalla Principal
+### Current Flow (Demo Mode)
 
-```
-┌─────────────────────────────────────────────────────┐
-│  📱 ClawSecretary                      ⚙️  🔔     │
-├─────────────────────────────────────────────────────┤
-│                                                      │
-│  ┌─────────────────────────────────────────────┐   │
-│  │                                              │   │
-│  │           🎤 "Hey Secretary"                 │   │
-│  │                                              │   │
-│  │      (Mantén presionado para hablar)         │   │
-│  │                                              │   │
-│  └─────────────────────────────────────────────┘   │
-│                                                      │
-│  ────────────────────────────────────────────────   │
-│                                                      │
-│  Resumen del Día                      →            │
-│  📅 3 reuniones | 📧 2 pendientes | ⏰ 14:30     │
-│                                                      │
-│  ────────────────────────────────────────────────   │
-│                                                      │
-│  Acciones Rápidas                                   │
-│  ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐            │
-│  │📅    │ │📧    │ │🎯    │ │📍    │            │
-│  │Agenda│ │Email │ │Focus │ │Ubicac.│            │
-│  └──────┘ └──────┘ └──────┘ └──────┘            │
-│                                                      │
-│  ────────────────────────────────────────────────   │
-│                                                      │
-│  Chat con Secretary                                 │
-│  ┌─────────────────────────────────────────────┐   │
-│  │ Tú: Briefing del día                         │   │
-│  │ Secretary: Aquí tienes tu resumen...         │   │
-│  └─────────────────────────────────────────────┘   │
-│                                                      │
-└─────────────────────────────────────────────────────┘
-```
-
-### Modo Voz (Hands-Free)
+Since we're in development, the WhatsApp integration uses demo mode:
 
 ```
-┌─────────────────────────────────────────────────────┐
-│                                                      │
-│              🎤 ESCUCHANDO...                        │
-│                                                      │
-│        "¿Cómo está mi agenda hoy?"                  │
-│                                                      │
-│              ⏹️ Cancelar                            │
-│                                                      │
-└─────────────────────────────────────────────────────┘
+1. Go to http://localhost:3000/install
+        ↓
+2. Click "Generate Setup QR"
+        ↓
+3. A demo QR code appears (simulated WhatsApp)
+        ↓
+4. Click "Simulate WhatsApp Scan"
+        ↓
+5. Setup QR is generated
+        ↓
+6. (Future: Scan with SecretaryOS mobile app)
+```
+
+### Real Flow (When Production Ready)
+
+```
+1. Go to https://secretaryos.app/install
+        ↓
+2. Click "Generate WhatsApp QR"
+        ↓
+3. Real QR code appears
+        ↓
+4. Scan with your WhatsApp app
+        ↓
+5. WhatsApp linked to your account
+        ↓
+6. Setup QR generated with your config
+        ↓
+7. Scan with SecretaryOS mobile app
+        ↓
+8. SecretaryOS ready! 🚀
 ```
 
 ---
 
-## 🎯 Ejemplos de Uso Diario
+## 🎯 Features
 
-### 🌅 Por la Mañana (8:00 AM)
+### What Works (Development)
 
-**Sin hacer nada:**
-> Secretary detecta que es hora del briefing matutino y te envía automáticamente:
+| Feature | Status | How to Test |
+|---------|--------|-------------|
+| Landing page | ✅ | Visit `/` |
+| Auth flow | ✅ | Login/signup |
+| Dashboard | ✅ | Visit `/dashboard` |
+| Setup QR generation | ⚠️ Demo | Visit `/install` |
+| Bridge health | ✅ | `curl localhost:3001/health` |
+| WebSocket relay | ⚠️ Demo | Mobile app needed |
 
-```
-┌─────────────────────────────────────────────────────┐
-│  📱 Notificación ClawSecretary                     │
-├─────────────────────────────────────────────────────┤
-│                                                      │
-│  ☀️ Buenos días! Briefing listo                     │
-│                                                      │
-│  📅 AGENDA HOY                                     │
-│  • 10:00 - Reunión equipo                         │
-│  • 14:00 - Call con cliente                       │
-│  • 17:00 - Gym                                    │
-│                                                      │
-│  📧 2 emails importantes                          │
-│  🌤️ Madrid: 22°C, soleado                        │
-│                                                      │
-│  💡 Tip: "Reunión 14:00 tiene docs pendientes"    │
-│                                                      │
-│  [Ver completo]  [Confirmar]  [Ignorar]          │
-│                                                      │
-└─────────────────────────────────────────────────────┘
-```
+### What's Coming
 
-### 🎤 Manos Libres (En el Coche)
+| Feature | ETA | Notes |
+|---------|-----|-------|
+| Real WhatsApp linking | 1 week | Need production bridge |
+| Mobile app scanner | 2 weeks | Need QR library |
+| End-to-end messaging | 3 weeks | Full integration |
 
-```
-👤: "Hey Secretary, añade reunión con María mañana a las 3"
+---
 
-📱 Secretary: "Hecho. Reunión con María mañana 15:00-16:00 creada."
-```
+## 🔧 Troubleshooting
 
-```
-👤: "Hey Secretary, cuánto tiempo tengo hasta la siguiente reunión?"
+### "WhatsApp QR doesn't work"
 
-📱 Secretary: "Tienes 45 minutos. Tu siguiente reunión es a las 14:00 en Sala B."
-```
+**Cause:** Currently in demo mode
+**Solution:** Wait for production deployment or test with demo mode
 
-### 📧 Gestión de Emails
+### "Can't connect to bridge"
 
-```
-👤: "Hey Secretary, procesa mis emails"
+**Check:**
+1. Bridge server running on port 3001
+2. `curl localhost:3001/health` returns 200
+3. Web app `.env.local` has correct `BRIDGE_URL`
 
-📱 Secretary: 
-┌─────────────────────────────────────────────────────┐
-│  📧 EMAIL TRIAGE (8 nuevos)                        │
-├─────────────────────────────────────────────────────┤
-│                                                      │
-│  🚨 URGENTE (2)                                    │
-│  • Juan: "Presupuesto Q2 - necesito respuesta"     │
-│  • Cliente: "Firma requerida"                       │
-│                                                      │
-│  📬 NORMAL (4)                                     │
-│  • Newsletter Tech Weekly                          │
-│  • LinkedIn: 3 conexiones nuevas                   │
-│                                                      │
-│  🗑️ AUTOMÁTICO (2)                                │
-│  • Promociones...                                  │
-│                                                      │
-└─────────────────────────────────────────────────────┘
-```
+### "Setup QR doesn't scan"
 
-### 📞 Contactar a Alguien
+**Cause:** Mobile scanner not implemented yet
+**Solution:** Development in progress
+
+---
+
+## 📊 Architecture (For Developers)
 
 ```
-👤: "Hey Secretary, llama a mi abogado"
-
-📱 Secretary: "Buscando contacto..."
-           "Encontrado: Carlos García - Abogado"
-           "Llamando ahora..."
-```
-
-### 📸 Capturar Algo
-
-```
-👤: "Hey Secretary, escanea este receipt"
-
-📱 Secretary: 
-┌─────────────────────────────────────────────────────┐
-│  📸 Receipt detectado                              │
-├─────────────────────────────────────────────────────┤
-│                                                      │
-│  Restaurant X                                      │
-│  €45.20                                           │
-│  18/03/2026                                       │
-│                                                      │
-│  ✓ Guardado en gastos                              │
-│  ✓ Añadido a Notion                               │
-│  ⏰ Recordatorio: Vence en 7 días               │
-│                                                      │
-└─────────────────────────────────────────────────────┘
-```
-
-### 🧘 Modo Concentración
-
-```
-👤: "Hey Secretary, activa modo focus"
-
-📱 Secretary:
-✅ Luces ajustadas (Philips Hue)
-✅ Música Sonos iniciada  
-✅ Notificaciones silenciadas
-✅ SESSION-STATE.md actualizado
-
-🧘 Modo focus activo - 2.5 horas de concentración
-```
-
-### 📝 Tomar Notas
-
-```
-👤: *Mantén presionado* 🎤
-
-"Importante: necesito llamar a Juan sobre el presupuesto 
-y recordar que tengo reunión con el equipo el jueves"
-
-📱 Secretary: "✓ Nota guardada"
-┌─────────────────────────────────────────────────────┐
-│  📝 Nota procesada                                  │
-├─────────────────────────────────────────────────────┤
-│                                                      │
-│  • Action: Llamar a Juan (presupuesto)             │
-│  • Context: Reunión equipo jueves                  │
-│  • Priority: Alta                                 │
-│                                                      │
-│  ✓ Añadido a tareas                               │
-│  ✓ Sincronizado con Notion                        │
-│  ✓ Recordatorio creado                            │
-│                                                      │
-└─────────────────────────────────────────────────────┘
-```
-
-### 📍 Contexto Ubicación
-
-```
-👤: "Hey Secretary, estoy cerca del cliente?"
-
-📱 Secretary: "Estás a 2.3 km de la oficina."
-           "Traffic: 15 min → 25 min"
-           "¿Querías que abra Maps?"
-```
-
-### 🔔 Recordatorios Proactivos
-
-```
-📱 Secretary (Notificación):
-┌─────────────────────────────────────────────────────┐
-│  ⏰ Recordatorio: Reunión en 5 minutos              │
-│                                                      │
-│  📍 Sala B, 3er piso                              │
-│  👥 4 asistentes                                   │
-│  📄 2 documentos adjuntos                         │
-│                                                      │
-│  [Ver detalles]  [Unirme al call]                  │
-│                                                      │
-└─────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                      SECRETARYOS                              │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  Browser                  Bridge Server           WhatsApp    │
+│  ┌─────────┐            ┌───────────┐         ┌────────┐ │
+│  │ Web App │────HTTPS──▶│ Pre-Auth  │──Baileys─▶│ Whats  │ │
+│  │         │◀───HTML────│           │◀─────────│ App    │ │
+│  └─────────┘            └─────┬─────┘           └────────┘ │
+│                               │                          │
+│                               │ WebSocket                │
+│                               ▼                          │
+│                          ┌───────────┐                   │
+│                          │ Mobile    │◀───QR Scan──┐      │
+│                          │ Client    │              │      │
+│                          └───────────┘              │      │
+│                                                       │      │
+└───────────────────────────────────────────────────────┘      │
+                                                              │
+                    Setup QR ──────────────────────────────┘      │
+                    (bridge URL + encrypted session)            │
 ```
 
 ---
 
-## 🔧 Configuración Rápida
+## 💡 Tips for Developers
 
-### Activar/Desactivar Servicios
+### Testing WhatsApp Flow
 
-```
-📱 App → ⚙️ Configuración
-│
-├── 📅 Calendarios
-│   ├── Google Calendar ✓
-│   ├── Outlook ✓  
-│   └── Calendly ✓
-│
-├── 📧 Email
-│   ├── Gmail ✓
-│   └── Outlook ✓
-│
-├── 💬 Mensajería
-│   ├── WhatsApp ✓
-│   └── iMessage (macOS) ✓
-│
-├── 🤖 Asistentes
-│   ├── Slack ✓
-│   └── Apple Reminders ✓
-│
-├── 📱 Móvil
-│   ├── Cámara ✓
-│   ├── Ubicación ✓
-│   ├── Contactos ✓
-│   ├── Notificaciones ✓
-│   └── SMS ✓
-│
-└── 🔒 Privacidad
-    ├── Datos locales ✓
-    ├── Encriptación E2E ✓
-    └── Sin nube externa ✓
+1. Use a **test WhatsApp account** (not your main number!)
+2. WhatsApp may temporarily ban numbers using unofficial clients
+3. Use `demo` mode in API for testing without real WhatsApp
+
+### Debugging Bridge Server
+
+```bash
+# Check logs
+cd apps/secretary-bridge
+npm run dev
+
+# Test health
+curl http://localhost:3001/health
+
+# Test metrics
+curl http://localhost:3001/metrics
+
+# Test WhatsApp start
+curl -X POST http://localhost:3001/auth/whatsapp/start \
+  -H "Content-Type: application/json" \
+  -d '{"userId":"test-user"}'
 ```
 
-### Personalizar Wake Word
+### Supabase Setup
+
+1. Create project at https://supabase.com
+2. Run migrations in `apps/secretaryos-web/src/lib/migrations/`
+3. Copy URL and anon key to `.env.local`
+
+---
+
+## 📞 Getting Help
+
+1. **Documentation:** See other files in this directory
+2. **Issues:** Open on GitHub
+3. **Discord:** Join OpenClaw community
+
+---
+
+## ⚠️ Known Limitations (Development)
+
+1. **Demo Mode:** WhatsApp integration uses simulated data
+2. **No Mobile Scanner:** QR codes generated but not consumed
+3. **Local Only:** No production deployment yet
+4. **Single Device:** Only one mobile client supported
+
+---
+
+## 🗺️ Roadmap to Production
 
 ```
-📱 App → ⚙️ Configuración → 🎤 Voz
-│
-├── Wake Word: "Hey Secretary" (default)
-│
-├── Alternatives:
-│   ├── "OK Secretary"
-│   ├── "Hey Boss"
-│   └── "Computer" (😄)
-│
-└── Sensitivity: ████████░░ 80%
-```
+Week 1:
+├── Deploy bridge to Railway/Fly.io
+├── Configure production WhatsApp session
+└── Test real QR scan flow
 
-### Notificaciones
+Week 2:
+├── Implement mobile QR scanner
+├── Test setup flow end-to-end
+└── Add monitoring
 
-```
-📱 App → ⚙️ Notificaciones
-│
-├── Briefing matutino ✓ (08:00)
-├── Briefing vespertino ✓ (20:00)
-├── Alertas urgentes ✓
-├── Recordatorios ✓
-└── Promociones ✗ (nunca)
+Week 3:
+├── Load testing
+├── Beta user testing
+└── Production launch
 ```
 
 ---
 
-## 📊 Panel de Control (Dashboard)
+**Thank you for testing SecretaryOS! 🚀**
 
-Accede desde cualquier navegador:
-
-```
-https://tu-gateway.local:18789
-```
-
-```
-┌─────────────────────────────────────────────────────┐
-│  📊 ClawSecretary Dashboard                         │
-├─────────────────────────────────────────────────────┤
-│                                                      │
-│  ┌─────────────┐  ┌─────────────┐                  │
-│  │ 📅 3        │  │ 📧 12       │                  │
-│  │ Reuniones   │  │ Emails      │                  │
-│  │ hoy         │  │ pendientes  │                  │
-│  └─────────────┘  └─────────────┘                  │
-│                                                      │
-│  ┌─────────────┐  ┌─────────────┐                  │
-│  │ 🏃 5,432    │  │ 📍 Oficina │                  │
-│  │ Pasos hoy   │  │ Conectado  │                  │
-│  └─────────────┘  └─────────────┘                  │
-│                                                      │
-│  ────────────────────────────────────────────────   │
-│                                                      │
-│  📈 Actividad Semanal                              │
-│  ████████████░░░░ 75%                             │
-│                                                      │
-│  ────────────────────────────────────────────────   │
-│                                                      │
-│  🔧 Servicios                                       │
-│  ✅ Google Calendar    ✅ Gmail                      │
-│  ✅ Outlook           ✅ WhatsApp                   │
-│  ✅ Slack             ✅ Notion                      │
-│                                                      │
-└─────────────────────────────────────────────────────┘
-```
-
----
-
-## ❓ FAQ - Preguntas Frecuentes
-
-### ¿Mis datos son privados?
-
-**Sí, 100%.**
-- Todo se ejecuta en TU servidor o TU teléfono
-- Los datos NO van a ninguna nube externa
-- La encriptación E2E protege tus conversaciones
-- Solo tú tienes acceso
-
-### ¿Necesito internet?
-
-**Depende del modo:**
-- **Gateway local**: Solo para sincronizar con servicios externos (email, calendar)
-- **Modo Offline**: Secretary funciona sin internet, sincroniza cuando vuelva
-
-### ¿Puedo usarlo en varios teléfonos?
-
-**Sí.** 
-- Conecta múltiples dispositivos al mismo gateway
-- Todos ven el mismo estado
-- Notificaciones llegan a todos
-
-### ¿Funciona sin WhatsApp?
-
-**Sí.**
-- Puedes usar solo la app
-- O usar solo voz ("Hey Secretary")
-- WhatsApp es opcional para notificaciones
-
-### ¿Cuánto cuesta?
-
-**Gratis.** 
-- OpenClaw es open source
-- Solo necesitas tu propio servidor (opcional)
-- Sin suscripciones
-
----
-
-## 🚨 Resolución de Problemas
-
-### "Secretary no me responde"
-
-```
-1. Verifica que el micrófono tiene permisos
-   → Ajustes → Privacidad → Micrófono → OpenClaw ✓
-
-2. Verifica conexión al gateway
-   → App → ⚙️ → Estado: "Conectado"
-
-3. Reinicia la app
-   → Desliza arriba → Swipe away OpenClaw → Abre de nuevo
-```
-
-### "No llegan notificaciones"
-
-```
-1. Verifica permisos de notificación
-   → Ajustes → Notificaciones → OpenClaw ✓
-
-2. Verifica que no está en "No Molestar"
-   → Ajustes → No Molestar → OFF
-
-3. Verifica batería
-   → No optimizar para OpenClaw → Ajustes → Batería
-```
-
-### "El gateway no responde"
-
-```
-1. Verifica que el servidor está encendido
-
-2. Verifica la IP del gateway
-   → App → ⚙️ → Gateway URL
-
-3. Firewall puede estar bloqueando
-   → Abre puerto 18789 para la IP local
-```
-
----
-
-## 🎉 Resumen: Tu Día con ClawSecretary
-
-```
-┌─────────────────────────────────────────────────────┐
-│                    UN DÍA TÍPICO                       │
-├─────────────────────────────────────────────────────┤
-│                                                        │
-│  🌅 08:00 - Briefing automático en WhatsApp          │
-│                                                        │
-│  🚗 08:30 - "Hey Secretary,添加 reunión 10am"        │
-│                                                        │
-│  💼 10:00 - Reunión (Secretary grabó notas)          │
-│                                                        │
-│  📝 10:30 - "Hey Secretary, cierra reunión"          │
-│                                                        │
-│  🧘 11:00 - "Hey Secretary, activa focus"            │
-│                                                        │
-│  📸 12:00 - "Hey Secretary, escanea receipt"        │
-│                                                        │
-│  🍽️ 14:00 - Recordatorio automático de almuerzo     │
-│                                                        │
-│  📧 15:00 - Secretary triage emails automáticamente │
-│                                                        │
-│  🎤 17:00 - "Hey Secretary, cuánto tiempo al gym?"    │
-│                                                        │
-│  🌙 20:00 - Briefing vespertino                     │
-│                                                        │
-│  💤 23:00 - Sync nocturno automático                │
-│                                                        │
-│  ⏱️ TU intervención: ~5 minutos al día                │
-│                                                        │
-└─────────────────────────────────────────────────────┘
-```
-
----
-
-## 📞 Soporte
-
-¿Necesitas ayuda?
-- 📖 Documentación: docs.openclaw.ai
-- 💬 Discord: discord.gg/openclaw
-- 🐛 Reportar bug: github.com/openclaw/openclaw/issues
-
----
-
-**¿Listo para empezar?**
-Descarga OpenClaw en tu dispositivo y sigue los 3 pasos de arriba.
-
-*Tu secretario digital te espera.* 🤖
+Your feedback helps us build a better product.
