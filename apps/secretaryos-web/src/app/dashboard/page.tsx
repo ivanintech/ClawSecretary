@@ -18,7 +18,8 @@ import {
   Bell,
   FileText,
   RefreshCcw,
-  Brain
+  Brain,
+  MessageCircle
 } from 'lucide-react'
 
 const mockActivities = [
@@ -232,6 +233,28 @@ export default function DashboardPage() {
               <p className="text-slate-600">📧 Reuniones: mañanas</p>
               <p className="text-slate-600">☕ No bebo café</p>
               <p className="text-slate-400">+ 9 más</p>
+            </div>
+          </div>
+
+          {/* WhatsApp Status */}
+          <div className="bg-white rounded-xl shadow-sm p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="font-semibold text-slate-900 flex items-center gap-2">
+                <MessageCircle className="w-5 h-5" />
+                WhatsApp
+              </h2>
+            </div>
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <span className="w-3 h-3 rounded-full bg-slate-300"></span>
+                <span className="text-sm text-slate-600">No conectado</span>
+              </div>
+              <Link 
+                href="/whatsapp/install"
+                className="block w-full py-2 px-3 bg-green-600 text-white text-center text-sm font-medium rounded-lg hover:bg-green-700 transition"
+              >
+                Conectar WhatsApp
+              </Link>
             </div>
           </div>
         </div>
