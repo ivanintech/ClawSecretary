@@ -42,12 +42,12 @@ CREATE TABLE IF NOT EXISTS installation_qrs (
 CREATE TABLE IF NOT EXISTS devices (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    device_name VARCHAR(100) NOT NULL,
-    platform VARCHAR(20) NOT NULL CHECK (platform IN ('ios', 'android')),
+    device_token VARCHAR(255) NOT NULL,
+    phone_number VARCHAR(50),
+    platform VARCHAR(20) CHECK (platform IN ('ios', 'android', 'web')),
     app_version VARCHAR(20),
     last_seen TIMESTAMPTZ DEFAULT NOW(),
-    is_online BOOLEAN DEFAULT FALSE,
-    registration_token VARCHAR(255),
+    is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -57,6 +57,15 @@ CREATE TABLE IF NOT EXISTS metrics (
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     metric_type VARCHAR(50) NOT NULL CHECK (metric_type IN ('message_count', 'session_duration', 'error', 'online_time')),
     value JSONB DEFAULT '{}',
+    recorded_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Message metrics (relay only, no content)
+CREATE TABLE IF NOT EXISTS message_metrics (
+    id BIGSERIAL PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    direction VARCHAR(20) NOT NULL CHECK (direction IN ('inbound', 'outbound')),
+    status VARCHAR(20) NOT NULL CHECK (status IN ('relayed', 'delivered', 'failed')),
     recorded_at TIMESTAMPTZ DEFAULT NOW()
 );
 

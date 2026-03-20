@@ -3,8 +3,10 @@ import cors from '@fastify/cors'
 import websocket from '@fastify/websocket'
 import jwt from '@fastify/jwt'
 import { WhatsAppPreAuthService } from './services/whatsapp-preauth.js'
+import { DeviceManager } from './services/device-manager.js'
+import { WebSocketRelayService } from './services/websocket-relay.js'
 import { healthCheck } from './db/client.js'
-import { v4 as uuidv4 } from 'uuid'
+import type { WebSocket } from 'ws'
 
 const fastify = Fastify({
   logger: true,
@@ -20,13 +22,27 @@ await fastify.register(jwt, {
   secret: process.env.JWT_SECRET || 'dev-secret-change-in-production',
 })
 
-const preAuthService = new WhatsAppPreAuthService(
-  process.env.SESSION_ENCRYPTION_KEY || 'default-dev-key-32-chars-xxxx'
-)
+const MASTER_KEY = process.env.SESSION_ENCRYPTION_KEY || 'default-dev-key-32-chars-xxxx'
+
+const preAuthService = new WhatsAppPreAuthService(MASTER_KEY)
+const deviceManager = new DeviceManager()
+const relayService = new WebSocketRelayService(MASTER_KEY, deviceManager, fastify.log as never)
+
+setInterval(async () => {
+  await relayService.pingConnections()
+}, 30000)
+
+setInterval(async () => {
+  await deviceManager.cleanupInactiveDevices()
+}, 60 * 60 * 1000)
 
 fastify.get('/health', async () => {
   const dbHealthy = await healthCheck()
-  return { status: 'ok', database: dbHealthy ? 'connected' : 'disconnected' }
+  return {
+    status: 'ok',
+    database: dbHealthy ? 'connected' : 'disconnected',
+    connections: relayService.getActiveConnectionCount()
+  }
 })
 
 fastify.post<{
@@ -104,7 +120,7 @@ fastify.get<{
     await fastify.jwt.verify(token)
     const session = await preAuthService.getSession(userId)
     return session || { error: 'No active session' }
-  } catch (error) {
+  } catch {
     return reply.status(401).send({ error: 'Invalid token' })
   }
 })
@@ -124,9 +140,89 @@ fastify.delete<{
     await fastify.jwt.verify(token)
     await preAuthService.revokeSession(userId)
     return { success: true }
-  } catch (error) {
+  } catch {
     return reply.status(401).send({ error: 'Invalid token' })
   }
+})
+
+fastify.get<{
+  Params: { userId: string }
+  Headers: { authorization: string }
+}>('/devices/:userId', async (request, reply) => {
+  const { userId } = request.params
+  const token = request.headers.authorization?.replace('Bearer ', '')
+  
+  if (!token) {
+    return reply.status(401).send({ error: 'Unauthorized' })
+  }
+  
+  try {
+    await fastify.jwt.verify(token)
+    const devices = await deviceManager.getUserDevices(userId)
+    return { devices }
+  } catch {
+    return reply.status(401).send({ error: 'Invalid token' })
+  }
+})
+
+fastify.delete<{
+  Params: { deviceId: string }
+  Headers: { authorization: string }
+}>('/devices/:deviceId', async (request, reply) => {
+  const { deviceId } = request.params
+  const token = request.headers.authorization?.replace('Bearer ', '')
+  
+  if (!token) {
+    return reply.status(401).send({ error: 'Unauthorized' })
+  }
+  
+  try {
+    await fastify.jwt.verify(token)
+    await deviceManager.deactivateDevice(deviceId)
+    return { success: true }
+  } catch {
+    return reply.status(401).send({ error: 'Invalid token' })
+  }
+})
+
+fastify.get('/metrics', async () => {
+  return {
+    activeConnections: relayService.getActiveConnectionCount(),
+    timestamp: new Date().toISOString()
+  }
+})
+
+fastify.register(async function (fastify) {
+  fastify.get('/relay', { websocket: true }, (socket, req) => {
+    const query = req.query as { 'device-token'?: string; session?: string }
+    const deviceToken = query['device-token']
+    const encryptedSession = query.session
+
+    if (!deviceToken || !encryptedSession) {
+      socket.send(JSON.stringify({ error: 'Missing authentication parameters' }))
+      socket.close(4001, 'Missing auth')
+      return
+    }
+
+    relayService.handleConnection(socket as unknown as WebSocket, deviceToken, encryptedSession)
+      .then((result) => {
+        if (!result.success) {
+          socket.send(JSON.stringify({ error: result.error }))
+          socket.close(4001, 'Authentication failed')
+        } else {
+          socket.send(JSON.stringify({ 
+            type: 'connected', 
+            deviceId: result.deviceId,
+            timestamp: Date.now()
+          }))
+        }
+      })
+      .catch((error) => {
+        fastify.log.error(error)
+        socket.send(JSON.stringify({ error: 'Connection failed' }))
+        socket.close(4001, 'Connection failed')
+      })
+  })
 })
 
 const start = async () => {
@@ -134,6 +230,7 @@ const start = async () => {
     const port = parseInt(process.env.PORT || '3001', 10)
     await fastify.listen({ port, host: '0.0.0.0' })
     console.log(`SecretaryOS Bridge running on port ${port}`)
+    console.log(`WebSocket relay endpoint: ws://localhost:${port}/relay`)
   } catch (err) {
     fastify.log.error(err)
     process.exit(1)
