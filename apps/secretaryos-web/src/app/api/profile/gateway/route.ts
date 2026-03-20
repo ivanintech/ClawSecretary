@@ -3,6 +3,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
+const DEFAULT_GATEWAY_URL = process.env.DEFAULT_GATEWAY_URL || 'wss://gateway.secretaryos.app'
+
 export async function PUT(request: Request) {
   const supabase = await createClient()
 
@@ -62,10 +64,22 @@ export async function GET() {
     .eq('id', user.id)
     .single()
 
-  if (error) {
-    console.error('Error fetching gateway URL:', error)
-    return NextResponse.json({ gateway_url: null })
+  if (error || !profile?.gateway_url) {
+    // Auto-configure with default gateway
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({ 
+        gateway_url: DEFAULT_GATEWAY_URL,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', user.id)
+
+    if (updateError) {
+      console.error('Error auto-configuring gateway URL:', updateError)
+    }
+
+    return NextResponse.json({ gateway_url: DEFAULT_GATEWAY_URL, autoConfigured: true })
   }
 
-  return NextResponse.json({ gateway_url: profile?.gateway_url })
+  return NextResponse.json({ gateway_url: profile.gateway_url })
 }
