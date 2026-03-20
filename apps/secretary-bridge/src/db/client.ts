@@ -1,106 +1,42 @@
-import pg from 'pg'
-import { pino } from 'pino'
-
-const { Pool } = pg
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
+import pino from 'pino'
 
 const logger = pino({ name: 'db' })
 
-export const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  max: 20,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
-})
+let supabase: SupabaseClient | null = null
 
-pool.on('error', (err: Error) => {
-  logger.error({ err }, 'Unexpected database pool error')
-})
+export function getSupabase(): SupabaseClient {
+  if (!supabase) {
+    const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
+    const key = process.env.SUPABASE_SERVICE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-export async function query<T = unknown>(
-  text: string,
-  params?: unknown[]
-): Promise<T[]> {
-  const start = Date.now()
-  const result = await pool.query(text, params)
-  const duration = Date.now() - start
-  
-  logger.debug({ 
-    query: text.substring(0, 100), 
-    rows: result.rowCount, 
-    duration 
-  }, 'Query executed')
-  
-  return result.rows as T[]
-}
+    if (!url || !key) {
+      throw new Error('Missing Supabase configuration')
+    }
 
-export async function queryOne<T = unknown>(
-  text: string,
-  params?: unknown[]
-): Promise<T | null> {
-  const rows = await query<T>(text, params)
-  return rows[0] || null
-}
+    supabase = createClient(url, key, {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false
+      }
+    })
 
-export async function transaction<T>(
-  callback: (client: pg.PoolClient) => Promise<T>
-): Promise<T> {
-  const client = await pool.connect()
-  try {
-    await client.query('BEGIN')
-    const result = await callback(client)
-    await client.query('COMMIT')
-    return result
-  } catch (error) {
-    await client.query('ROLLBACK')
-    throw error
-  } finally {
-    client.release()
+    logger.info({ url: url.replace(/\/\/.*@/, '//***@') }, 'Supabase client initialized')
   }
-}
 
-export async function checkRateLimit(
-  identifier: string,
-  action: string,
-  maxRequests: number,
-  windowSeconds: number
-): Promise<{ allowed: boolean; remaining: number }> {
-  const windowStart = new Date(Date.now() - windowSeconds * 1000)
-  
-  const result = await queryOne<{ count: string }>(
-    `SELECT COUNT(*) as count FROM rate_limits 
-     WHERE identifier = $1 AND action = $2 AND window_start > $3`,
-    [identifier, action, windowStart]
-  )
-  
-  const currentCount = parseInt(result?.count || '0', 10)
-  
-  if (currentCount >= maxRequests) {
-    return { allowed: false, remaining: 0 }
-  }
-  
-  await query(
-    `INSERT INTO rate_limits (identifier, action, count, window_start)
-     VALUES ($1, $2, 1, NOW())
-     ON CONFLICT (identifier, action) 
-     DO UPDATE SET count = rate_limits.count + 1, window_start = NOW()`,
-    [identifier, action]
-  )
-  
-  return { allowed: true, remaining: maxRequests - currentCount - 1 }
-}
-
-export async function cleanupExpiredSessions(): Promise<number> {
-  const result = await queryOne<{ count: string }>(
-    'SELECT cleanup_expired_sessions() as count'
-  )
-  return parseInt(result?.count || '0', 10)
+  return supabase
 }
 
 export async function healthCheck(): Promise<boolean> {
   try {
-    await pool.query('SELECT 1')
-    return true
+    const client = getSupabase()
+    const { error } = await client.from('profiles').select('id').limit(1)
+    return !error
   } catch {
     return false
   }
+}
+
+export function getActiveConnections(): number {
+  return 0
 }

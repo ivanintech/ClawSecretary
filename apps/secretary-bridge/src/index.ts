@@ -26,7 +26,7 @@ const MASTER_KEY = process.env.SESSION_ENCRYPTION_KEY || 'default-dev-key-32-cha
 
 const preAuthService = new WhatsAppPreAuthService(MASTER_KEY)
 const deviceManager = new DeviceManager()
-const relayService = new WebSocketRelayService(MASTER_KEY, deviceManager, fastify.log as never)
+const relayService = new WebSocketRelayService(deviceManager, fastify.log as never)
 
 setInterval(async () => {
   await relayService.pingConnections()
@@ -108,46 +108,6 @@ fastify.delete<{
 fastify.get<{
   Params: { userId: string }
   Headers: { authorization: string }
-}>('/sessions/:userId', async (request, reply) => {
-  const { userId } = request.params
-  const token = request.headers.authorization?.replace('Bearer ', '')
-  
-  if (!token) {
-    return reply.status(401).send({ error: 'Unauthorized' })
-  }
-  
-  try {
-    await fastify.jwt.verify(token)
-    const session = await preAuthService.getSession(userId)
-    return session || { error: 'No active session' }
-  } catch {
-    return reply.status(401).send({ error: 'Invalid token' })
-  }
-})
-
-fastify.delete<{
-  Params: { userId: string }
-  Headers: { authorization: string }
-}>('/sessions/:userId', async (request, reply) => {
-  const { userId } = request.params
-  const token = request.headers.authorization?.replace('Bearer ', '')
-  
-  if (!token) {
-    return reply.status(401).send({ error: 'Unauthorized' })
-  }
-  
-  try {
-    await fastify.jwt.verify(token)
-    await preAuthService.revokeSession(userId)
-    return { success: true }
-  } catch {
-    return reply.status(401).send({ error: 'Invalid token' })
-  }
-})
-
-fastify.get<{
-  Params: { userId: string }
-  Headers: { authorization: string }
 }>('/devices/:userId', async (request, reply) => {
   const { userId } = request.params
   const token = request.headers.authorization?.replace('Bearer ', '')
@@ -204,24 +164,22 @@ fastify.register(async function (fastify) {
       return
     }
 
-    relayService.handleConnection(socket as unknown as WebSocket, deviceToken, encryptedSession)
-      .then((result) => {
-        if (!result.success) {
-          socket.send(JSON.stringify({ error: result.error }))
-          socket.close(4001, 'Authentication failed')
-        } else {
-          socket.send(JSON.stringify({ 
-            type: 'connected', 
-            deviceId: result.deviceId,
-            timestamp: Date.now()
-          }))
-        }
-      })
-      .catch((error) => {
-        fastify.log.error(error)
-        socket.send(JSON.stringify({ error: 'Connection failed' }))
-        socket.close(4001, 'Connection failed')
-      })
+    try {
+      const deviceId = relayService.handleConnection(
+        socket as unknown as WebSocket,
+        deviceToken,
+        encryptedSession
+      )
+      socket.send(JSON.stringify({
+        type: 'connected',
+        deviceId,
+        timestamp: Date.now()
+      }))
+    } catch (error) {
+      fastify.log.error(error)
+      socket.send(JSON.stringify({ error: 'Connection failed' }))
+      socket.close(4001, 'Connection failed')
+    }
   })
 })
 

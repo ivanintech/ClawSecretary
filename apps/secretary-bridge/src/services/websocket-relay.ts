@@ -1,11 +1,10 @@
-import { DeviceManager } from './device-manager.js'
-import { SessionEncryption } from '../utils/encryption.js'
-import { query } from '../db/client.js'
+import WebSocket from 'ws'
+import { v4 as uuidv4 } from 'uuid'
 import type pino from 'pino'
-import type { WebSocket } from 'ws'
+import { DeviceManager } from './device-manager.js'
 
-export interface RelayMessage {
-  type: 'message' | 'ack' | 'typing' | 'presence'
+export interface BridgeMessage {
+  type: 'message' | 'ack' | 'typing' | 'presence' | 'config' | 'ping' | 'pong'
   id: string
   from?: string
   to?: string
@@ -23,59 +22,37 @@ export interface DeviceConnection {
 }
 
 export class WebSocketRelayService {
-  private encryption: SessionEncryption
   private deviceManager: DeviceManager
   private connections: Map<string, DeviceConnection> = new Map()
   private logger: pino.Logger
 
-  constructor(
-    masterKey: string,
-    deviceManager: DeviceManager,
-    logger: pino.Logger
-  ) {
-    this.encryption = new SessionEncryption(masterKey)
+  constructor(deviceManager: DeviceManager, logger: pino.Logger) {
     this.deviceManager = deviceManager
     this.logger = logger
   }
 
-  async handleConnection(
+  handleConnection(
     socket: WebSocket,
-    deviceToken: string,
-    encryptedSession: string
-  ): Promise<{ success: boolean; deviceId?: string; error?: string }> {
-    try {
-      const decrypted = this.encryption.decryptSession(encryptedSession) as string
-      const sessionData = JSON.parse(decrypted) as { userId?: string; phoneNumber?: string }
-      
-      const userId = sessionData.userId
-      if (!userId) {
-        return { success: false, error: 'Invalid session data' }
-      }
+    userId: string,
+    phoneNumber: string | null
+  ): string {
+    const deviceId = this.deviceManager.registerDevice(userId, phoneNumber)
 
-      const deviceId = await this.deviceManager.registerDevice(userId, {
-        token: deviceToken,
-        phoneNumber: sessionData.phoneNumber || null,
-      })
-
-      const connection: DeviceConnection = {
-        deviceId,
-        userId,
-        socket,
-        phoneNumber: sessionData.phoneNumber || null,
-        isAlive: true,
-        lastSeen: new Date(),
-      }
-
-      this.connections.set(deviceId, connection)
-      this.logger.info({ deviceId, userId }, 'Device connected')
-
-      this.setupSocketHandlers(connection)
-
-      return { success: true, deviceId }
-    } catch (error) {
-      this.logger.error({ error }, 'Failed to handle WebSocket connection')
-      return { success: false, error: 'Authentication failed' }
+    const connection: DeviceConnection = {
+      deviceId,
+      userId,
+      socket,
+      phoneNumber,
+      isAlive: true,
+      lastSeen: new Date(),
     }
+
+    this.connections.set(deviceId, connection)
+    this.logger.info({ deviceId, userId }, 'Device connected')
+
+    this.setupSocketHandlers(connection)
+
+    return deviceId
   }
 
   private setupSocketHandlers(connection: DeviceConnection): void {
@@ -83,7 +60,7 @@ export class WebSocketRelayService {
 
     socket.on('message', async (data) => {
       try {
-        const message = JSON.parse(data.toString()) as RelayMessage
+        const message = JSON.parse(data.toString()) as BridgeMessage
         await this.handleMessage(connection, message)
       } catch (error) {
         this.logger.error({ error, deviceId }, 'Failed to process message')
@@ -107,43 +84,42 @@ export class WebSocketRelayService {
 
   private async handleMessage(
     connection: DeviceConnection,
-    message: RelayMessage
+    message: BridgeMessage
   ): Promise<void> {
     connection.lastSeen = new Date()
     connection.isAlive = true
+    this.deviceManager.updateLastSeen(connection.deviceId)
 
     switch (message.type) {
       case 'message':
         await this.handleRelayMessage(connection, message)
         break
       case 'ack':
-        await this.handleAck(connection, message)
+        this.logger.debug({ messageId: message.id }, 'Message ack')
         break
       case 'typing':
-        await this.handleTyping(connection, message)
+        this.logger.debug({ to: message.to }, 'Typing indicator')
         break
       case 'presence':
-        await this.handlePresence(connection, message)
+        this.logger.debug({ jid: (message.payload as { jid: string }).jid }, 'Presence update')
+        break
+      case 'pong':
+        this.logger.debug('Pong received')
         break
     }
   }
 
   private async handleRelayMessage(
     connection: DeviceConnection,
-    message: RelayMessage
+    message: BridgeMessage
   ): Promise<void> {
     this.logger.debug({
       deviceId: connection.deviceId,
       messageId: message.id,
       to: message.to
-    }, 'Relaying message')
+    }, 'Message relayed')
 
-    await query(
-      `INSERT INTO message_metrics (user_id, direction, status) VALUES ($1, $2, 'relayed')`,
-      [connection.userId, message.to ? 'outbound' : 'inbound']
-    )
-
-    const ack: RelayMessage = {
+    const ack: BridgeMessage = {
       type: 'ack',
       id: message.id,
       payload: { status: 'delivered', timestamp: Date.now() },
@@ -152,39 +128,20 @@ export class WebSocketRelayService {
     connection.socket.send(JSON.stringify(ack))
   }
 
-  private async handleAck(
-    connection: DeviceConnection,
-    message: RelayMessage
-  ): Promise<void> {
-    this.logger.debug({
-      deviceId: connection.deviceId,
-      messageId: message.id,
-      status: (message.payload as { status: string }).status
-    }, 'Message ack received')
-  }
+  sendToUser(userId: string, message: BridgeMessage): boolean {
+    const userConnections = this.getUserConnections(userId)
+    
+    if (userConnections.length === 0) {
+      return false
+    }
 
-  private async handleTyping(
-    connection: DeviceConnection,
-    message: RelayMessage
-  ): Promise<void> {
-    const payload = message.payload as { to: string; isTyping: boolean }
-    this.logger.debug({
-      deviceId: connection.deviceId,
-      to: payload.to,
-      isTyping: payload.isTyping
-    }, 'Typing indicator')
-  }
-
-  private async handlePresence(
-    connection: DeviceConnection,
-    message: RelayMessage
-  ): Promise<void> {
-    const payload = message.payload as { jid: string; presence: string }
-    this.logger.debug({
-      deviceId: connection.deviceId,
-      jid: payload.jid,
-      presence: payload.presence
-    }, 'Presence update')
+    for (const connection of userConnections) {
+      if (connection.isAlive) {
+        connection.socket.send(JSON.stringify(message))
+      }
+    }
+    
+    return true
   }
 
   getConnection(deviceId: string): DeviceConnection | undefined {
@@ -201,7 +158,7 @@ export class WebSocketRelayService {
     return this.connections.size
   }
 
-  async pingConnections(): Promise<number> {
+  pingConnections(): number {
     let alive = 0
     for (const connection of this.connections.values()) {
       if (connection.isAlive) {
@@ -209,6 +166,7 @@ export class WebSocketRelayService {
       } else {
         connection.socket.terminate()
         this.connections.delete(connection.deviceId)
+        this.deviceManager.deactivateDevice(connection.deviceId)
       }
       connection.isAlive = false
       connection.socket.ping()
