@@ -257,20 +257,22 @@ Semana 4:
 | SecretaryOS Web App | ✅ Done | `apps/secretaryos-web/` |
 | Supabase Integration | ✅ Done | Auth, Memories, Routines |
 | Tests passing | ✅ Done | 19/19 tests pass |
+| **Mobile Deep Link Handler** | ✅ Done | Uses OpenClaw device pairing |
+| **AutoAuthOrchestrator Integration** | ✅ Done | Web UI + OAuth connections |
+| **OAuth API Routes** | ✅ Done | `/api/oauth`, `/api/oauth/callback` |
 
 ### 🔄 En Progreso
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| Mobile deep link | 🔄 Pending | Needs OpenClaw native app or wrapper |
 | `runtime.tools.createMemorySearchTool()` | 🔄 Partial | Used in index.ts |
 
 ### 📋 Pendiente
 
 | Feature | Priority | Notes |
 |---------|----------|-------|
-| AutoAuthOrchestrator integration | Medium | Already in onboarding flow |
 | Full memory migration to runtime.tools | Low | Current implementation works |
+| Google Places API native calls | Low | Replace CLI calls |
 
 ---
 

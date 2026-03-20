@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
+import dynamic from 'next/dynamic'
 import { 
   Settings,
   User,
@@ -17,8 +18,18 @@ import {
   ExternalLink,
   Wifi,
   Loader2,
-  Save
+  Save,
+  Link2
 } from 'lucide-react'
+
+const OAuthConnectionsSettings = dynamic(() => import('@/components/OAuthConnectionsSettings'), {
+  ssr: false,
+  loading: () => (
+    <div className="flex items-center justify-center py-12">
+      <Loader2 className="w-8 h-8 text-brand-600 animate-spin" />
+    </div>
+  )
+})
 
 const settingsSections = [
   {
@@ -265,6 +276,20 @@ export default function SettingsPage() {
             Generar QR de instalación
           </a>
         </div>
+      </motion.div>
+
+      {/* OAuth Connections */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.55 }}
+        className="mt-6"
+      >
+        <div className="flex items-center gap-2 mb-4">
+          <Link2 className="w-5 h-5 text-slate-600" />
+          <h3 className="font-semibold text-slate-900">Connected Services</h3>
+        </div>
+        <OAuthConnectionsSettings />
       </motion.div>
 
       {/* Danger Zone */}
