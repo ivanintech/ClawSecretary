@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  bridge:
+    image: ivanintech/secretaryos-bridge:latest
+    container_name: secretaryos-bridge
+    ports:
+      - "3001:3001"
+    environment:
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
+      - SESSION_ENCRYPTION_KEY=${SESSION_ENCRYPTION_KEY}
+      - JWT_SECRET=${JWT_SECRET}
+      - PORT=3001
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
