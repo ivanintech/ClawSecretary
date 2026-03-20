@@ -7,70 +7,126 @@ import {
   Smartphone,
   CheckCircle,
   Loader2,
-  Download,
-  Copy,
   QrCode,
-  Terminal
+  RefreshCw,
+  MessageCircle
 } from 'lucide-react'
 
+type InstallStatus = 'loading' | 'no_auth' | 'ready' | 'connecting_whatsapp' | 'generating_qr' | 'qr_ready' | 'error'
+
 export default function InstallPage() {
-  const [loading, setLoading] = useState(true)
-  const [generating, setGenerating] = useState(false)
-  const [setupCode, setSetupCode] = useState('')
+  const [status, setStatus] = useState<InstallStatus>('loading')
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null)
-  const [copied, setCopied] = useState(false)
+  const [setupCode, setSetupCode] = useState<string>('')
+  const [sessionId, setSessionId] = useState<string>('')
   const [error, setError] = useState<string | null>(null)
+  const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
-    checkStatus()
+    checkAuth()
+    return () => {
+      if (pollingInterval) clearInterval(pollingInterval)
+    }
   }, [])
 
-  const checkStatus = async () => {
-    setLoading(true)
+  const checkAuth = async () => {
     try {
       const res = await fetch('/api/auth/status')
       if (!res.ok) {
         window.location.href = '/login?redirect=/install'
         return
       }
+      setStatus('ready')
     } catch {
       window.location.href = '/login?redirect=/install'
-    } finally {
-      setLoading(false)
     }
   }
 
-  const generateSetup = async () => {
-    setGenerating(true)
+  const startInstall = async () => {
+    setStatus('connecting_whatsapp')
     setError(null)
     
     try {
       const res = await fetch('/api/whatsapp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'getSession' })
+        body: JSON.stringify({ action: 'start' })
       })
       
-      if (!res.ok) {
-        throw new Error('Failed to get session')
+      const data = await res.json()
+      
+      if (!data.success && !data.qrCode && !data.qrDataUrl) {
+        throw new Error(data.error || 'Failed to start WhatsApp connection')
       }
 
+      setSessionId(data.sessionId)
+      
+      if (data.qrCode) {
+        const qr = await QRCode.toDataURL(data.qrCode, {
+          margin: 2,
+          width: 300,
+          color: { dark: '#000000', light: '#FFFFFF' }
+        })
+        setQrDataUrl(qr)
+      } else if (data.qrDataUrl) {
+        setQrDataUrl(data.qrDataUrl)
+      }
+      
+      setStatus('connecting_whatsapp')
+      startPolling(data.sessionId)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to connect WhatsApp')
+      setStatus('error')
+    }
+  }
+
+  const startPolling = (sid: string) => {
+    // Poll for WhatsApp connection status
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch('/api/whatsapp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'status' })
+        })
+        const data = await res.json()
+        
+        if (data.connected) {
+          clearInterval(interval)
+          setPollingInterval(null)
+          await completeInstall(sid)
+        }
+      } catch {
+        // Continue polling
+      }
+    }, 3000)
+    setPollingInterval(interval)
+  }
+
+  const completeInstall = async (sid: string) => {
+    setStatus('generating_qr')
+    
+    try {
+      // Complete WhatsApp connection and get session
+      const res = await fetch('/api/whatsapp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'getSession', sessionId: sid, demo: sid.startsWith('demo-') })
+      })
+      
       const data = await res.json()
       
       if (!data.success || !data.encryptedSession) {
-        throw new Error('WhatsApp not connected. Please connect WhatsApp first.')
+        throw new Error('Failed to get WhatsApp session')
       }
-
-      const profileRes = await fetch('/api/profile/gateway')
-      const profileData = await profileRes.json()
 
       const bridgeRes = await fetch('/api/bridge/config')
       const bridgeData = await bridgeRes.json()
 
       const setupData = {
-        userId: data.sessionId?.split('-')[0] || 'unknown',
-        bridgeUrl: bridgeData.url || 'https://your-bridge.com',
-        bridgeToken: 'auto-generated-token',
+        userId: data.sessionId || 'user',
+        bridgeUrl: bridgeData.url || 'https://bridge.secretaryos.app',
+        bridgeToken: `token-${Date.now()}`,
         encryptedSession: data.encryptedSession,
         phoneNumber: data.phoneNumber
       }
@@ -84,20 +140,28 @@ export default function InstallPage() {
         color: { dark: '#000000', light: '#FFFFFF' }
       })
       setQrDataUrl(qr)
+      
+      if (pollingInterval) {
+        clearInterval(pollingInterval)
+        setPollingInterval(null)
+      }
+      
+      setStatus('qr_ready')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to generate setup code')
-    } finally {
-      setGenerating(false)
+      setError(err instanceof Error ? err.message : 'Failed to generate setup QR')
+      setStatus('error')
     }
   }
 
-  const copyToClipboard = async () => {
-    await navigator.clipboard.writeText(setupCode)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+  const regenerateQR = () => {
+    setStatus('ready')
+    setQrDataUrl(null)
+    setSetupCode('')
+    setSessionId('')
+    setError(null)
   }
 
-  if (loading) {
+  if (status === 'loading') {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-brand-500" />
@@ -117,10 +181,10 @@ export default function InstallPage() {
             <Smartphone className="w-10 h-10 text-brand-600" />
           </div>
           <h1 className="text-3xl font-bold text-slate-900 mb-2">
-            One-Click Installation
+            Install Secretary
           </h1>
           <p className="text-slate-600">
-            Scan the QR code with your phone to install Secretary
+            One QR code to set up everything
           </p>
         </motion.div>
 
@@ -130,108 +194,119 @@ export default function InstallPage() {
           transition={{ delay: 0.1 }}
           className="bg-white rounded-2xl shadow-xl p-8 mb-6"
         >
-          {!qrDataUrl ? (
+          {status === 'ready' && (
             <div className="text-center">
               <div className="w-64 h-64 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
                 <QrCode className="w-24 h-24 text-slate-300" />
               </div>
-              
-              {error && (
-                <div className="mb-4 p-4 bg-red-50 text-red-600 rounded-xl text-sm">
-                  {error}
-                </div>
-              )}
-              
               <button
-                onClick={generateSetup}
-                disabled={generating}
-                className="w-full py-4 px-6 bg-brand-600 text-white font-semibold rounded-xl hover:bg-brand-700 transition disabled:opacity-50 flex items-center justify-center gap-2"
+                onClick={startInstall}
+                className="w-full py-4 px-6 bg-brand-600 text-white font-semibold rounded-xl hover:bg-brand-700 transition flex items-center justify-center gap-2"
               >
-                {generating ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <QrCode className="w-5 h-5" />
-                )}
+                <QrCode className="w-5 h-5" />
                 Generate Setup QR
               </button>
             </div>
-          ) : (
+          )}
+
+          {status === 'connecting_whatsapp' && (
+            <div className="text-center">
+              <div className="w-64 h-64 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-6 overflow-hidden">
+                {qrDataUrl ? (
+                  <img src={qrDataUrl} alt="WhatsApp QR" className="w-48 h-48" />
+                ) : (
+                  <Loader2 className="w-16 h-16 animate-spin text-slate-400" />
+                )}
+              </div>
+              <div className="flex items-center gap-2 justify-center mb-4">
+                <MessageCircle className="w-5 h-5 text-green-500" />
+                <span className="text-green-700 font-medium">WhatsApp QR - Scan with WhatsApp</span>
+              </div>
+              <p className="text-sm text-slate-600 mb-4">
+                Open WhatsApp on your phone → Settings → Linked Devices → Link a Device
+              </p>
+              <p className="text-xs text-slate-400 mt-3">
+                QR expires in 60 seconds
+              </p>
+            </div>
+          )}
+
+          {status === 'generating_qr' && (
+            <div className="text-center">
+              <Loader2 className="w-12 h-12 animate-spin text-brand-500 mx-auto mb-4" />
+              <p className="text-slate-600">Generating your setup QR...</p>
+            </div>
+          )}
+
+          {status === 'qr_ready' && (
             <div className="text-center">
               <div className="bg-slate-50 rounded-2xl p-4 mb-6">
                 <img 
-                  src={qrDataUrl}
-                  alt="Setup QR Code"
+                  src={qrDataUrl!}
+                  alt="Setup QR"
                   className="w-64 h-64 mx-auto"
                 />
               </div>
-              
               <div className="flex items-center gap-2 justify-center mb-4">
                 <CheckCircle className="w-5 h-5 text-green-500" />
-                <span className="text-green-700 font-medium">QR Code Ready</span>
+                <span className="text-green-700 font-medium">Setup QR Ready</span>
               </div>
-              
-              <p className="text-sm text-slate-600 mb-6">
-                Scan this QR code with Secretary app or Termux on your phone
+              <p className="text-sm text-slate-600 mb-4">
+                Scan this QR with Secretary app on your phone
               </p>
               
+              {/* Demo: Show what happens when scanned */}
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4 text-left">
+                <p className="text-sm font-medium text-blue-800 mb-2">📱 Demo: What happens when scanned:</p>
+                <ol className="text-xs text-blue-700 space-y-1">
+                  <li>1. App decodes QR → gets config</li>
+                  <li>2. App saves config locally</li>
+                  <li>3. App connects to bridge (WebSocket)</li>
+                  <li>4. WhatsApp session loaded</li>
+                  <li>5. Secretary is ready!</li>
+                </ol>
+                <button
+                  onClick={async () => {
+                    const bridgeRes = await fetch('/api/bridge/config')
+                    const bridgeData = await bridgeRes.json()
+                    alert('Demo: Would connect to ' + bridgeData.url + '/relay')
+                  }}
+                  className="mt-3 w-full py-2 px-4 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700"
+                >
+                  Test Connection (Demo)
+                </button>
+              </div>
+              
               <button
-                onClick={generateSetup}
-                className="w-full py-3 px-4 border border-slate-200 rounded-xl text-slate-700 hover:bg-slate-50 transition"
+                onClick={regenerateQR}
+                className="w-full py-3 px-4 border border-slate-200 rounded-xl text-slate-700 hover:bg-slate-50 transition flex items-center justify-center gap-2"
               >
-                Generate New QR
+                <RefreshCw className="w-5 h-5" />
+                Start Over
+              </button>
+            </div>
+          )}
+
+          {status === 'error' && (
+            <div className="text-center">
+              <div className="text-red-500 mb-4">
+                <MessageCircle className="w-12 h-12 mx-auto" />
+              </div>
+              <p className="text-red-600 mb-4">{error}</p>
+              <button
+                onClick={regenerateQR}
+                className="py-3 px-6 bg-brand-600 text-white rounded-xl hover:bg-brand-700 transition"
+              >
+                Try Again
               </button>
             </div>
           )}
         </motion.div>
 
-        {setupCode && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="bg-white rounded-2xl shadow-lg p-6"
-          >
-            <h3 className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
-              <Terminal className="w-5 h-5" />
-              Manual Installation
-            </h3>
-            
-            <div className="flex gap-2 mb-4">
-              <input
-                type="text"
-                value={setupCode.substring(0, 50) + '...'}
-                readOnly
-                className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-600 font-mono"
-              />
-              <button
-                onClick={copyToClipboard}
-                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg transition"
-              >
-                {copied ? (
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                ) : (
-                  <Copy className="w-5 h-5 text-slate-600" />
-                )}
-              </button>
-            </div>
-            
-            <div className="text-sm text-slate-600 space-y-2">
-              <p className="font-medium">For Termux:</p>
-              <pre className="bg-slate-900 text-slate-100 p-3 rounded-lg font-mono text-xs overflow-x-auto">
-{`# Install Termux from F-Droid
-# Then run:
-pkg update && pkg install nodejs
-npm i -g secretary-mobile
-secretary-mobile --setup ${setupCode.substring(0, 20)}...`}
-              </pre>
-            </div>
-          </motion.div>
-        )}
-
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
+          transition={{ delay: 0.2 }}
           className="mt-8 text-center"
         >
           <h3 className="font-semibold text-slate-900 mb-4">
@@ -240,21 +315,21 @@ secretary-mobile --setup ${setupCode.substring(0, 20)}...`}
           <div className="grid grid-cols-3 gap-4 text-center">
             <div>
               <div className="w-12 h-12 bg-brand-100 rounded-xl flex items-center justify-center mx-auto mb-2">
-                <span className="text-brand-600 font-bold">1</span>
+                <MessageCircle className="w-6 h-6 text-brand-600" />
               </div>
-              <p className="text-sm text-slate-600">Scan QR</p>
+              <p className="text-sm text-slate-600">Link WhatsApp</p>
             </div>
             <div>
               <div className="w-12 h-12 bg-brand-100 rounded-xl flex items-center justify-center mx-auto mb-2">
-                <span className="text-brand-600 font-bold">2</span>
+                <Smartphone className="w-6 h-6 text-brand-600" />
               </div>
-              <p className="text-sm text-slate-600">App installs</p>
+              <p className="text-sm text-slate-600">Scan Setup QR</p>
             </div>
             <div>
               <div className="w-12 h-12 bg-brand-100 rounded-xl flex items-center justify-center mx-auto mb-2">
-                <span className="text-brand-600 font-bold">3</span>
+                <CheckCircle className="w-6 h-6 text-brand-600" />
               </div>
-              <p className="text-sm text-slate-600">Ready!</p>
+              <p className="text-sm text-slate-600">Done!</p>
             </div>
           </div>
         </motion.div>
