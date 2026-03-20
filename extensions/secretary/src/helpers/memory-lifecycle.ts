@@ -21,6 +21,8 @@ export interface MemoryEntry {
 
 const memoryCache = new Map<string, MemoryEntry>();
 
+let nativeToolsRegistered = false;
+
 export function looksLikePromptInjection(text: string): boolean {
   return PROMPT_INJECTION_PATTERNS.some((pattern) => pattern.test(text));
 }
@@ -65,13 +67,98 @@ export async function captureMemoryFromText(
   };
 
   memoryCache.set(entry.id, entry);
+  
+  await storeToNativeMemory(api, entry);
+
   return entry;
 }
 
-export function recallRelevantMemories(
+async function storeToNativeMemory(api: OpenClawPluginApi, entry: MemoryEntry): Promise<void> {
+  if (!api.runtime.tools?.createMemorySearchTool) {
+    api.logger?.debug(`[memory-lifecycle] Native memory tools not available, using cache only`);
+    return;
+  }
+
+  try {
+    const memoryPath = api.resolvePath(`./memory/${entry.category}s.md`);
+    const timestamp = new Date().toISOString().slice(0, 10);
+    const content = `\n## [${timestamp}] ${entry.source || "captured"}\n\n${entry.content}\n`;
+    
+    const fs = (api.runtime as any).fs;
+    if (fs?.readFile && fs?.writeFile) {
+      const existing = await fs.readFile(memoryPath).catch(() => "");
+      await fs.writeFile(memoryPath, existing + content);
+      api.logger?.debug(`[memory-lifecycle] Stored to native memory: ${memoryPath}`);
+    }
+  } catch (err: any) {
+    api.logger.warn(`[memory-lifecycle] Failed to store to native memory: ${err.message}`);
+  }
+}
+
+export async function recallRelevantMemories(
+  api: OpenClawPluginApi,
   query: string,
   maxResults = 5,
-): MemoryEntry[] {
+): Promise<MemoryEntry[]> {
+  const nativeResults = await recallFromNativeMemory(api, query, maxResults);
+  
+  if (nativeResults.length > 0) {
+    api.logger.info(`[memory-lifecycle] Recalled ${nativeResults.length} memories from native backend`);
+    return nativeResults;
+  }
+
+  return recallFromCache(query, maxResults);
+}
+
+async function recallFromNativeMemory(
+  api: OpenClawPluginApi,
+  query: string,
+  maxResults: number,
+): Promise<MemoryEntry[]> {
+  if (!api.runtime.tools?.createMemorySearchTool) {
+    return [];
+  }
+
+  try {
+    const createTool = api.runtime.tools.createMemorySearchTool;
+    if (!createTool) {
+      return [];
+    }
+
+    const tool = createTool({
+      config: api.config,
+      agentSessionKey: undefined,
+    });
+
+    if (!tool || !tool.execute) {
+      return [];
+    }
+
+    const result = await tool.execute("memory-lifecycle-recall", {
+      query,
+      maxResults,
+    });
+
+    const details = (result as any).details as { results?: any[] } | undefined;
+    if (details?.results?.length) {
+      return details.results.map((r: any, idx: number) => ({
+        id: `native-${idx}`,
+        content: r.snippet || r.text || "",
+        category: detectCategory(r.snippet || r.text || "") as MemoryCategory,
+        timestamp: r.path || new Date().toISOString(),
+        source: "native_memory",
+        confidence: r.score || 0.9,
+      }));
+    }
+
+    return [];
+  } catch (err: any) {
+    api.logger?.debug(`[memory-lifecycle] Native memory recall failed: ${err.message}`);
+    return [];
+  }
+}
+
+function recallFromCache(query: string, maxResults: number): MemoryEntry[] {
   const queryWords = query.toLowerCase().split(/\s+/);
   const results: { entry: MemoryEntry; score: number }[] = [];
 
@@ -116,8 +203,49 @@ export function formatMemoriesForContext(memories: MemoryEntry[]): string {
   return sections.join("\n");
 }
 
+async function registerNativeMemoryTools(api: OpenClawPluginApi): Promise<void> {
+  if (!api.runtime.tools?.createMemorySearchTool || !api.runtime.tools?.createMemoryGetTool) {
+    api.logger.info(`[memory-lifecycle] Native memory tools not available, using custom implementation`);
+    return;
+  }
+
+  if (nativeToolsRegistered) {
+    return;
+  }
+
+  try {
+    const config = api.config;
+    
+    const memorySearchTool = api.runtime.tools.createMemorySearchTool({
+      config,
+      agentSessionKey: undefined,
+    });
+
+    const memoryGetTool = api.runtime.tools.createMemoryGetTool?.({
+      config,
+      agentSessionKey: undefined,
+    });
+
+    if (memorySearchTool) {
+      api.registerTool(memorySearchTool);
+      api.logger.info(`[memory-lifecycle] Registered native memory_search tool`);
+    }
+
+    if (memoryGetTool) {
+      api.registerTool(memoryGetTool);
+      api.logger.info(`[memory-lifecycle] Registered native memory_get tool`);
+    }
+
+    nativeToolsRegistered = true;
+  } catch (err: any) {
+    api.logger.warn(`[memory-lifecycle] Failed to register native memory tools: ${err.message}`);
+  }
+}
+
 export async function registerMemoryLifecycleHooks(api: OpenClawPluginApi): Promise<void> {
   api.logger.info(`[memory-lifecycle] Registering memory lifecycle hooks`);
+
+  await registerNativeMemoryTools(api);
 
   api.on("agent_end", async (event: { messages: unknown[]; success: boolean; error?: string; durationMs?: number }) => {
     try {
@@ -142,7 +270,7 @@ export async function registerMemoryLifecycleHooks(api: OpenClawPluginApi): Prom
 
   api.on("before_agent_start", async (event: { prompt: string; messages?: unknown[] }) => {
     try {
-      const relevant = recallRelevantMemories(event.prompt.slice(0, 200), 3);
+      const relevant = await recallRelevantMemories(api, event.prompt.slice(0, 200), 3);
 
       if (relevant.length > 0) {
         const context = formatMemoriesForContext(relevant);
