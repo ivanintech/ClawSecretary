@@ -30,17 +30,101 @@ OpenClaw Onboard guides you step by step through setting up the gateway, workspa
 
 ---
 
-## 🦞 Featured: ClawSecretary / SecretaryOS
+## 🦞 Featured: SecretaryOS - AI Secretary as a Service
 
-Transform your OpenClaw into an **Autonomous Digital Twin**.
+**Privacy-First AI Secretary that runs on YOUR device, managed by us.**
 
-- **Proactive Management**: Uses the Hal Stack & WAL Protocol for stateful memory.
-- **Premium Integrations**: Outlook, WhatsApp, and Calendly.
-- **Self-Monitoring**: Automated heartbeats for agenda and conflict orchestration.
-- **Zero Configuration**: Auto-generated activation, no manual API keys required
-- **🌐 SecretaryOS Web App**: SaaS dashboard at [`apps/secretaryos-web/`](apps/secretaryos-web/)
+```
+┌─────────────────────────────────────────────────────────────┐
+│  TU TELÉFONO (Edge - el cerebro)                           │
+│  ┌─────────────┐  ┌──────────────┐  ┌──────────────────┐ │
+│  │  OpenClaw   │  │   Local LLM │  │  ChromaDB      │ │
+│  │   App       │  │  (Q4-K_M)  │  │  (embeddings)  │ │
+│  └──────┬──────┘  └──────────────┘  └──────────────────┘ │
+└─────────┼───────────────────────────────────────────────────┘
+          │
+          │  WebSocket (cifrado)
+          ↓
+┌─────────────────────────────────────────────────────────────┐
+│  BRIDGE SERVER - SOLO retransmite, NO almacena mensajes    │
+└─────────────────────────────────────────────────────────────┘
+```
 
-👉 See [`extensions/secretary/README.md`](extensions/secretary/README.md) for details.
+### Why SecretaryOS?
+
+| Other Solutions | SecretaryOS |
+|-----------------|------------|
+| Tus datos en sus servidores | **Tus datos nunca salen de tu teléfono** |
+| Configuración manual | **Zero-config, escanea QR y listo** |
+| Sus servidores, sus reglas | **Bridge server open source, auditable** |
+| Sin garantías de privacidad | **Privacidad garantizada técnicamente** |
+| Pagas por uso de su compute | **Pagas solo por el bridge + soporte** |
+
+### Key Differentiators
+
+- **🛡️ Privacy by Design**: El modelo y embeddings viven en tu dispositivo. Nosotros NUNCA vemos tus mensajes.
+- **⚡ Zero-Config**: Escanea un QR, espera 2 minutos, empieza a chatear.
+- **🔒 Auditable**: El bridge server es proxy tonto - [ver código](https://github.com/openclaw/secretary).
+- **🌐 WhatsApp Native**: Hablas con tu secretary como un contacto normal.
+- **💰 Simple Pricing**: Sin sorpresas, sin contratos.
+
+### What SecretaryOS Does
+
+- **Briefings diarios**: Resumen de tu día cada mañana
+- **Coordinación inteligente**: Agenda reuniones, evita conflictos
+- **Memoria persistente**: Aprende tus preferencias, contexto, prioridades
+- **Respuesta proactiva**: Te anticipa antes de que preguntes
+- **Integraciones**: Calendar, email, tareas - conectamos con lo que usas
+
+### Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  TELEFONO (Edge - Processing)                               │
+│                                                             │
+│  ┌─────────────────────────────────────────────────────────┐│
+│  │  OpenClaw App                                          ││
+│  │  ├── Local LLM (quantized, ~3GB)                     ││
+│  │  ├── ChromaDB (embeddings locales)                   ││
+│  │  ├── Secretary Extension (memory, briefings, hooks)     ││
+│  │  └── WhatsApp Channel                                  ││
+│  └─────────────────────────────────────────────────────────┘│
+│                                                             │
+│  → Los mensajes se procesan LOCALMENTE                     │
+│  → Los embeddings se almacenan LOCALMENTE                  │
+│  → Nosotros NO tenemos acceso a estos datos                  │
+└─────────────────────────────────────────────────────────────┘
+          │
+          │  WebSocket cifrado (end-to-end)
+          ↓
+┌─────────────────────────────────────────────────────────────┐
+│  BRIDGE SERVER (nosotros)                                   │
+│                                                             │
+│  ┌─────────────────────────────────────────────────────────┐│
+│  │  • Recibe mensajes de WhatsApp Web (Baileys)          ││
+│  │  • Los retransmite al teléfono (sin almacenarlos)       ││
+│  │  • Notificaciones push cuando el teléfono está offline   ││
+│  │  • Dashboard del usuario (config, métricas)            ││
+│  └─────────────────────────────────────────────────────────┘│
+│                                                             │
+│  → NO procesa mensajes                                     │
+│  → NO almacena conversaciones                              │
+│  → NO tiene las claves de cifrado                          │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Getting Started
+
+1. **Escanea el QR** desde [secretaryos.app](https://secretaryos.app)
+2. **Espera** mientras se descarga el modelo (~3GB)
+3. **Conecta WhatsApp** escaneando otro QR
+4. **¡Listo!** Secretary te saluda por WhatsApp
+
+👉 See [`extensions/secretary/README.md`](extensions/secretary/README.md) for technical details.
+
+### SecretaryOS Web App
+
+SaaS dashboard for management at [`apps/secretaryos-web/`](apps/secretaryos-web/)
 Works with npm, pnpm, or bun.
 New install? Start here: [Getting started](https://docs.openclaw.ai/start/getting-started)
 
