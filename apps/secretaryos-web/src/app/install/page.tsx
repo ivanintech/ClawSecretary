@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { QRCodeSVG } from 'qrcode.react'
 import { motion } from 'framer-motion'
 import { 
@@ -11,29 +12,55 @@ import {
   Check,
   Smartphone,
   ExternalLink,
-  Shield
+  Shield,
+  Loader2,
+  AlertCircle
 } from 'lucide-react'
 
 export default function InstallPage() {
+  const router = useRouter()
   const [token, setToken] = useState('')
   const [copied, setCopied] = useState(false)
   const [timeLeft, setTimeLeft] = useState(900) // 15 minutes
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    // Generate token on mount
-    const generateToken = () => {
-      const newToken = Math.random().toString(36).substring(2, 15) + 
-                       Math.random().toString(36).substring(2, 15)
-      setToken(newToken)
-    }
-    generateToken()
+    createInstallToken()
+  }, [])
 
-    // Countdown timer
+  const createInstallToken = async () => {
+    setLoading(true)
+    setError(null)
+    
+    try {
+      const res = await fetch('/api/install/token', { method: 'POST' })
+      const data = await res.json()
+      
+      if (!res.ok) {
+        if (res.status === 401) {
+          router.push('/login?redirect=/install')
+          return
+        }
+        throw new Error(data.error || 'Failed to create token')
+      }
+      
+      setToken(data.token)
+      setTimeLeft(900)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create installation token')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (!token) return
+    
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
-          generateToken()
+          createInstallToken()
           return 900
         }
         return prev - 1
@@ -41,13 +68,12 @@ export default function InstallPage() {
     }, 1000)
 
     return () => clearInterval(timer)
-  }, [])
+  }, [token])
 
-  const installUrl = `secretaryos://install?token=${token}`
-  const webInstallUrl = `https://secretaryos.app/install/${token}`
+  const installUrl = `/install/setup/${token}`
 
   const copyToClipboard = () => {
-    navigator.clipboard.writeText(webInstallUrl)
+    navigator.clipboard.writeText(installUrl)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
@@ -104,13 +130,24 @@ export default function InstallPage() {
           className="bg-white rounded-2xl shadow-xl p-8 mb-6"
         >
           <div className="aspect-square bg-slate-50 rounded-xl flex items-center justify-center mb-6">
-            <QRCodeSVG 
-              value={installUrl}
-              size={256}
-              level="M"
-              includeMargin
-              className="rounded-lg"
-            />
+            {loading ? (
+              <Loader2 className="w-16 h-16 text-slate-400 animate-spin" />
+            ) : error ? (
+              <div className="text-center">
+                <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-2" />
+                <p className="text-sm text-red-500">{error}</p>
+              </div>
+            ) : token ? (
+              <QRCodeSVG 
+                value={installUrl}
+                size={256}
+                level="M"
+                includeMargin
+                className="rounded-lg"
+              />
+            ) : (
+              <Loader2 className="w-16 h-16 text-slate-400 animate-spin" />
+            )}
           </div>
 
           {/* Timer */}
@@ -145,7 +182,7 @@ export default function InstallPage() {
           <div className="flex gap-2">
             <input
               type="text"
-              value={webInstallUrl}
+              value={installUrl}
               readOnly
               className="flex-1 px-4 py-3 bg-slate-50 rounded-xl text-sm text-slate-600 border border-slate-200"
             />

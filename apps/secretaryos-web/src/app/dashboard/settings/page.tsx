@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { 
   Settings,
@@ -14,7 +14,10 @@ import {
   ChevronRight,
   CheckCircle2,
   AlertCircle,
-  ExternalLink
+  ExternalLink,
+  Wifi,
+  Loader2,
+  Save
 } from 'lucide-react'
 
 const settingsSections = [
@@ -34,13 +37,6 @@ const settingsSections = [
     ]
   },
   {
-    title: 'Dispositivo',
-    items: [
-      { label: 'Estado', icon: Smartphone, description: 'iPhone 15 Pro - Conectado' },
-      { label: 'Reinstalar app', icon: Smartphone, description: 'Generar nuevo código QR' },
-    ]
-  },
-  {
     title: 'Seguridad',
     items: [
       { label: 'Privacidad', icon: Shield, description: 'Tus datos están protegidos' },
@@ -57,6 +53,55 @@ export default function SettingsPage() {
     meetings: true,
     whatsapp: true
   })
+  
+  const [gatewayUrl, setGatewayUrl] = useState('')
+  const [gatewayLoading, setGatewayLoading] = useState(true)
+  const [gatewaySaving, setGatewaySaving] = useState(false)
+  const [gatewaySaved, setGatewaySaved] = useState(false)
+  const [gatewayError, setGatewayError] = useState<string | null>(null)
+  
+  useEffect(() => {
+    fetchGatewayUrl()
+  }, [])
+  
+  const fetchGatewayUrl = async () => {
+    setGatewayLoading(true)
+    try {
+      const res = await fetch('/api/profile/gateway')
+      const data = await res.json()
+      setGatewayUrl(data.gateway_url || '')
+    } catch (err) {
+      console.error('Failed to fetch gateway URL:', err)
+    } finally {
+      setGatewayLoading(false)
+    }
+  }
+  
+  const saveGatewayUrl = async () => {
+    setGatewaySaving(true)
+    setGatewayError(null)
+    setGatewaySaved(false)
+    
+    try {
+      const res = await fetch('/api/profile/gateway', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ gatewayUrl })
+      })
+      
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Failed to save')
+      }
+      
+      setGatewaySaved(true)
+      setTimeout(() => setGatewaySaved(false), 3000)
+    } catch (err) {
+      setGatewayError(err instanceof Error ? err.message : 'Failed to save')
+    } finally {
+      setGatewaySaving(false)
+    }
+  }
 
   return (
     <div className="p-4 lg:p-8 max-w-3xl">
@@ -120,7 +165,7 @@ export default function SettingsPage() {
         ))}
       </div>
 
-      {/* Notification Settings */}
+      {/* Gateway Configuration */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -128,39 +173,73 @@ export default function SettingsPage() {
         className="bg-white rounded-xl shadow-sm overflow-hidden mt-6"
       >
         <div className="px-4 py-3 bg-slate-50 border-b">
-          <h3 className="font-semibold text-slate-900">Notificaciones</h3>
+          <h3 className="font-semibold text-slate-900 flex items-center gap-2">
+            <Wifi className="w-5 h-5" />
+            OpenClaw Gateway
+          </h3>
         </div>
-        <div className="divide-y">
-          {[
-            { key: 'briefing', label: 'Morning Briefing', description: 'Resumen diario a primera hora' },
-            { key: 'reminders', label: 'Recordatorios', description: 'Cuando se cumplan tus recordatorios' },
-            { key: 'emails', label: 'Emails importantes', description: 'Notificaciones de emails críticos' },
-            { key: 'meetings', label: 'Cambios de reunión', description: 'Cuando alguien modifique una cita' },
-            { key: 'whatsapp', label: 'WhatsApp', description: 'Canal principal de comunicación' },
-          ].map((item) => (
-            <div key={item.key} className="p-4 flex items-center justify-between">
-              <div>
-                <div className="font-medium text-slate-900">{item.label}</div>
-                <div className="text-sm text-slate-500">{item.description}</div>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={notifications[item.key as keyof typeof notifications]}
-                  onChange={() => setNotifications(prev => ({
-                    ...prev,
-                    [item.key]: !prev[item.key as keyof typeof notifications]
-                  }))}
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-600"></div>
-              </label>
+        <div className="p-4">
+          <p className="text-sm text-slate-600 mb-4">
+            Configura la URL de tu gateway de OpenClaw para poder instalar SecretaryOS en tu móvil.
+            La URL debe empezar con <code className="bg-slate-100 px-1 rounded">ws://</code> o <code className="bg-slate-100 px-1 rounded">wss://</code>.
+          </p>
+          
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={gatewayUrl}
+              onChange={(e) => {
+                setGatewayUrl(e.target.value)
+                setGatewaySaved(false)
+              }}
+              placeholder="wss://tu-gateway.com:18789"
+              className="flex-1 px-4 py-3 bg-slate-50 rounded-xl text-sm border border-slate-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none"
+              disabled={gatewayLoading}
+            />
+            <button
+              onClick={saveGatewayUrl}
+              disabled={gatewayLoading || gatewaySaving || !gatewayUrl}
+              className="px-6 py-3 bg-brand-600 text-white rounded-xl hover:bg-brand-700 transition disabled:opacity-50 flex items-center gap-2"
+            >
+              {gatewaySaving ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Guardando...
+                </>
+              ) : gatewaySaved ? (
+                <>
+                  <CheckCircle2 className="w-4 h-4" />
+                  Guardado
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4" />
+                  Guardar
+                </>
+              )}
+            </button>
+          </div>
+          
+          {gatewayError && (
+            <div className="mt-3 flex items-center gap-2 text-red-600 text-sm">
+              <AlertCircle className="w-4 h-4" />
+              {gatewayError}
             </div>
-          ))}
+          )}
+          
+          <div className="mt-4 pt-4 border-t">
+            <a 
+              href="/dashboard/settings/gateway" 
+              className="flex items-center gap-2 text-brand-600 hover:text-brand-700 font-medium"
+            >
+              <ExternalLink className="w-4 h-4" />
+              Configuración avanzada del gateway
+            </a>
+          </div>
         </div>
       </motion.div>
 
-      {/* Device Status */}
+      {/* Device / Install */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -168,45 +247,23 @@ export default function SettingsPage() {
         className="bg-white rounded-xl shadow-sm overflow-hidden mt-6"
       >
         <div className="px-4 py-3 bg-slate-50 border-b">
-          <h3 className="font-semibold text-slate-900">Estado del Dispositivo</h3>
+          <h3 className="font-semibold text-slate-900 flex items-center gap-2">
+            <Smartphone className="w-5 h-5" />
+            Instalación Móvil
+          </h3>
         </div>
         <div className="p-4">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center">
-              <Smartphone className="w-6 h-6 text-slate-600" />
-            </div>
-            <div>
-              <h4 className="font-medium text-slate-900">iPhone 15 Pro</h4>
-              <p className="text-sm text-slate-500">Última conexión: Hace 2 minutos</p>
-            </div>
-            <CheckCircle2 className="w-6 h-6 text-green-500 ml-auto" />
-          </div>
+          <p className="text-sm text-slate-600 mb-4">
+            Instala SecretaryOS en tu móvil escaneando un código QR.
+          </p>
           
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-green-500" />
-              <span className="text-slate-600">Secretary activo</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-green-500" />
-              <span className="text-slate-600">WhatsApp conectado</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-green-500" />
-              <span className="text-slate-600">Voice wake activo</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-green-500" />
-              <span className="text-slate-600">Background ON</span>
-            </div>
-          </div>
-
-          <div className="mt-4 pt-4 border-t">
-            <button className="flex items-center gap-2 text-brand-600 hover:text-brand-700 font-medium">
-              <ExternalLink className="w-4 h-4" />
-              Ver detalles en OpenClaw
-            </button>
-          </div>
+          <a 
+            href="/install" 
+            className="inline-flex items-center gap-2 px-6 py-3 bg-brand-600 text-white rounded-xl hover:bg-brand-700 transition"
+          >
+            <Smartphone className="w-5 h-5" />
+            Generar QR de instalación
+          </a>
         </div>
       </motion.div>
 

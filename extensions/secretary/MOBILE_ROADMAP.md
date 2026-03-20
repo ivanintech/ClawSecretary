@@ -1,14 +1,14 @@
 # SecretaryOS Mobile Architecture Roadmap
 
-## Estado Actual del Problema
-
-El QR genera `secretaryos://install?token=xxx` pero **no existe app** para manejar este deep link. 
-
-La meta: instalar en el móvil **SIN UI visible** pero con toda la IA (incluyendo modelos cuantizados) corriendo localmente.
+**Last Updated:** March 20, 2026
 
 ---
 
-## Arquitectura Propuesta
+## ✅ IMPLEMENTED: Mobile Deep Link Handler (Phase 1)
+
+We've implemented a complete mobile installation flow using OpenClaw's existing device pairing system:
+
+### Arquitectura Implementada
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -20,72 +20,79 @@ La meta: instalar en el móvil **SIN UI visible** pero con toda la IA (incluyend
 ┌─────────────────────────────────────────────────────────────┐
 │              OpenClaw Gateway ( VPS/Home Server )             │
 │  ┌─────────────┐  ┌──────────────┐  ┌────────────────────┐  │
-│  │ WhatsApp    │  │ Cron Jobs    │  │ Memory + Sessions  │  │
-│  │ Channel     │  │ (Briefings)  │  │ (SQLite + VDB)    │  │
+│  │ WhatsApp    │  │ Cron Jobs    │  │ Device Pairing    │  │
+│  │ Channel     │  │ (Briefings)  │  │ (auto-approve)    │  │
 │  └─────────────┘  └──────────────┘  └────────────────────┘  │
-│  ┌──────────────────────────────────────────────────────┐    │
-│  │              LLM Inference Layer                      │    │
-│  │  ┌─────────────────┐  ┌─────────────────────────┐   │    │
-│  │  │ Cloud API        │  │ On-Device (Phase 3+)     │   │    │
-│  │  │ (OpenAI/Anthropic│  │ GGUF Quantized Models   │   │    │
-│  │  │  /Ollama)        │  │ llama.cpp / MLC-LLM    │   │    │
-│  │  └─────────────────┘  └─────────────────────────┘   │    │
-│  └──────────────────────────────────────────────────────┘    │
-└─────────────────────────┬───────────────────────────────────┘
-                          │ WebSocket RPC (node.invoke)
+└─────────────────────────────────────────────────────────────┘
+                          │ WebSocket
                           ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                    Mobile Device (Phone)                     │
 │  ┌──────────────────────────────────────────────────────┐   │
-│  │  SecretaryOS Node App (minimal shell, no UI)           │   │
-│  │  ┌────────────┐  ┌────────────┐  ┌────────────────┐  │   │
-│  │  │ WhatsApp   │  │ Local      │  │ Sensors/Cam    │  │   │
-│  │  │ Webhook    │  │ Model Cache│  │ /Notifications │  │   │
-│  │  │ Receiver   │  │ (GGUF)     │  │                │  │   │
-│  │  └────────────┘  └────────────┘  └────────────────┘  │   │
+│  │  OpenClaw Native App (Node Mode)                       │   │
+│  │  • Scans QR → auto-pairing                            │   │
+│  │  • Runs SecretaryOS extension                         │   │
+│  │  • No additional UI required                          │   │
 │  └──────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────┘
 ```
 
----
-
-## FASE 1: Integración con OpenClaw Native Apps (Semana 1-2)
-
-### Opción A: Usar OpenClaw iOS/Android existentes
-
-OpenClaw ya tiene apps nativas (`apps/ios/`, `apps/android/`) con "Node mode":
+### Flujo de Instalación (Implementado)
 
 ```
-✅ YA EXISTE
-├── iOS app: apps/ios/
-├── Android app: apps/android/
-├── Node mode: Device paired to gateway
-└── node.invoke: Camera, notifications, device actions
+1. User logs in to SecretaryOS Web
+       ↓
+2. Goes to Settings → Configures Gateway URL (wss://gateway:18789)
+       ↓
+3. Goes to Install → Generates QR code
+       ↓
+4. QR contains: /install/setup/{token}
+       ↓
+5. Mobile opens URL → Server validates token
+       ↓
+6. If gateway configured: Generates pairing URL (openclaw://pair?...)
+       ↓
+7. OpenClaw app handles pairing URL
+       ↓
+8. Device auto-connects as SecretaryOS Node
 ```
 
-**Instalación:**
-1. Usuario instala OpenClaw desde App Store / Google Play
-2. Dashboard genera QR con token de emparejamiento
-3. OpenClaw se conecta al gateway como "SecretaryOS Node"
-4. Sin UI - solo notificaciones pushbackground
+### Archivos Creados
 
-**Limitación actual:** Requiere que el usuario instale app OpenClaw explícitamente
+| File | Purpose |
+|------|---------|
+| `apps/secretaryos-web/src/app/api/install/token/route.ts` | Create install tokens |
+| `apps/secretaryos-web/src/app/api/install/validate/route.ts` | Validate tokens, generate pairing URL |
+| `apps/secretaryos-web/src/app/api/profile/gateway/route.ts` | Gateway URL CRUD |
+| `apps/secretaryos-web/src/app/install/setup/[token]/page.tsx` | Token validation & QR display |
+| `apps/secretaryos-web/src/app/dashboard/settings/page.tsx` | Updated with gateway config |
+| `apps/secretaryos-web/src/lib/migrations/001_add_gateway_url.sql` | DB schema update |
 
 ---
 
-## FASE 2: App Wrapper Minimal (Semana 3-4)
+## FASE 2: App Wrapper Minimal (Pendiente)
 
-### Build: SecretaryOS Thin App
+### Build: SecretaryOS Thin App (Future)
 
-Una APK/IPA que simplemente:
-1. Registra deep link `secretaryos://`
-2. Se empareja con gateway via WebSocket
-3. Solo muestra notificaciones push (no UI)
-4. Background worker para mantener conexión
+Si se requiere una app personalizada en lugar de OpenClaw:
 
-**Stack técnico:**
-- **Android**: Kotlin + WorkManager (background)
-- **iOS**: Swift + BackgroundTasks (background)
+```
+┌─────────────────────────────────────────┐
+│        SecretaryOS Thin App              │
+│  ┌─────────────────────────────────┐    │
+│  │  WebView → SecretaryOS Web      │    │
+│  │  Deep Link Handler              │    │
+│  │  Background Worker (minimal)     │    │
+│  └─────────────────────────────────┘    │
+└─────────────────────────────────────────┘
+          │
+          ▼
+┌─────────────────────────────────────────┐
+│          OpenClaw Gateway                │
+│  • Pairing → Node Mode                  │
+│  • SecretaryOS extension active          │
+└─────────────────────────────────────────┘
+```
 
 **Código mínimo (~500 líneas por plataforma):**
 
@@ -99,18 +106,11 @@ class MainActivity : AppCompatActivity() {
         finish() // Cierra inmediatamente
     }
 }
-
-// SecretaryService: Background WebSocket + Notifications
-class SecretaryService : Service() {
-    // Conecta a gateway.ws
-    // Recibe mensajes vía WebSocket
-    // Muestra notifications
-}
 ```
 
 ---
 
-## FASE 3: On-Device LLM con GGUF (Semana 5-8)
+## FASE 3: On-Device LLM con GGUF (Future)
 
 ### Tecnología: llama.cpp + GGUF Quantization
 
@@ -123,136 +123,32 @@ class SecretaryService : Service() {
 | Gemma3-4B | 4B | ~2.4 GB | 6-10 tok/s |
 | Phi-4-3.8B | 3.8B | ~2.1 GB | 7-11 tok/s |
 
-**Stack de inferencia:**
-
-```
-┌─────────────────────────────────────────┐
-│        SecretaryOS Mobile App            │
-│  ┌─────────────────────────────────┐    │
-│  │    llama.cpp (libllama.so)       │    │
-│  │    GGUF model loading + CUDA/NNAPI│    │
-│  └─────────────────────────────────┘    │
-└─────────────────────────────────────────┘
-         │
-         ▼
-┌─────────────────────────────────────────┐
-│          Ollama API (local)              │
-│  localhost:11434 ( Whisper → STT )      │
-└─────────────────────────────────────────┘
-```
-
-**Fallback strategy:**
-1. On-device GGUF primary (sin internet)
-2. Ollama local (misma máquina, mejor throughput)
-3. Cloud API (OpenAI/Anthropic) - solo si configura
-
----
-
-## FASE 4: Full On-Device Pipeline (Semana 9-12)
-
-### Complete Local Stack
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Mobile Device                             │
-│  ┌─────────────────────────────────────────────────────┐    │
-│  │                 Whisper.cpp (STT)                    │    │
-│  │                   ~39 MB (tiny)                      │    │
-│  └─────────────────────┬───────────────────────────────┘    │
-│                        │ Audio → Text                       │
-│                        ▼                                     │
-│  ┌─────────────────────────────────────────────────────┐    │
-│  │              llama.cpp + GGUF (LLM)                  │    │
-│  │              Qwen2.5-3B-Q4_K_M (~1.8 GB)            │    │
-│  │              + Ollama API wrapper                     │    │
-│  └─────────────────────┬───────────────────────────────┘    │
-│                        │ Response text                       │
-│                        ▼                                     │
-│  ┌─────────────────────────────────────────────────────┐    │
-│  │            transformers.js (TTS)                     │    │
-│  │            or: SillyTavern TTS                      │    │
-│  └─────────────────────────────────────────────────────┘    │
-│                                                              │
-│  ┌─────────────────────────────────────────────────────┐    │
-│  │            WhatsApp Web (bg)                         │    │
-│  │            + notifications                            │    │
-│  └─────────────────────────────────────────────────────┘    │
-└─────────────────────────────────────────────────────────────┘
-```
-
----
-
-## Comparativa de Tecnologías (2026)
-
-### Para On-Device LLM en Móvil:
-
-| Tecnología | Mejor para | Tamaño | Velocidad | Difficulty |
-|------------|-----------|--------|-----------|------------|
-| **llama.cpp + GGUF** | Android/Linux,通用 | ~1.6-2GB | 8-14 tok/s | Media |
-| **MLC-LLM** | Cross-platform, TVM | Similar | Similar | Alta |
-| **MLX** | Apple Silicon solo | Optimal | ~40 tok/s | Baja |
-| **Unsloth + ExecuTorch** | iOS, quantized | ~1GB | ~40 tok/s | Baja |
-| **TensorFlow Lite** | Google hardware | Variable | Variable | Media |
-| **Gemini Nano** | Pixel/Samsung flagships | ~1.2GB | ~20 tok/s | Muy baja |
-
-### Proyectos de Referencia en GitHub:
-
-1. **ollama/ollama** - 80k stars - Server LLM local más popular
-2. **ggerganov/llama.cpp** - 70k stars - Motor de inferencia GGUF
-3. **mlc-ai/mlc-llm** - 20k stars - Deployment cross-platform
-4. **unslothai/unsloth** - 10k stars - Fine-tuning + deployment móvil
-5. **LocalKinAI/localkin** - Nuevo, single-binary AI agent en Go
-6. **ClawdisAI/ClawdisAI** - Fork de OpenClaw, "Always local, always listening"
-
 ---
 
 ## Roadmap Timeline
 
 ```
-Semana 1-2: FASE 1
-├── Investigar integración con OpenClaw iOS/Android apps
-├── Generar QR de emparejamiento funcional
-└── Probar conexión node → gateway
+✅ FASE 1 (COMPLETADO): Mobile Deep Link Handler
+├── Token validation API
+├── Gateway URL configuration
+├── QR code generation
+└── OpenClaw native app pairing
 
-Semana 3-4: FASE 2  
-├── Crear app wrapper mínima (Kotlin/Swift)
-├── Registrar deep link secretaryos://
-├── Background service + notifications
-└── Emparejamiento WebSocket con gateway
+🔄 FASE 2 (Pendiente): Thin App Wrapper
+├── Custom WebView wrapper (optional)
+├── Deep link handling
+└── Background service
 
-Semana 5-8: FASE 3
-├── Integrar llama.cpp en app móvil
-├── Bundlenar modelo GGUF pequeño (Qwen2.5-1.5B)
-├── Ollama API wrapper local
-└── Fallback: cloud → local → on-device
+📋 FASE 3 (Futuro): On-Device LLM
+├── Integrar llama.cpp
+├── Bundlenar modelo GGUF pequeño
+└── Ollama API wrapper local
 
-Semana 9-12: FASE 4
-├── Integrar Whisper.cpp para STT
-├── TTS local (transformers.js o Piper)
-├── Optimizar memoria / streaming
+📋 FASE 4 (Futuro): Full Pipeline
+├── Whisper.cpp para STT
+├── TTS local
 └── Testing en dispositivos reales
-
-Mes 4+: Producción
-├── Publicar en App Store / Play Store
-├── Modelo adaptativo según hardware
-├── Actualizaciones OTA del modelo
-└── Monetización
 ```
-
----
-
-## Para Empezar AHORA
-
-### Opción Rápida (2 días):
-1. Modificar install page para usar QR de OpenClaw existente
-2. Usuario instala OpenClaw desde store
-3. SecretaryOS actúa como "plugin" / agente en OpenClaw
-
-### Opción Custom (2 semanas):
-1. Crear app mínima wrapper
-2. Integrar llama.cpp
-3. Bundlenar Qwen2.5-1.5B-Q4_K_M (~800MB)
-4. Publicar en Play Store como beta
 
 ---
 
@@ -262,5 +158,4 @@ Mes 4+: Producción
 - MLC-LLM: https://github.com/mlc-ai/mlc-llm
 - Unsloth: https://github.com/unslothai/unsloth
 - Ollama: https://github.com/ollama/ollama
-- On-Device LLM Android Guide: https://dev.to/software_mvp-factory/running-llms-on-device-in-android-gguf-models-nnapi-and-the-real-performance-tradeoffs-5bfc
 - OpenClaw iOS/Android: apps/ios/, apps/android/
