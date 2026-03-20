@@ -610,5 +610,57 @@ Ver también:
 ---
 
 **Última actualización:** 2026-03-20
-**Versión:** 1.0
-**Estado:** Planning
+**Versión:** 1.2
+**Estado:** Implementation in Progress
+
+---
+
+## Implementación Actual
+
+### ✅ Fase 0: Fundamentos (COMPLETADA)
+- [x] `apps/secretary-bridge/` - Bridge server repo
+- [x] PostgreSQL schema - users, sessions, devices, metrics
+- [x] WhatsApp Pre-Auth con Baileys v6.7
+- [x] Cifrado AES-256-GCM para sesiones
+- [x] API de generación de installation QR
+
+### ✅ Fase 1: Bridge Server MVP (COMPLETADA)
+- [x] WebSocket relay server (`/relay` endpoint)
+- [x] DeviceManager para registro de phones
+- [x] Auth con device tokens
+- [x] Routing de mensajes por userId
+- [x] Heartbeat ping/pong
+- [x] Métricas de conexión
+
+### ✅ Fase 2: Web Integration (COMPLETADA)
+- [x] BridgeClient para comunicación con bridge
+- [x] API routes para Pre-Auth, devices, bridge config
+- [x] Dashboard pages: bridge config, devices
+- [x] Página de instalación con QR
+
+### ✅ Fase 3: Mobile Client (COMPLETADA)
+- [x] `apps/secretary-mobile/` - Node.js client
+- [x] ConfigManager con setup codes
+- [x] BridgeClient WebSocket
+- [x] MessageProcessor con LLM local
+- [x] CLI con --setup, --start, --status
+
+### ⏳ Fase 4: Testing (EN PROGRESO)
+- [ ] Test de Pre-Auth flow
+- [ ] Test de WebSocket relay
+- [ ] Test end-to-end con WhatsApp
+
+### ⏳ Fase 5: Progress Notifications (PENDIENTE)
+- [ ] Progress via WhatsApp durante instalación
+- [ ] Welcome message template
+- [ ] Installation complete notification
+
+### ⏳ Fase 6: Secretary Extension (PENDIENTE)
+- [ ] Secretary extension en mobile
+- [ ] Morning briefing cron
+- [ ] Memory management
+
+### ⏳ Fase 7: Beta Launch (PENDIENTE)
+- [ ] Landing page beta
+- [ ] Onboarding flow
+- [ ] Billing integration
