@@ -1,7 +1,7 @@
 # ClawSecretary Architecture Guide
 
-**Version:** 3.0  
-**Last Updated:** March 18, 2026  
+**Version:** 3.1  
+**Last Updated:** March 20, 2026  
 **OpenClaw Integration:** 98%
 
 ---
@@ -131,6 +131,49 @@ sequenceDiagram
     Plugin->>Plugin: AutoActivator.generateActivationLink()
     Plugin->>Plugin: Print QR code
 ```
+
+---
+
+## SecretaryOS Web Application
+
+**Location:** `apps/secretaryos-web/`
+
+A Next.js 14 web application providing the SaaS interface for SecretaryOS.
+
+```
+apps/secretaryos-web/
+├── src/
+│   ├── app/
+│   │   ├── page.tsx                    # Landing page
+│   │   ├── layout.tsx                   # Root layout
+│   │   ├── api/auth/route.ts           # Supabase auth
+│   │   ├── api/memories/route.ts       # Supabase memories CRUD
+│   │   ├── api/routines/route.ts       # Supabase routines CRUD
+│   │   ├── dashboard/                  # Dashboard pages
+│   │   ├── install/page.tsx            # QR generator (needs app)
+│   │   ├── login/page.tsx              # Login
+│   │   └── register/page.tsx           # Register
+│   ├── components/                     # WhatsApp, UseCases, Timeline, Comparison
+│   └── lib/
+│       ├── auth-context.tsx            # Supabase Auth provider
+│       └── supabase/                    # client.ts, server.ts, middleware.ts
+├── .env.local                          # Secrets (NOT committed)
+├── .env.example                        # Template
+├── .gitignore                          # Created
+└── SUPABASE_SETUP.md                   # SQL schema
+```
+
+**Features:**
+- Landing page with WhatsApp demo
+- User authentication (Supabase)
+- Dashboard: Memory Bank, Routines, Activity Feed, Settings
+- QR installation page (generates `secretaryos://` deep link)
+- Real Supabase database integration
+
+**Mobile Installation Flow:**
+1. User visits `/install`
+2. QR code generated with `secretaryos://install?token=xxx`
+3. **Note:** Requires OpenClaw native app or custom wrapper to handle deep link
 
 ---
 
@@ -346,6 +389,36 @@ src/helpers/
 └── activation.ts           # Zero-config activation
 ```
 
+### Hooks (`src/hooks.ts`)
+
+**Purpose:** New lifecycle hooks for SecretaryOS integration
+
+**Hooks Implemented:**
+- `inbound_claim` - Detects briefing keywords in incoming messages
+- `session_start` - Analytics tracking on session initialization
+- `session_end` - Analytics tracking on session completion
+- `message_sending` - Message truncation for long responses
+
+**Key Functions:**
+```typescript
+// Register all Secretary hooks
+export function registerSecretaryHooks(api: OpenClawPluginApi): void
+
+// Check if message contains briefing keywords
+export function containsBriefingKeyword(text: string): boolean
+
+// Truncate long messages for channel limits
+export function truncateMessage(message: string, maxLength: number): string
+```
+
+**Briefing Keywords:**
+```typescript
+const BRIEFING_KEYWORDS = [
+  "briefing", "resumen", "day summary", "mi día", "how's my day",
+  "daily", "agenda", "scheduled", "appointments"
+];
+```
+
 ### Helper: Intelligence (`intelligence.ts`)
 
 **Purpose:** Web research, RSS feeds, weather, venue discovery
@@ -395,6 +468,36 @@ await recordIoTActivity(api, {
 // Query capabilities
 getIoTActivityStats()  // { total, successful, failed, byDevice }
 getIoTActivityLog(50)   // Recent events
+```
+
+### Helper: Hooks (`hooks.ts`)
+
+**Purpose:** SecretaryOS-specific lifecycle hooks
+
+**File:** `src/hooks.ts` (NEW - 155 lines)
+
+**Hooks Registered:**
+```typescript
+// 1. inbound_claim - Detects briefing keywords
+api.on("inbound_claim", async (event) => {
+  // Returns { shouldClaim: boolean } for briefing messages
+});
+
+// 2. session_start - Analytics tracking
+api.on("session_start", async (event) => {
+  // Track session initialization for analytics
+});
+
+// 3. session_end - Analytics tracking
+api.on("session_end", async (event) => {
+  // Track session completion
+});
+
+// 4. message_sending - Message truncation
+api.on("message_sending", async (event) => {
+  // Returns modified message if truncation needed
+  return { content: truncatedMessage };
+});
 ```
 
 ### Helper: Memory Lifecycle (`memory-lifecycle.ts`)
@@ -1075,19 +1178,23 @@ if (hours === 8) { /* Could run multiple times */ }
 
 ## Future Roadmap
 
-### Phase 3: Skills Core Integration (COMPLETED)
+### Phase 3: Skills Core Integration (COMPLETED ✅)
 - [x] Slack Integration (send, read, mark done)
 - [x] iMsg Integration (macOS iMessage)
 - [x] Apple Reminders (macOS)
 - [x] Voice Wake (custom wake word)
 - [x] Node Mode (offline resilience)
 - [x] Mobile Integration (iOS/Android via node.invoke)
+- [x] **SecretaryOS Web App** (`apps/secretaryos-web/`)
+- [x] **Supabase Integration** (Auth, Memories, Routines)
+- [x] **New Hooks** (inbound_claim, session_start/end, message_sending)
 
 ### Phase 4: Mobile Core
 - [ ] Calendar native sync with mobile events
 - [ ] Contacts bidirectional sync
 - [ ] Notification smart triage
 - [ ] Activity monitoring proactivo
+- [ ] Deep link handler for `secretaryos://` protocol
 
 ### Phase 5: Vision/ML Mobile
 - [ ] OCR in-device for receipts
@@ -1105,7 +1212,7 @@ if (hours === 8) { /* Could run multiple times */ }
 
 ## Appendix: File Inventory
 
-### Source Files (18)
+### Source Files (19)
 
 | File | Lines | Purpose |
 |------|-------|---------|
@@ -1114,6 +1221,7 @@ if (hours === 8) { /* Could run multiple times */ }
 | `store.ts` | 35 | Calendar persistence |
 | `wal-helpers.ts` | 286 | WAL protocol |
 | `negotiation.ts` | 180 | P2P protocol |
+| `hooks.ts` | 155 | SecretaryOS hooks (NEW) |
 | `calendar-tool.ts` | 175 | Calendar tool |
 | `whatsapp-tool.ts` | 339 | WhatsApp tool |
 | `webhook.ts` | 204 | Webhook handlers |
@@ -1154,7 +1262,7 @@ if (hours === 8) { /* Could run multiple times */ }
 | `whatsapp.ts` | ~80 | WA utilities |
 | `activation.ts` | ~100 | Activation logic |
 
-### Total: 39 modules, ~7000 lines of TypeScript
+### Total: 40 modules, ~7155 lines of TypeScript (+ SecretaryOS Web App)
 
 ---
 
@@ -1174,7 +1282,7 @@ if (hours === 8) { /* Could run multiple times */ }
 
 ---
 
-**Document Version:** 3.0  
-**Last Updated:** March 18, 2026  
+**Document Version:** 3.1  
+**Last Updated:** March 20, 2026  
 **Authors:** ClawSecretary Team  
 **License:** MIT

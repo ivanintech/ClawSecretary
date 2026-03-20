@@ -30,7 +30,7 @@ OpenClaw Onboard guides you step by step through setting up the gateway, workspa
 
 ---
 
-## 🦞 Featured: ClawSecretary
+## 🦞 Featured: ClawSecretary / SecretaryOS
 
 Transform your OpenClaw into an **Autonomous Digital Twin**.
 
@@ -38,6 +38,7 @@ Transform your OpenClaw into an **Autonomous Digital Twin**.
 - **Premium Integrations**: Outlook, WhatsApp, and Calendly.
 - **Self-Monitoring**: Automated heartbeats for agenda and conflict orchestration.
 - **Zero Configuration**: Auto-generated activation, no manual API keys required
+- **🌐 SecretaryOS Web App**: SaaS dashboard at [`apps/secretaryos-web/`](apps/secretaryos-web/)
 
 👉 See [`extensions/secretary/README.md`](extensions/secretary/README.md) for details.
 Works with npm, pnpm, or bun.

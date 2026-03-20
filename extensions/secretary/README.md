@@ -48,6 +48,7 @@
 - **📝 Ghost Write** - Automated closure documentation
 - **🧠 Memory Lifecycle** - Context-aware recall across sessions
 - **📱 Zero-Config Activation** - Magic Setup via QR code
+- **🌐 SecretaryOS Web App** - SaaS dashboard with memory bank, routines, activity feed
 - **💬 Slack Integration** - Send, read, mark done
 - **📱 iMsg Integration** - iMessage via macOS Messages.app
 - **⏰ Apple Reminders** - Today/week/overdue/create/complete
@@ -74,6 +75,8 @@
 | **Voice Wake** | ✅ Complete | Custom wake word |
 | **Node Mode** | ✅ Complete | Offline resilience |
 | **Mobile (iOS/Android)** | ✅ Complete | 15+ actions via node.invoke |
+| **SecretaryOS Web App** | ✅ Complete | Next.js 14 + Supabase + Stripe |
+| **New Hooks** | ✅ Complete | inbound_claim, session_start/end, message_sending |
 
 ---
 
@@ -99,6 +102,31 @@ openclaw channels whatsapp connect
 # Or use the built-in activation
 openclaw pair
 ```
+
+### SecretaryOS Web App
+
+A complete SaaS dashboard is available at `apps/secretaryos-web/`:
+
+```bash
+cd apps/secretaryos-web
+npm install
+npm run dev
+```
+
+**Features:**
+- Landing page with WhatsApp demo and use cases
+- User authentication (Supabase)
+- Dashboard: Memory Bank, Routines Editor, Activity Feed
+- QR installation page for mobile setup
+- Real Supabase database integration
+
+**Configuration:**
+```bash
+cp .env.example .env.local
+# Edit .env.local with your Supabase credentials
+```
+
+See `apps/secretaryos-web/SUPABASE_SETUP.md` for database schema.
 
 ### Basic Commands
 
@@ -244,6 +272,11 @@ extensions/secretary/
 │   │   ├── 55+ action handlers
 │   │   ├── Proactive hooks
 │   │   └── Parallel execution
+│   │
+│   ├── hooks.ts                      # SecretaryOS hooks (155 lines) [NEW]
+│   │   ├── inbound_claim handler
+│   │   ├── session_start/end tracking
+│   │   └── message_sending truncation
 │   │
 │   ├── store.ts                      # Calendar persistence (35 lines)
 │   │

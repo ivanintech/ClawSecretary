@@ -243,7 +243,38 @@ Semana 4:
 
 ---
 
-## 6. Archivos de Referencia
+## 6. Estado de Implementación (Actualizado: 2026-03-20)
+
+### ✅ Completado
+
+| Feature | Status | Notes |
+|---------|--------|-------|
+| `inbound_claim` hook | ✅ Done | `src/hooks.ts:19-44` |
+| `session_start` hook | ✅ Done | `src/hooks.ts:46-67` |
+| `session_end` hook | ✅ Done | `src/hooks.ts:69-91` |
+| `message_sending` hook | ✅ Done | `src/hooks.ts:93-117` |
+| `buildPluginStatusReport` usage | ✅ Done | CLI already uses it |
+| SecretaryOS Web App | ✅ Done | `apps/secretaryos-web/` |
+| Supabase Integration | ✅ Done | Auth, Memories, Routines |
+| Tests passing | ✅ Done | 19/19 tests pass |
+
+### 🔄 En Progreso
+
+| Feature | Status | Notes |
+|---------|--------|-------|
+| Mobile deep link | 🔄 Pending | Needs OpenClaw native app or wrapper |
+| `runtime.tools.createMemorySearchTool()` | 🔄 Partial | Used in index.ts |
+
+### 📋 Pendiente
+
+| Feature | Priority | Notes |
+|---------|----------|-------|
+| AutoAuthOrchestrator integration | Medium | Already in onboarding flow |
+| Full memory migration to runtime.tools | Low | Current implementation works |
+
+---
+
+## 7. Archivos de Referencia
 
 - `src/saas/orchestrator.ts` - OAuth integration
 - `src/plugins/hooks.ts` - Hook system completo
