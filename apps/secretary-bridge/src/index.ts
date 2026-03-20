@@ -22,7 +22,7 @@ await fastify.register(jwt, {
   secret: process.env.JWT_SECRET || 'dev-secret-change-in-production',
 })
 
-const MASTER_KEY = process.env.SESSION_ENCRYPTION_KEY || 'default-dev-key-32-chars-xxxx'
+const MASTER_KEY = process.env.SESSION_ENCRYPTION_KEY || 'YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWE='
 
 const preAuthService = new WhatsAppPreAuthService(MASTER_KEY)
 const deviceManager = new DeviceManager()
