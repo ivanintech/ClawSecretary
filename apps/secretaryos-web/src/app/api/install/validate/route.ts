@@ -3,6 +3,13 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
+interface SetupCodePayload {
+  url: string
+  bootstrapToken?: string
+  token?: string
+  password?: string
+}
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const token = searchParams.get('token')
@@ -50,17 +57,61 @@ export async function GET(request: Request) {
     .update({ used_at: new Date().toISOString() })
     .eq('id', installToken.id)
 
-  // Generate the pairing URL
-  // Format: openclaw://pair?gateway={gatewayUrl}&token={pairingToken}
+  // Parse gateway URL to extract host, port, and scheme
+  const parsedUrl = parseGatewayUrl(gatewayUrl)
+  if (!parsedUrl) {
+    return NextResponse.json({ error: 'Invalid gateway URL' }, { status: 400 })
+  }
+
+  // Generate pairing token
   const pairingToken = generatePairingToken()
-  const pairingUrl = `openclaw://pair?gateway=${encodeURIComponent(gatewayUrl)}&token=${pairingToken}`
+
+  // Build WebSocket URL (same as gateway URL but with ws/wss scheme)
+  const wsScheme = parsedUrl.tls ? 'wss' : 'ws'
+  const wsUrl = `${wsScheme}://${parsedUrl.host}:${parsedUrl.port}`
+
+  // Create setup code payload (works for both iOS and Android)
+  const payload: SetupCodePayload = {
+    url: wsUrl,
+    token: pairingToken,
+  }
+
+  // Encode as base64url (URL-safe base64)
+  const setupCode = encodeBase64Url(JSON.stringify(payload))
 
   return NextResponse.json({
     success: true,
-    pairingUrl,
+    setupCode,
     gatewayUrl,
     deviceType: installToken.device_type
   })
+}
+
+function parseGatewayUrl(url: string): { host: string; port: number; tls: boolean } | null {
+  try {
+    // Handle both full URLs and host:port formats
+    let host: string
+    let port: number
+    let tls: boolean
+
+    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('ws://') || url.startsWith('wss://')) {
+      const parsed = new URL(url)
+      host = parsed.hostname
+      port = parsed.port ? parseInt(parsed.port) : (url.startsWith('https') || url.startsWith('wss') ? 443 : 18789)
+      tls = url.startsWith('https') || url.startsWith('wss')
+    } else {
+      // host:port format
+      const parts = url.split(':')
+      host = parts[0]
+      port = parts[1] ? parseInt(parts[1]) : 18789
+      tls = false
+    }
+
+    if (!host || isNaN(port)) return null
+    return { host, port, tls }
+  } catch {
+    return null
+  }
 }
 
 function generatePairingToken(): string {
@@ -70,4 +121,14 @@ function generatePairingToken(): string {
     result += chars.charAt(Math.floor(Math.random() * chars.length))
   }
   return result
+}
+
+function encodeBase64Url(str: string): string {
+  // Standard base64
+  const base64 = Buffer.from(str).toString('base64')
+  // Convert to URL-safe base64 (RFC 4648)
+  return base64
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '')
 }

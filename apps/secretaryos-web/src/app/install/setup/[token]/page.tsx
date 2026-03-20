@@ -17,7 +17,7 @@ import {
 
 interface ValidationResult {
   success: boolean
-  pairingUrl?: string
+  setupCode?: string
   gatewayUrl?: string
   error?: string
   setupRequired?: boolean
@@ -174,9 +174,9 @@ export default function InstallSetupPage() {
           className="bg-white rounded-2xl shadow-xl p-8 mb-6"
         >
           <div className="aspect-square bg-slate-50 rounded-xl flex items-center justify-center mb-6">
-            {validation.pairingUrl && (
+            {validation.setupCode && (
               <QRCodeSVG 
-                value={validation.pairingUrl}
+                value={validation.setupCode}
                 size={256}
                 level="M"
                 includeMargin
