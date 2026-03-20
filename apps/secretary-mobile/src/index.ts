@@ -2,6 +2,7 @@ import pino from 'pino'
 import { ConfigManager } from './config.js'
 import { BridgeClient } from './bridge-client.js'
 import { MessageProcessor } from './message-processor.js'
+import { scanQRFromImage, decodeSetupCode } from './qr-scanner.js'
 
 const logger = pino({
   level: process.env.LOG_LEVEL || 'info',
@@ -106,25 +107,26 @@ class SecretaryMobile {
 
   private printSetupInstructions(): void {
     console.log(`
-SecretaryOS Mobile Setup
-=======================
-
-To configure this device, you have two options:
-
-1. SCAN QR CODE (Recommended):
-   - Open the SecretaryOS web app
-   - Go to Settings > Devices
-   - Scan the QR code displayed there
-
-2. MANUAL SETUP:
-   - Get a setup code from the web app
-   - Run: secretary-mobile --setup <code>
-
-3. CONFIGURE INDIVIDUALLY:
-   - Set BRIDGE_URL, BRIDGE_TOKEN, ENCRYPTED_SESSION
-   - Run: secretary-mobile --start
-
-For more help, visit: https://docs.secretaryos.ai/mobile
+╔══════════════════════════════════════════════════════════════╗
+║                  SecretaryOS Mobile Setup                     ║
+╠══════════════════════════════════════════════════════════════╣
+║                                                               ║
+║  To configure this device, you have these options:            ║
+║                                                               ║
+║  1. SETUP CODE (Recommended):                               ║
+║     - Open http://localhost:3000/install                      ║
+║     - Complete WhatsApp setup                                 ║
+║     - Copy the setup code shown on screen                    ║
+║     - Run: secretary-mobile --code "<code>"                   ║
+║                                                               ║
+║  2. SCAN QR IMAGE:                                           ║
+║     - Save the setup QR as setup-qr.png                      ║
+║     - Run: secretary-mobile --scan setup-qr.png               ║
+║                                                               ║
+║  3. MANUAL SETUP:                                            ║
+║     - Run: secretary-mobile --setup <base64-code>            ║
+║                                                               ║
+╚══════════════════════════════════════════════════════════════╝
 `)
   }
 
@@ -136,6 +138,23 @@ For more help, visit: https://docs.secretaryos.ai/mobile
       logger.error({ error }, 'Invalid setup code')
       throw error
     }
+  }
+
+  async setupFromQRImage(imagePath: string): Promise<void> {
+    try {
+      const data = await scanQRFromImage(imagePath)
+      this.config.setFromSetupCode(Buffer.from(JSON.stringify(data)).toString('base64'))
+      logger.info('Setup from QR image successful')
+    } catch (error) {
+      logger.error({ error }, 'Failed to scan QR from image')
+      throw error
+    }
+  }
+
+  async setupFromBase64Code(code: string): Promise<void> {
+    const data = decodeSetupCode(code)
+    this.config.setFromSetupCode(Buffer.from(JSON.stringify(data)).toString('base64'))
+    logger.info('Setup from code successful')
   }
 
   async generateSetupQR(): Promise<string> {
@@ -161,6 +180,21 @@ if (args.includes('--setup') && args[1]) {
       process.exit(0)
     })
     .catch(() => process.exit(1))
+} else if (args.includes('--code') && args[1]) {
+  const code = args.slice(1).join(' ')
+  secretary.setupFromBase64Code(code)
+    .then(() => {
+      console.log('Setup complete! Run --start to connect.')
+      process.exit(0)
+    })
+    .catch(() => process.exit(1))
+} else if (args.includes('--scan') && args[1]) {
+  secretary.setupFromQRImage(args[1])
+    .then(() => {
+      console.log('QR scanned! Run --start to connect.')
+      process.exit(0)
+    })
+    .catch(() => process.exit(1))
 } else if (args.includes('--start')) {
   secretary.start().catch((error) => {
     logger.error({ error }, 'Failed to start')
@@ -180,25 +214,27 @@ if (args.includes('--setup') && args[1]) {
     .catch(() => process.exit(1))
 } else if (args.includes('--help')) {
   console.log(`
-SecretaryOS Mobile Client
-========================
-
-Usage:
-  secretary-mobile [options]
-
-Options:
-  --start          Start the mobile client
-  --setup <code>   Setup from a setup code
-  --status         Check connection status
-  --qr             Generate setup QR code
-  --help           Show this help
-
-Environment Variables:
-  LLM_ENDPOINT     URL for local LLM inference (optional)
-  LOG_LEVEL        Logging level (default: info)
-  BRIDGE_URL       Bridge server URL
-  BRIDGE_TOKEN     Bridge authentication token
-  ENCRYPTED_SESSION WhatsApp session (base64 encrypted)
+╔══════════════════════════════════════════════════════════════╗
+║                    SecretaryOS Mobile CLI                      ║
+╠══════════════════════════════════════════════════════════════╣
+║                                                               ║
+║  Usage:                                                       ║
+║    secretary-mobile [options]                                 ║
+║                                                               ║
+║  Options:                                                    ║
+║    --start           Start the mobile client                  ║
+║    --code <code>     Setup from base64 setup code            ║
+║    --scan <file>     Scan QR from image file                 ║
+║    --setup <code>    Setup from base64 code (legacy)         ║
+║    --status          Check connection status                  ║
+║    --qr              Generate setup QR code                   ║
+║    --help            Show this help                          ║
+║                                                               ║
+║  Environment Variables:                                       ║
+║    LLM_ENDPOINT      URL for local LLM inference (optional)  ║
+║    LOG_LEVEL         Logging level (default: info)            ║
+║                                                               ║
+╚══════════════════════════════════════════════════════════════╝
 `)
   process.exit(0)
 } else {

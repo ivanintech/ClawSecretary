@@ -240,41 +240,42 @@ export default function InstallPage() {
 
           {status === 'qr_ready' && (
             <div className="text-center">
-              <div className="bg-slate-50 rounded-2xl p-4 mb-6">
-                <img 
-                  src={qrDataUrl!}
-                  alt="Setup QR"
-                  className="w-64 h-64 mx-auto"
-                />
-              </div>
               <div className="flex items-center gap-2 justify-center mb-4">
                 <CheckCircle className="w-5 h-5 text-green-500" />
-                <span className="text-green-700 font-medium">Setup QR Ready</span>
+                <span className="text-green-700 font-medium">Setup Complete!</span>
               </div>
-              <p className="text-sm text-slate-600 mb-4">
-                Scan this QR with Secretary app on your phone
-              </p>
               
-              {/* Demo: Show what happens when scanned */}
-              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4 text-left">
-                <p className="text-sm font-medium text-blue-800 mb-2">📱 Demo: What happens when scanned:</p>
-                <ol className="text-xs text-blue-700 space-y-1">
-                  <li>1. App decodes QR → gets config</li>
-                  <li>2. App saves config locally</li>
-                  <li>3. App connects to bridge (WebSocket)</li>
-                  <li>4. WhatsApp session loaded</li>
-                  <li>5. Secretary is ready!</li>
-                </ol>
+              <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-4 text-left">
+                <p className="text-sm font-medium text-green-800 mb-2">Copy this setup code:</p>
+                <div className="bg-white border border-green-300 rounded-lg p-3 font-mono text-xs break-all max-h-32 overflow-y-auto">
+                  {setupCode.substring(0, 100)}...
+                </div>
                 <button
-                  onClick={async () => {
-                    const bridgeRes = await fetch('/api/bridge/config')
-                    const bridgeData = await bridgeRes.json()
-                    alert('Demo: Would connect to ' + bridgeData.url + '/relay')
+                  onClick={() => {
+                    navigator.clipboard.writeText(setupCode)
+                    alert('Setup code copied to clipboard!')
                   }}
-                  className="mt-3 w-full py-2 px-4 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700"
+                  className="mt-3 w-full py-2 px-4 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 flex items-center justify-center gap-2"
                 >
-                  Test Connection (Demo)
+                  <span>📋</span> Copy Setup Code
                 </button>
+              </div>
+              
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-4 text-left">
+                <p className="text-sm font-medium text-slate-800 mb-2">On your Secretary app, run:</p>
+                <code className="block bg-slate-800 text-green-400 rounded-lg p-3 text-xs font-mono">
+                  secretary-mobile --code "{setupCode.substring(0, 50)}..."
+                </code>
+              </div>
+              
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4 text-left">
+                <p className="text-sm font-medium text-blue-800 mb-2">What happens next:</p>
+                <ol className="text-xs text-blue-700 space-y-1">
+                  <li>1. App saves the configuration locally</li>
+                  <li>2. App connects to bridge (WebSocket)</li>
+                  <li>3. WhatsApp session loaded</li>
+                  <li>4. Secretary is ready!</li>
+                </ol>
               </div>
               
               <button

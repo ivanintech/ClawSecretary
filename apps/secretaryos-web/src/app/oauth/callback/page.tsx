@@ -1,11 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { CheckCircle2, XCircle, Loader2, ExternalLink } from 'lucide-react'
 
-export default function OAuthCallbackPage() {
+function OAuthCallbackContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
@@ -34,7 +34,6 @@ export default function OAuthCallbackPage() {
     }
 
     try {
-      // Send the code to our server to complete the OAuth flow
       const response = await fetch('/api/oauth/callback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -47,7 +46,6 @@ export default function OAuthCallbackPage() {
         setStatus('success')
         setMessage(data.message || 'Successfully connected!')
         
-        // Redirect after a short delay
         setTimeout(() => {
           router.push('/dashboard/settings?connected=' + (provider || 'unknown'))
         }, 2000)
@@ -55,7 +53,7 @@ export default function OAuthCallbackPage() {
         setStatus('error')
         setMessage(data.error || 'Failed to complete connection')
       }
-    } catch (err) {
+    } catch {
       setStatus('error')
       setMessage('Network error during connection')
     }
@@ -115,5 +113,19 @@ export default function OAuthCallbackPage() {
         )}
       </motion.div>
     </div>
+  )
+}
+
+export default function OAuthCallbackPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 flex items-center justify-center p-4">
+        <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center">
+          <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+        </div>
+      </div>
+    }>
+      <OAuthCallbackContent />
+    </Suspense>
   )
 }
