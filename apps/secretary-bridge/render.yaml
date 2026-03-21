@@ -4,9 +4,9 @@
 services:
   - type: web
     name: secretaryos-bridge
-    env: container
-    dockerfilePath: ./Dockerfile
-    region: oregon  # or frankfurt, singapore, etc.
+    image:
+      url: ivanintech/secretaryos-bridge:latest
+    region: oregon
     plan: free
     healthCheckPath: /health
     envVars:
