@@ -1,0 +1,24 @@
+# SecretaryOS Bridge Server - Render.com Blueprint
+# Deploy at: https://render.com/deploy?repo=https://github.com/ivanintech/ClawSecretary
+
+services:
+  - type: web
+    name: secretaryos-bridge
+    env: container
+    dockerfilePath: ./Dockerfile
+    region: oregon  # or frankfurt, singapore, etc.
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: BRIDGE_SECRET
+        sync: false
