@@ -9,7 +9,10 @@ import {
   Loader2,
   QrCode,
   RefreshCw,
-  MessageCircle
+  MessageCircle,
+  Monitor,
+  Copy,
+  Check
 } from 'lucide-react'
 
 type InstallStatus = 'loading' | 'no_auth' | 'ready' | 'connecting_whatsapp' | 'generating_qr' | 'qr_ready' | 'error'
@@ -21,8 +24,19 @@ export default function InstallPage() {
   const [sessionId, setSessionId] = useState<string>('')
   const [error, setError] = useState<string | null>(null)
   const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null)
+  const [isMobile, setIsMobile] = useState(false)
+  const [copied, setCopied] = useState(false)
+  const [showMobileSetup, setShowMobileSetup] = useState(false)
 
   useEffect(() => {
+    const mobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+    setIsMobile(mobile)
+    
+    if (mobile) {
+      window.location.href = '/mobile'
+      return
+    }
+    
     checkAuth()
     return () => {
       if (pollingInterval) clearInterval(pollingInterval)
@@ -256,17 +270,44 @@ export default function InstallPage() {
               </div>
               <div className="flex items-center gap-2 justify-center mb-4">
                 <CheckCircle className="w-5 h-5 text-green-500" />
-                <span className="text-green-700 font-medium">Setup QR Ready</span>
+                <span className="text-green-700 font-medium">¡Listo! Código QR generado</span>
               </div>
-              <p className="text-sm text-slate-600 mb-6">
-                Scan this QR with Secretary app on your phone
-              </p>
+              
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4 text-left">
+                <h4 className="font-medium text-blue-800 mb-2">📱 Desde tu teléfono:</h4>
+                <ol className="text-sm text-blue-700 space-y-1">
+                  <li>1. Abre SecretaryOS en tu teléfono</li>
+                  <li>2. Toca "Escanear QR"</li>
+                  <li>3. Escanea este código</li>
+                </ol>
+              </div>
+              
+              <div className="bg-slate-100 rounded-xl p-3 mb-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs text-slate-500">O copia el código:</span>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(setupCode)
+                      setCopied(true)
+                      setTimeout(() => setCopied(false), 2000)
+                    }}
+                    className="text-xs text-cyan-600 hover:text-cyan-700 flex items-center gap-1"
+                  >
+                    {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                    {copied ? 'Copiado!' : 'Copiar'}
+                  </button>
+                </div>
+                <code className="text-xs text-slate-600 break-all line-clamp-2">
+                  {setupCode.substring(0, 80)}...
+                </code>
+              </div>
+              
               <button
                 onClick={regenerateQR}
                 className="w-full py-3 px-4 border border-slate-200 rounded-xl text-slate-700 hover:bg-slate-50 transition flex items-center justify-center gap-2"
               >
                 <RefreshCw className="w-5 h-5" />
-                Start Over
+                Empezar de nuevo
               </button>
             </div>
           )}
