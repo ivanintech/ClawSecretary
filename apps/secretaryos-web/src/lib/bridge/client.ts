@@ -137,7 +137,7 @@ export function getBridgeClient(config?: BridgeConfig): BridgeClient {
   }
   
   if (!cachedClient) {
-    const url = process.env.BRIDGE_URL || 'http://localhost:3001'
+    const url = process.env.NEXT_PUBLIC_BRIDGE_URL || 'http://localhost:3001'
     const apiKey = process.env.BRIDGE_API_KEY
     cachedClient = new BridgeClient({ url, apiKey })
   }

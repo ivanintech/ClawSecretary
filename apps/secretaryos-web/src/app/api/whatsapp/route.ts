@@ -47,7 +47,7 @@ export async function POST(request: Request) {
     const body = await request.json().catch(() => ({}))
     const { action = 'start' } = body
 
-    const bridgeUrl = profile?.bridge_url || process.env.BRIDGE_URL || 'http://localhost:3001'
+    const bridgeUrl = profile?.bridge_url || process.env.NEXT_PUBLIC_BRIDGE_URL || process.env.BRIDGE_URL || 'http://localhost:3001'
     const bridge = getBridgeClient({ url: bridgeUrl })
 
     if (action === 'start') {
