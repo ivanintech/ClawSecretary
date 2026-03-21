@@ -4,7 +4,7 @@ app = "secretaryos-bridge"
 primary_region = "iad"
 
 [build]
-dockerfile = "Dockerfile"
+image = "ivanintech/secretaryos-bridge:latest"
 
 [env]
 NODE_ENV = "production"
