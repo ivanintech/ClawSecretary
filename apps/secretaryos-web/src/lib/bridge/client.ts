@@ -7,6 +7,8 @@ export interface WhatsAppPreAuthResult {
   sessionId: string
   qrCode: string
   expiresIn: number
+  error?: string
+  retry?: boolean
 }
 
 export interface WhatsAppStatusResult {

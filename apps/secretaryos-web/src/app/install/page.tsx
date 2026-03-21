@@ -69,6 +69,10 @@ export default function InstallPage() {
       
       const data = await res.json()
       
+      if (res.status === 503) {
+        throw new Error(data.message || 'WhatsApp connection failed. Please try again in a few minutes.')
+      }
+      
       if (!data.success && !data.qrCode && !data.qrDataUrl) {
         throw new Error(data.error || 'Failed to start WhatsApp connection')
       }
@@ -318,12 +322,26 @@ export default function InstallPage() {
                 <MessageCircle className="w-12 h-12 mx-auto" />
               </div>
               <p className="text-red-600 mb-4">{error}</p>
-              <button
-                onClick={regenerateQR}
-                className="py-3 px-6 bg-brand-600 text-white rounded-xl hover:bg-brand-700 transition"
-              >
-                Try Again
-              </button>
+              {error?.includes('WhatsApp connection failed') ? (
+                <div className="space-y-3">
+                  <p className="text-sm text-slate-600">
+                    This may be due to regional restrictions. Try again in a few minutes.
+                  </p>
+                  <button
+                    onClick={regenerateQR}
+                    className="py-3 px-6 bg-brand-600 text-white rounded-xl hover:bg-brand-700 transition"
+                  >
+                    Try Again
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={regenerateQR}
+                  className="py-3 px-6 bg-brand-600 text-white rounded-xl hover:bg-brand-700 transition"
+                >
+                  Try Again
+                </button>
+              )}
             </div>
           )}
         </motion.div>

@@ -54,6 +54,17 @@ export async function POST(request: Request) {
       try {
         const result = await bridge.startWhatsAppPreAuth(user.id)
         
+        if (result.error === 'whatsapp_connection_failed') {
+          return NextResponse.json({
+            success: false,
+            status: 'failed',
+            error: 'WhatsApp connection failed',
+            message: 'Could not connect to WhatsApp servers. This may be due to regional restrictions or IP blocking. Try again in a few minutes.',
+            retry: true,
+            retryAfter: 30000
+          }, { status: 503 })
+        }
+
         await supabase
           .from('profiles')
           .update({
@@ -68,7 +79,7 @@ export async function POST(request: Request) {
           status: 'pending',
           qrCode: result.qrCode,
           sessionId: result.sessionId,
-          message: 'Escanea el código QR con WhatsApp',
+          message: result.qrCode ? 'Escanea el código QR con WhatsApp' : 'Esperando código QR...',
           expiresIn: result.expiresIn
         } as WhatsAppLoginResult)
       } catch (bridgeError) {
