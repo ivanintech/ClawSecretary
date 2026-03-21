@@ -9,18 +9,21 @@ const logger = pino({ name: 'whatsapp-preauth' })
 
 interface PendingSession {
   id: string
-  qrPromise: Promise<string>
-  resolve: (qr: string) => void
-  reject: (err: Error) => void
   userId: string
-  timeout: NodeJS.Timeout
+  qrCode: string | null
+  qrResolve: ((qr: string) => void) | null
+  status: 'pending' | 'connected' | 'expired'
+  phoneNumber: string | null
   createdAt: Date
+  timeout: NodeJS.Timeout
 }
 
 export interface WhatsAppPreAuthResult {
   sessionId: string
   qrCode: string
   expiresIn: number
+  error?: string
+  retry?: boolean
 }
 
 export interface WhatsAppStatusResult {
@@ -51,78 +54,135 @@ export class WhatsAppPreAuthService {
     logger.info({ userId }, 'Starting WhatsApp pre-auth')
 
     const sessionId = uuidv4()
+    let qrResolve: ((qr: string) => void) | null = null
 
-    const qrPromise = new Promise<string>((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        this.pendingSessions.delete(sessionId)
-        reject(new Error('QR code expired - no scan within 60 seconds'))
-      }, 60 * 1000)
+    const pendingSession: PendingSession = {
+      id: sessionId,
+      userId,
+      qrCode: null,
+      qrResolve: null,
+      status: 'pending',
+      phoneNumber: null,
+      createdAt: new Date(),
+      timeout: setTimeout(() => {
+        const p = this.pendingSessions.get(sessionId)
+        if (p) {
+          p.status = 'expired'
+          p.qrResolve = null
+        }
+      }, 5 * 60 * 1000)
+    }
 
-      this.pendingSessions.set(sessionId, {
-        id: sessionId,
-        qrPromise: Promise.resolve(''),
-        resolve: (qr: string) => {
-          clearTimeout(timeout)
-          resolve(qr)
-        },
-        reject: (err: Error) => {
-          clearTimeout(timeout)
-          this.pendingSessions.delete(sessionId)
-          reject(err)
-        },
-        userId,
-        timeout,
-        createdAt: new Date()
-      })
-    })
+    this.pendingSessions.set(sessionId, pendingSession)
+
+    let resolvePreAuth: (() => void) | null = null
 
     const authDir = `/tmp/wa-auth-${sessionId}`
     const { state, saveCreds } = await useMultiFileAuthState(authDir)
     this.authState = state
     this.saveCredsFn = saveCreds
 
-    this.sock = makeWASocket({
+    const connectionFailureTimeout = setTimeout(() => {
+      const p = this.pendingSessions.get(sessionId)
+      if (p && !p.qrCode && p.status === 'pending') {
+        logger.warn({ sessionId }, 'Connection timeout without QR - will retry')
+        if (resolvePreAuth) {
+          resolvePreAuth()
+          resolvePreAuth = null
+        }
+      }
+    }, 15000)
+
+    const createSock = () => makeWASocket({
       auth: state,
       printQRInTerminal: false,
       logger,
     })
 
+    this.sock = createSock()
+
     this.sock.ev.on('connection.update', async ({ connection, qr }) => {
       const pending = this.pendingSessions.get(sessionId)
       
       if (qr) {
+        clearTimeout(connectionFailureTimeout)
         logger.info({ sessionId }, 'QR code generated')
-        if (pending) {
-          try {
-            const qrDataUrl = await QRCode.toDataURL(qr, {
-              margin: 2,
-              width: 300,
-              color: { dark: '#000000', light: '#FFFFFF' },
-            })
-            pending.resolve(qrDataUrl)
-          } catch (error) {
-            logger.error({ error }, 'Failed to generate QR image')
+        try {
+          const qrDataUrl = await QRCode.toDataURL(qr, {
+            margin: 2,
+            width: 300,
+            color: { dark: '#000000', light: '#FFFFFF' },
+          })
+          if (pending) {
+            pending.qrCode = qrDataUrl
+            if (resolvePreAuth) {
+              resolvePreAuth()
+              resolvePreAuth = null
+            }
           }
+        } catch (error) {
+          logger.error({ error }, 'Failed to generate QR image')
         }
       }
       
       if (connection === 'open') {
+        clearTimeout(connectionFailureTimeout)
         logger.info({ sessionId }, 'WhatsApp connected successfully')
         if (this.saveCredsFn) {
           await this.saveCredsFn()
         }
         if (pending) {
-          pending.resolve('ALREADY_CONNECTED')
+          pending.status = 'connected'
+          pending.phoneNumber = this.authState?.creds?.me?.jid?.replace('@s.whatsapp.net', '') || null
+        }
+        if (resolvePreAuth) {
+          resolvePreAuth()
+          resolvePreAuth = null
+        }
+      }
+      
+      if (connection === 'close') {
+        logger.info({ sessionId }, 'WhatsApp connection closed')
+        if (pending && pending.qrCode && pending.status === 'pending') {
+          logger.info({ sessionId }, 'QR was generated but connection closed - QR still valid for scanning')
+          if (resolvePreAuth) {
+            resolvePreAuth()
+            resolvePreAuth = null
+          }
         }
       }
     })
 
-    const qrCode = await qrPromise
+    await new Promise<void>((resolve) => {
+      resolvePreAuth = resolve
+      
+      const checkInterval = setInterval(() => {
+        const p = this.pendingSessions.get(sessionId)
+        if (p?.qrCode || p?.status === 'connected' || p?.status === 'expired') {
+          clearInterval(checkInterval)
+          resolve()
+        }
+      }, 100)
+    })
+
+    const pending = this.pendingSessions.get(sessionId)
+    const qrCode = pending?.qrCode || ''
+
+    if (!qrCode) {
+      logger.warn({ sessionId }, 'No QR code generated - WhatsApp connection may be blocked')
+      return {
+        sessionId,
+        qrCode: '',
+        expiresIn: 300,
+        error: 'whatsapp_connection_failed',
+        retry: true
+      }
+    }
 
     return {
       sessionId,
       qrCode,
-      expiresIn: 60,
+      expiresIn: 300,
     }
   }
 
@@ -130,22 +190,16 @@ export class WhatsAppPreAuthService {
     const pending = this.pendingSessions.get(sessionId)
     
     if (pending) {
-      try {
-        const qr = await Promise.race([
-          pending.qrPromise,
-          new Promise<'TIMEOUT'>((resolve) => setTimeout(() => resolve('TIMEOUT'), 100)),
-        ])
-        
-        if (qr === 'TIMEOUT') {
-          return { status: 'pending' }
+      if (pending.status === 'connected') {
+        return {
+          status: 'connected',
+          phoneNumber: pending.phoneNumber || undefined
         }
-        
-        return { 
-          status: 'pending', 
-          qrCode: qr !== 'ALREADY_CONNECTED' ? qr : undefined 
-        }
-      } catch {
-        return { status: 'failed' }
+      }
+      
+      return {
+        status: pending.status,
+        qrCode: pending.qrCode || undefined
       }
     }
 
@@ -154,6 +208,8 @@ export class WhatsAppPreAuthService {
 
   async completePreAuth(sessionId: string): Promise<WhatsAppCompleteResult> {
     logger.info({ sessionId }, 'Completing pre-auth')
+
+    const pending = this.pendingSessions.get(sessionId)
 
     if (!this.authState) {
       throw new Error('Auth state not available')
@@ -184,9 +240,12 @@ export class WhatsAppPreAuthService {
 
     const encryptedSession = this.encryption.encryptSession(sessionData)
 
-    const phoneNumber = this.authState.creds.me?.jid?.replace('@s.whatsapp.net', '') || null
+    const phoneNumber = pending?.phoneNumber || this.authState.creds.me?.jid?.replace('@s.whatsapp.net', '') || null
 
-    this.pendingSessions.delete(sessionId)
+    if (pending) {
+      clearTimeout(pending.timeout)
+      this.pendingSessions.delete(sessionId)
+    }
     
     return {
       success: true,
@@ -198,7 +257,11 @@ export class WhatsAppPreAuthService {
 
   async cancelPreAuth(sessionId: string): Promise<void> {
     logger.info({ sessionId }, 'Cancelling pre-auth')
-    this.pendingSessions.delete(sessionId)
+    const pending = this.pendingSessions.get(sessionId)
+    if (pending) {
+      clearTimeout(pending.timeout)
+      this.pendingSessions.delete(sessionId)
+    }
     if (this.sock) {
       this.sock.end(undefined)
       this.sock = null
@@ -215,6 +278,7 @@ export class WhatsAppPreAuthService {
 
     for (const [sessionId, pending] of this.pendingSessions.entries()) {
       if (now.getTime() - pending.createdAt.getTime() > maxAge) {
+        clearTimeout(pending.timeout)
         this.pendingSessions.delete(sessionId)
       }
     }
