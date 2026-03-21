@@ -4,8 +4,7 @@
 services:
   - type: web
     name: secretaryos-bridge
-    image:
-      url: ivanintech/secretaryos-bridge:latest
+    image: ivanintech/secretaryos-bridge:latest
     region: oregon
     plan: free
     healthCheckPath: /health
