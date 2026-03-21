@@ -1,15 +1,49 @@
 # SecretaryOS Mobile Architecture Roadmap
 
-**Last Updated:** March 20, 2026
+**Last Updated:** March 21, 2026
 
 ---
 
-## ✅ IMPLEMENTED: Mobile Deep Link Handler (Phase 1)
+## ✅ IMPLEMENTED: Privacy-First Mobile Setup (Phase 1)
 
-We've implemented a complete mobile installation flow using OpenClaw's existing device pairing system:
+### Arquitectura Simplificada
 
-### Arquitectura Implementada
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    PHONE (Edge - Privacy First)               │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │  SecretaryOS App (PWA)                               │   │
+│  │  • QR Scanner                                        │   │
+│  │  • Local storage (encrypted)                          │   │
+│  │  • Bridge WebSocket client                           │   │
+│  │  • WhatsApp Session (Baileys)                       │   │
+│  │  • Local LLM (Ollama) ← Future                     │   │
+│  └─────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
+                          │ Bridge relay ONLY
+                          ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    CLOUD (Bridge)                           │
+│  • Message relay only (no storage)                          │
+│  • No data persists                                       │
+└─────────────────────────────────────────────────────────────┘
+```
 
+### Flujo de Setup
+
+```
+Desktop (Web):
+1. Visit secretaryos-web.vercel.app/install
+2. Generate setup QR
+3. WhatsApp linked
+4. QR contains config + session
+
+Phone (PWA):
+1. Visit secretaryos-web.vercel.app/mobile
+2. "Add to Home Screen"
+3. Open app → Scan QR
+4. Configure & connect
+5. Ready (fully offline capable)
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    SecretaryOS Web (SaaS)                     │
